@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #F2F1ED;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #EAE9E4;
+  --text-primary: #222321;
+  --text-secondary: #72736E;
+  --accent: #F26943;
+  --accent-hover: #DA5835;
+  --accent-bg: #FFF0E9;
+  --border: #E6E5E0;
+  --success: #288568;
+  --success-bg: #EAF6F1;
+  --warning: #D69A35;
+  --warning-bg: #FDF6E7;
+  --danger: #D9534F;
+  --danger-bg: #FDEDEC;
+  --info: #4D83B5;
+  --info-bg: #EDF4FA;
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  --color-secondary: var(--bg-secondary);
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted: var(--bg-secondary);
+  --color-muted-foreground: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-bg);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D6D5CE;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8B7AF;
+}
+
+/* Warm SaaS elevation utilities */
+.shadow-card {
+  box-shadow: 0 1px 2px rgba(34, 35, 33, 0.04), 0 4px 12px rgba(34, 35, 33, 0.03);
+}
+
+.shadow-card-hover {
+  box-shadow: 0 2px 6px rgba(34, 35, 33, 0.06), 0 12px 28px rgba(34, 35, 33, 0.06);
+}
+
+.glass-warm {
+  background: rgba(242, 241, 237, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Loopsii-inspired editorial textures & tactile surfaces */
+.bg-dot-warm {
+  background-image: radial-gradient(rgba(34, 35, 33, 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.bg-dot-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.shadow-stage {
+  box-shadow:
+    0 1px 2px rgba(34, 35, 33, 0.05),
+    0 14px 40px -12px rgba(34, 35, 33, 0.12),
+    0 32px 80px -24px rgba(34, 35, 33, 0.1);
+}
+
+.btn-tactile-accent {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 4px 14px rgba(242, 105, 67, 0.28);
+}
+
+.btn-tactile-accent:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 6px 20px rgba(218, 88, 53, 0.36);
+}
+
+/* Sheet table zebra & crisp cell grid */
+.sheet-table th {
+  background-color: #F8F7F4;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sheet-table td {
+  border-bottom: 1px solid #EFECE6;
+}

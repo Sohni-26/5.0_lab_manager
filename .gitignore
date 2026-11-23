@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.next-verify/
+out/
+.env
+.env.local
+coverage/
+uploads/
+public/uploads/
+*.tsbuildinfo
+next-env.d.ts

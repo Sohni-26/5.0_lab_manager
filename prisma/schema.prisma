@@ -1,0 +1,606 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums (Strictly synchronized with src/types/contracts.ts)
+// ============================================================================
+
+enum UserRole {
+  CENTRAL_LAB_MANAGER
+  LAB_MANAGER
+  INSTRUCTOR
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum CampusStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AllocationStatus {
+  DRAFT
+  DISPATCHED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  DISCREPANCY_REPORTED
+  CANCELLED
+}
+
+enum InventoryTransactionType {
+  STOCK_ALLOCATED
+  STOCK_DISPATCHED
+  STOCK_RECEIVED
+  MISSING_REPORTED
+  DAMAGED_REPORTED
+  STOCK_RESERVED
+  RESERVATION_RELEASED
+  ITEM_ISSUED
+  ITEM_RETURNED
+  ITEM_MARKED_DAMAGED
+  ITEM_MARKED_MISSING
+  INVENTORY_ADJUSTMENT
+}
+
+enum LabRequestStatus {
+  PENDING_INSTRUCTOR
+  REJECTED_BY_INSTRUCTOR
+  PENDING_LAB_MANAGER
+  REJECTED_BY_LAB_MANAGER
+  APPROVED
+  PARTIALLY_ISSUED
+  ISSUED
+  RETURN_PENDING
+  RETURN_SUBMITTED
+  RETURN_VERIFICATION_PENDING
+  RETURN_DISPUTED
+  PARTIALLY_RETURNED
+  CLOSED
+  CANCELLED
+}
+
+enum ApprovalStage {
+  INSTRUCTOR_REVIEW
+  LAB_MANAGER_FINAL
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
+enum PhotoAngle {
+  FRONT_TOP
+  BACK_BOTTOM
+  LEFT_SIDE
+  RIGHT_SIDE
+}
+
+enum PhotoPhase {
+  COLLECTION
+  RETURN
+}
+
+enum ReturnCondition {
+  GOOD
+  DAMAGED
+  MISSING
+  PARTIAL
+}
+
+enum ReturnVerificationStatus {
+  PENDING
+  VERIFIED_GOOD
+  DISPUTED_DAMAGED
+  DISPUTED_MISSING
+  RESOLVED
+}
+
+enum IssueCategory {
+  DAMAGED_EQUIPMENT
+  MISSING_EQUIPMENT
+  MALFUNCTIONING_EQUIPMENT
+  INVENTORY_DISCREPANCY
+  INCORRECT_ALLOCATION
+  MAINTENANCE_REQUEST
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TicketStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+// ============================================================================
+// 1. Campus
+// ============================================================================
+
+model Campus {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  name      String
+  city      String?
+  state     String?
+  address   String?
+  status    CampusStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  users                 User[]
+  inventories           CampusInventory[]
+  allocations           StockAllocation[]
+  inventoryTransactions InventoryTransaction[]
+  labRequests           LabRequest[]
+  borrowingRecords      BorrowingRecord[]
+  issueTickets          IssueTicket[]
+  auditLogs             AuditLog[]
+
+  @@index([status])
+  @@map("campuses")
+}
+
+// ============================================================================
+// 2. User
+// Note: Partial unique index for single CENTRAL_LAB_MANAGER and CHECK
+// constraint for role-campus integrity are enforced in PostgreSQL migration.
+// ============================================================================
+
+model User {
+  id              String     @id @default(cuid())
+  fullName        String
+  email           String     @unique
+  institutionalId String     @unique
+  role            UserRole
+  status          UserStatus @default(ACTIVE)
+  campusId        String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  campus Campus? @relation(fields: [campusId], references: [id], onDelete: Restrict)
+
+  createdAllocations    StockAllocation[]      @relation("AllocationCreatedBy")
+  verifiedAllocations   StockAllocation[]      @relation("AllocationVerifiedBy")
+  inventoryTransactions InventoryTransaction[]
+  studentRequests       LabRequest[]           @relation("StudentRequests")
+  instructorRequests    LabRequest[]           @relation("InstructorRequests")
+  requestApprovals      RequestApproval[]
+  studentBorrowings     BorrowingRecord[]      @relation("StudentBorrowings")
+  instructorBorrowings  BorrowingRecord[]      @relation("InstructorBorrowings")
+  uploadedPhotos        ItemPhoto[]
+  verifiedReturns       ReturnVerification[]
+  createdTickets        IssueTicket[]          @relation("TicketCreatedBy")
+  assignedTickets       IssueTicket[]          @relation("TicketAssignedTo")
+  ticketComments        TicketComment[]
+  auditLogs             AuditLog[]
+
+  @@index([campusId, role])
+  @@index([role, status])
+  @@map("users")
+}
+
+// ============================================================================
+// 3. ItemCategory
+// ============================================================================
+
+model ItemCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items Item[]
+
+  @@map("item_categories")
+}
+
+// ============================================================================
+// 4. Item (Global Master Inventory)
+// ============================================================================
+
+model Item {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  description    String?
+  categoryId     String
+  brand          String?
+  specifications Json?
+  unit           String   @default("pcs")
+  imageUrl       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  category              ItemCategory           @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  campusInventories     CampusInventory[]
+  allocationItems       StockAllocationItem[]
+  inventoryTransactions InventoryTransaction[]
+  labRequestItems       LabRequestItem[]
+  borrowingRecords      BorrowingRecord[]
+  issueTickets          IssueTicket[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("items")
+}
+
+// ============================================================================
+// 5. CampusInventory
+// Note: Non-negative CHECK constraints enforced in PostgreSQL migration.
+// ============================================================================
+
+model CampusInventory {
+  id                String    @id @default(cuid())
+  campusId          String
+  itemId            String
+  allocatedQuantity Int       @default(0)
+  receivedQuantity  Int       @default(0)
+  availableQuantity Int       @default(0)
+  reservedQuantity  Int       @default(0)
+  borrowedQuantity  Int       @default(0)
+  damagedQuantity   Int       @default(0)
+  missingQuantity   Int       @default(0)
+  isVisible         Boolean   @default(true)
+  isVerified        Boolean   @default(false)
+  lastVerifiedAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([campusId, itemId])
+  @@index([campusId, isVerified, isVisible])
+  @@index([itemId])
+  @@map("campus_inventories")
+}
+
+// ============================================================================
+// 6. StockAllocation
+// ============================================================================
+
+model StockAllocation {
+  id                  String           @id @default(cuid())
+  referenceCode       String           @unique
+  source              String           @default("Central Warehouse")
+  destinationCampusId String
+  createdById         String
+  status              AllocationStatus @default(DRAFT)
+  notes               String?
+  dispatchedAt        DateTime?
+  verifiedAt          DateTime?
+  verifiedById        String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  destinationCampus Campus                @relation(fields: [destinationCampusId], references: [id], onDelete: Restrict)
+  createdBy         User                  @relation("AllocationCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  verifiedBy        User?                 @relation("AllocationVerifiedBy", fields: [verifiedById], references: [id], onDelete: Restrict)
+  items             StockAllocationItem[]
+
+  @@index([destinationCampusId, status])
+  @@index([status])
+  @@map("stock_allocations")
+}
+
+// ============================================================================
+// 7. StockAllocationItem
+// ============================================================================
+
+model StockAllocationItem {
+  id                String    @id @default(cuid())
+  allocationId      String
+  itemId            String
+  allocatedQuantity Int
+  receivedQuantity  Int       @default(0)
+  missingQuantity   Int       @default(0)
+  damagedQuantity   Int       @default(0)
+  isVerified        Boolean   @default(false)
+  verificationNotes String?
+  verifiedAt        DateTime?
+
+  allocation StockAllocation @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+  item       Item            @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([allocationId, itemId])
+  @@index([itemId])
+  @@map("stock_allocation_items")
+}
+
+// ============================================================================
+// 8. InventoryTransaction (Immutable Append-Only Ledger)
+// ============================================================================
+
+model InventoryTransaction {
+  id               String                   @id @default(cuid())
+  campusId         String
+  itemId           String
+  type             InventoryTransactionType
+  quantity         Int
+  previousQuantity Int
+  updatedQuantity  Int
+  referenceType    String?
+  referenceId      String?
+  performedById    String
+  remarks          String?
+  createdAt        DateTime                 @default(now())
+
+  campus      Campus @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  item        Item   @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  performedBy User   @relation(fields: [performedById], references: [id], onDelete: Restrict)
+
+  @@index([campusId, createdAt(sort: Desc)])
+  @@index([campusId, itemId])
+  @@index([type])
+  @@map("inventory_transactions")
+}
+
+// ============================================================================
+// 9. LabRequest
+// ============================================================================
+
+model LabRequest {
+  id              String           @id @default(cuid())
+  requestCode     String           @unique
+  campusId        String
+  studentId       String
+  instructorId    String
+  purpose         String
+  status          LabRequestStatus @default(PENDING_INSTRUCTOR)
+  rejectionReason String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  campus           Campus            @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  student          User              @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Restrict)
+  instructor       User              @relation("InstructorRequests", fields: [instructorId], references: [id], onDelete: Restrict)
+  items            LabRequestItem[]
+  approvals        RequestApproval[]
+  borrowingRecords BorrowingRecord[]
+  photos           ItemPhoto[]
+
+  @@index([campusId, status])
+  @@index([studentId, status])
+  @@index([instructorId, status])
+  @@map("lab_requests")
+}
+
+// ============================================================================
+// 10. LabRequestItem
+// ============================================================================
+
+model LabRequestItem {
+  id                String @id @default(cuid())
+  requestId         String
+  itemId            String
+  requestedQuantity Int
+  approvedQuantity  Int    @default(0)
+  issuedQuantity    Int    @default(0)
+  returnedQuantity  Int    @default(0)
+  damagedQuantity   Int    @default(0)
+  missingQuantity   Int    @default(0)
+
+  request             LabRequest           @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  item                Item                 @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  borrowingRecords    BorrowingRecord[]
+  photos              ItemPhoto[]
+  returnVerifications ReturnVerification[]
+
+  @@unique([requestId, itemId])
+  @@index([itemId])
+  @@map("lab_request_items")
+}
+
+// ============================================================================
+// 11. RequestApproval
+// ============================================================================
+
+model RequestApproval {
+  id         String           @id @default(cuid())
+  requestId  String
+  stage      ApprovalStage
+  decision   ApprovalDecision
+  approverId String
+  comments   String?
+  createdAt  DateTime         @default(now())
+
+  request  LabRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approver User       @relation(fields: [approverId], references: [id], onDelete: Restrict)
+
+  @@unique([requestId, stage])
+  @@index([approverId])
+  @@map("request_approvals")
+}
+
+// ============================================================================
+// 12. BorrowingRecord
+// ============================================================================
+
+model BorrowingRecord {
+  id                   String    @id @default(cuid())
+  requestId            String
+  requestItemId        String
+  campusId             String
+  itemId               String
+  studentId            String
+  issuedByInstructorId String
+  issuedQuantity       Int
+  returnedQuantity     Int       @default(0)
+  damagedQuantity      Int       @default(0)
+  missingQuantity      Int       @default(0)
+  issuedAt             DateTime  @default(now())
+  dueAt                DateTime?
+  closedAt             DateTime?
+
+  request             LabRequest           @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  requestItem         LabRequestItem       @relation(fields: [requestItemId], references: [id], onDelete: Restrict)
+  campus              Campus               @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  item                Item                 @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  student             User                 @relation("StudentBorrowings", fields: [studentId], references: [id], onDelete: Restrict)
+  issuedByInstructor  User                 @relation("InstructorBorrowings", fields: [issuedByInstructorId], references: [id], onDelete: Restrict)
+  photos              ItemPhoto[]
+  returnVerifications ReturnVerification[]
+
+  @@index([campusId, studentId])
+  @@index([requestId])
+  @@index([requestItemId])
+  @@map("borrowing_records")
+}
+
+// ============================================================================
+// 13. ItemPhoto (4-Angle Mandatory Evidence)
+// ============================================================================
+
+model ItemPhoto {
+  id                String     @id @default(cuid())
+  requestId         String
+  requestItemId     String
+  borrowingRecordId String?
+  uploadedById      String
+  angle             PhotoAngle
+  phase             PhotoPhase
+  storageKey        String
+  url               String
+  createdAt         DateTime   @default(now())
+
+  request         LabRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestItem     LabRequestItem   @relation(fields: [requestItemId], references: [id], onDelete: Cascade)
+  borrowingRecord BorrowingRecord? @relation(fields: [borrowingRecordId], references: [id], onDelete: SetNull)
+  uploadedBy      User             @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@unique([requestItemId, phase, angle])
+  @@index([requestId, phase])
+  @@index([borrowingRecordId])
+  @@map("item_photos")
+}
+
+// ============================================================================
+// 14. ReturnVerification
+// ============================================================================
+
+model ReturnVerification {
+  id                String                   @id @default(cuid())
+  borrowingRecordId String
+  requestItemId     String
+  verifiedById      String?
+  returnedQuantity  Int                      @default(0)
+  damagedQuantity   Int                      @default(0)
+  missingQuantity   Int                      @default(0)
+  condition         ReturnCondition          @default(GOOD)
+  status            ReturnVerificationStatus @default(PENDING)
+  studentComments   String?
+  instructorRemarks String?
+  submittedAt       DateTime                 @default(now())
+  verifiedAt        DateTime?
+
+  borrowingRecord BorrowingRecord @relation(fields: [borrowingRecordId], references: [id], onDelete: Restrict)
+  requestItem     LabRequestItem  @relation(fields: [requestItemId], references: [id], onDelete: Restrict)
+  verifiedBy      User?           @relation(fields: [verifiedById], references: [id], onDelete: Restrict)
+
+  @@index([borrowingRecordId, status])
+  @@index([requestItemId])
+  @@map("return_verifications")
+}
+
+// ============================================================================
+// 15. IssueTicket
+// ============================================================================
+
+model IssueTicket {
+  id              String         @id @default(cuid())
+  ticketCode      String         @unique
+  campusId        String
+  createdById     String
+  assignedToId    String?
+  itemId          String?
+  category        IssueCategory
+  priority        TicketPriority @default(MEDIUM)
+  status          TicketStatus   @default(OPEN)
+  title           String
+  description     String
+  attachmentUrls  String[]       @default([])
+  resolutionNotes String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  resolvedAt      DateTime?
+
+  campus     Campus          @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  createdBy  User            @relation("TicketCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  assignedTo User?           @relation("TicketAssignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
+  item       Item?           @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  comments   TicketComment[]
+
+  @@index([campusId, status])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@map("issue_tickets")
+}
+
+// ============================================================================
+// 16. TicketComment
+// ============================================================================
+
+model TicketComment {
+  id             String   @id @default(cuid())
+  ticketId       String
+  authorId       String
+  body           String
+  attachmentUrls String[] @default([])
+  createdAt      DateTime @default(now())
+
+  ticket IssueTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User        @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_comments")
+}
+
+// ============================================================================
+// 17. AuditLog (Immutable System-Wide Audit Trail)
+// ============================================================================
+
+model AuditLog {
+  id            String    @id @default(cuid())
+  actorId       String?
+  actorRole     UserRole?
+  campusId      String?
+  action        String
+  entityType    String
+  entityId      String
+  previousState Json?
+  newState      Json?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  actor  User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  campus Campus? @relation(fields: [campusId], references: [id], onDelete: SetNull)
+
+  @@index([campusId, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}

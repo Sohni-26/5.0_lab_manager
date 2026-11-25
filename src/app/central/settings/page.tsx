@@ -26,58 +26,89 @@ export default function CentralSettingsPage() {
       />
 
       <div className="grid gap-5 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Radio className="h-4 w-4 text-[#F26943]" />
-              Realtime SSE Broker
+        <Card className="border-black/12 bg-white rounded-[22px]">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-sm text-black">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#C4F041] text-black">
+                <Radio className="h-4 w-4" />
+              </span>
+              <span>Realtime SSE Broker</span>
             </CardTitle>
-            <CardDescription>/api/events live campus stream</CardDescription>
+            <CardDescription className="text-black/55">
+              /api/events live campus stream
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Badge variant={status === "connected" ? "success" : "warning"}>
-              {status === "connected"
-                ? "Connected & Streaming"
-                : status === "demo"
-                  ? "Preview Mode"
-                  : "Reconnecting"}
-            </Badge>
+          <CardContent className="pt-0">
+            <div className="rounded-2xl border border-black/10 bg-[#F5F5F3] px-3.5 py-3">
+              <Badge variant={status === "connected" ? "success" : "warning"}>
+                {status === "connected"
+                  ? "Connected & Streaming"
+                  : status === "demo"
+                    ? "Preview Mode"
+                    : "Reconnecting"}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Database className="h-4 w-4 text-[#288568]" />
-              Database Integrity Guards
+        <Card className="border-black/12 bg-white rounded-[22px]">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-sm text-black">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#AAC2AA] text-black">
+                <Database className="h-4 w-4" />
+              </span>
+              <span>Database Integrity Guards</span>
             </CardTitle>
-            <CardDescription>PostgreSQL CHECK &amp; Partial Unique Indexes</CardDescription>
+            <CardDescription className="text-black/55">
+              PostgreSQL CHECK &amp; Partial Unique Indexes
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-1.5 text-xs text-[#288568]">
-            <p className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Single Central Lab Manager index
-            </p>
-            <p className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Non-negative stock quantity guards
-            </p>
-            <p className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Mandatory campus isolation checks
-            </p>
+          <CardContent className="pt-0">
+            <div className="divide-y divide-black/10 rounded-2xl border border-black/10 bg-[#F5F5F3] text-xs text-black">
+              <p className="flex items-center gap-2 px-3.5 py-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#AAC2AA]/70 text-black">
+                  <CheckCircle2 className="h-3 w-3" />
+                </span>
+                <span>Single Central Lab Manager index</span>
+              </p>
+              <p className="flex items-center gap-2 px-3.5 py-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#AAC2AA]/70 text-black">
+                  <CheckCircle2 className="h-3 w-3" />
+                </span>
+                <span>Non-negative stock quantity guards</span>
+              </p>
+              <p className="flex items-center gap-2 px-3.5 py-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#AAC2AA]/70 text-black">
+                  <CheckCircle2 className="h-3 w-3" />
+                </span>
+                <span>Mandatory campus isolation checks</span>
+              </p>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-[#4D83B5]" />
-              Active Central Authority
+        <Card className="border-black/12 bg-white rounded-[22px]">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2.5 text-sm text-black">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#BCE6FA] text-black">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <span>Active Central Authority</span>
             </CardTitle>
-            <CardDescription>Current authenticated administrator</CardDescription>
+            <CardDescription className="text-black/55">
+              Current authenticated administrator
+            </CardDescription>
           </CardHeader>
-          <CardContent className="text-xs space-y-1">
-            <p className="font-semibold text-[#222321]">{user?.fullName}</p>
-            <p className="text-[#72736E]">{user?.email}</p>
-            <p className="font-mono text-[#72736E]">{user?.institutionalId}</p>
+          <CardContent className="pt-0">
+            <div className="space-y-1.5 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 text-xs">
+              <p className="text-sm font-semibold text-black">{user?.fullName}</p>
+              <p className="text-black/55">{user?.email}</p>
+              <div className="border-t border-black/10 pt-2 mt-2">
+                <p className="inline-flex items-center rounded-full border border-black/10 bg-white px-2.5 py-0.5 font-mono text-[11px] font-medium text-black">
+                  {user?.institutionalId}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

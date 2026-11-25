@@ -253,35 +253,52 @@ function SquigglyBranchConnector() {
 /** 6 distinct Landing-Page palette combinations so multiple requests each get their own color */
 export const FLOW_PALETTES = [
   {
-    backdrop: "rgba(188, 230, 250, 0.40)", // Sky
+    backdrop: "rgba(188, 230, 250, 0.44)", // Sky
+    backdropSecondary: "rgba(158, 195, 213, 0.22)",
     banner: "#F3BD77", // Apricot
     pendingBg: "#F3BD77",
   },
   {
-    backdrop: "rgba(196, 240, 65, 0.24)", // Lime
+    backdrop: "rgba(196, 240, 65, 0.28)", // Lime
+    backdropSecondary: "rgba(170, 194, 170, 0.24)",
     banner: "#BCE6FA", // Sky
     pendingBg: "#C4F041",
   },
   {
-    backdrop: "rgba(243, 189, 119, 0.30)", // Apricot
+    backdrop: "rgba(243, 189, 119, 0.34)", // Apricot
+    backdropSecondary: "rgba(250, 142, 102, 0.18)",
     banner: "#AAC2AA", // Sage
     pendingBg: "#F3BD77",
   },
   {
-    backdrop: "rgba(170, 194, 170, 0.34)", // Sage
+    backdrop: "rgba(170, 194, 170, 0.36)", // Sage
+    backdropSecondary: "rgba(196, 240, 65, 0.18)",
     banner: "#C4F041", // Lime
     pendingBg: "#BCE6FA",
   },
   {
-    backdrop: "rgba(250, 142, 102, 0.24)", // Coral
+    backdrop: "rgba(250, 142, 102, 0.28)", // Coral
+    backdropSecondary: "rgba(243, 189, 119, 0.22)",
     banner: "#9EC3D5", // Steel
     pendingBg: "#FA8E66",
   },
   {
-    backdrop: "rgba(158, 195, 213, 0.34)", // Steel
+    backdrop: "rgba(158, 195, 213, 0.36)", // Steel
+    backdropSecondary: "rgba(188, 230, 250, 0.24)",
     banner: "#FA8E66", // Coral
     pendingBg: "#F3BD77",
   },
+] as const;
+
+/**
+ * Three generously proportioned organic Excalidraw cloud silhouettes (viewBox 0 0 800 600).
+ * Every curve intentionally stays outside the inner safe zone (x: 42..758, y: 28..572)
+ * so flowchart nodes and side branches NEVER overflow outside the organic shape.
+ */
+const ORGANIC_BLOB_PATHS = [
+  "M 76,34 C 210,4 440,8 620,22 C 742,32 786,88 790,192 C 794,296 776,410 784,486 C 792,554 720,584 592,590 C 440,598 228,594 106,574 C 24,560 8,494 14,394 C 20,294 6,216 14,126 C 20,66 36,44 76,34 Z",
+  "M 96,24 C 246,6 520,12 680,34 C 768,46 792,118 784,228 C 776,338 796,430 774,512 C 756,576 676,588 538,592 C 378,596 176,590 78,564 C 14,548 10,468 18,358 C 24,252 6,162 22,94 C 34,44 54,30 96,24 Z",
+  "M 68,42 C 194,10 476,4 654,28 C 754,42 794,104 788,212 C 782,320 792,422 778,504 C 766,572 694,592 558,592 C 402,592 192,594 84,570 C 18,556 8,480 12,374 C 16,268 12,186 20,108 C 26,56 38,50 68,42 Z",
 ] as const;
 
 interface RequestFlowchartCardProps {
@@ -304,8 +321,12 @@ export function RequestFlowchartCard({
   defaultExpanded = false,
 }: RequestFlowchartCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [hovered, setHovered] = useState(false);
   const steps = deriveFlowchartSteps(request);
   const palette = FLOW_PALETTES[index % FLOW_PALETTES.length];
+  const blobPath = ORGANIC_BLOB_PATHS[index % ORGANIC_BLOB_PATHS.length];
+  const accentBlobPath =
+    ORGANIC_BLOB_PATHS[(index + 1) % ORGANIC_BLOB_PATHS.length];
 
   const totalUnits = request.items.reduce(
     (sum, it) => sum + it.requestedQuantity,
@@ -344,8 +365,8 @@ export function RequestFlowchartCard({
         <div
           className={`w-full ${
             step.showPartsBranch && !compactMode
-              ? "max-w-[360px]"
-              : "max-w-[440px]"
+              ? "max-w-[330px]"
+              : "max-w-[420px]"
           } transition-opacity duration-300 ${
             isUpcoming ? "opacity-55" : "opacity-100"
           }`}
@@ -490,9 +511,34 @@ export function RequestFlowchartCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.42, ease: LP_EASE }}
-      style={{ backgroundColor: palette.backdrop }}
-      className="relative w-full overflow-hidden rounded-[32px] px-5 sm:px-7 py-6"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative w-full px-8 sm:px-12 py-9 sm:py-11"
     >
+      {/* Dynamic Excalidraw Organic Cloud Backdrop (non-square, generously scaled so content never overflows) */}
+      <svg
+        viewBox="0 0 800 600"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"
+        style={{
+          transform: hovered ? "scale(1.018)" : "scale(1)",
+        }}
+        aria-hidden="true"
+      >
+        <path
+          d={accentBlobPath}
+          fill={palette.backdropSecondary}
+          style={{
+            transformOrigin: "400px 300px",
+            transform: hovered
+              ? "translate(6px, -4px) rotate(1.2deg)"
+              : "translate(0px, 0px) rotate(0deg)",
+            transition: "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
+          }}
+        />
+        <path d={blobPath} fill={palette.backdrop} />
+      </svg>
+
       <div className="relative z-10 flex flex-col items-center">
         {/* Top Excalidraw Anchor Header Pill */}
         <button

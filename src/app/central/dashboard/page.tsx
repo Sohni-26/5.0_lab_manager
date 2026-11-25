@@ -76,15 +76,15 @@ export default function CentralDashboardPage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-72" />
+        <Skeleton className="h-12 w-72 rounded-2xl bg-[#EAEAE6]" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 rounded-[22px] bg-[#EAEAE6]" />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <Skeleton className="h-80" />
-          <Skeleton className="h-80" />
+          <Skeleton className="h-80 rounded-[22px] bg-[#EAEAE6]" />
+          <Skeleton className="h-80 rounded-[22px] bg-[#EAEAE6]" />
         </div>
       </div>
     );
@@ -190,28 +190,32 @@ export default function CentralDashboardPage() {
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.campusInventoryChart} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EFECE6" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" vertical={false} />
                   <XAxis
                     dataKey="campusCode"
-                    tick={{ fontSize: 11, fill: "#72736E" }}
-                    axisLine={{ stroke: "#E6E5E0" }}
+                    tick={{ fontSize: 11, fill: "rgba(0,0,0,0.55)" }}
+                    axisLine={{ stroke: "rgba(0,0,0,0.12)" }}
+                    tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "#72736E" }}
-                    axisLine={{ stroke: "#E6E5E0" }}
+                    tick={{ fontSize: 11, fill: "rgba(0,0,0,0.55)" }}
+                    axisLine={{ stroke: "rgba(0,0,0,0.12)" }}
+                    tickLine={false}
                   />
                   <Tooltip
                     contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid #E6E5E0",
+                      borderRadius: 14,
+                      border: "1px solid rgba(0,0,0,0.12)",
+                      backgroundColor: "#FFFFFF",
+                      color: "#000000",
                       fontSize: "12px",
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: "12px" }} />
-                  <Bar dataKey="available" name="Available" fill="#288568" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="borrowed" name="Borrowed" fill="#F26943" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="reserved" name="Reserved" fill="#4D83B5" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="damaged" name="Damaged" fill="#D9534F" radius={[4, 4, 0, 0]} />
+                  <Legend wrapperStyle={{ fontSize: "12px", color: "rgba(0,0,0,0.7)" }} />
+                  <Bar dataKey="available" name="Available" fill="#AAC2AA" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="borrowed" name="Borrowed" fill="#000000" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="reserved" name="Reserved" fill="#9EC3D5" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="damaged" name="Damaged" fill="#FA8E66" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -231,37 +235,41 @@ export default function CentralDashboardPage() {
                 <AreaChart data={data.allocationActivityChart}>
                   <defs>
                     <linearGradient id="dispatchedGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F26943" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#F26943" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#9EC3D5" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#9EC3D5" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="receivedGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#288568" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#288568" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#000000" stopOpacity={0.14} />
+                      <stop offset="95%" stopColor="#000000" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EFECE6" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" vertical={false} />
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 11, fill: "#72736E" }}
-                    axisLine={{ stroke: "#E6E5E0" }}
+                    tick={{ fontSize: 11, fill: "rgba(0,0,0,0.55)" }}
+                    axisLine={{ stroke: "rgba(0,0,0,0.12)" }}
+                    tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "#72736E" }}
-                    axisLine={{ stroke: "#E6E5E0" }}
+                    tick={{ fontSize: 11, fill: "rgba(0,0,0,0.55)" }}
+                    axisLine={{ stroke: "rgba(0,0,0,0.12)" }}
+                    tickLine={false}
                   />
                   <Tooltip
                     contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid #E6E5E0",
+                      borderRadius: 14,
+                      border: "1px solid rgba(0,0,0,0.12)",
+                      backgroundColor: "#FFFFFF",
+                      color: "#000000",
                       fontSize: "12px",
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Legend wrapperStyle={{ fontSize: "12px", color: "rgba(0,0,0,0.7)" }} />
                   <Area
                     type="monotone"
                     dataKey="dispatched"
                     name="Dispatched"
-                    stroke="#F26943"
+                    stroke="#9EC3D5"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#dispatchedGrad)"
@@ -270,7 +278,7 @@ export default function CentralDashboardPage() {
                     type="monotone"
                     dataKey="received"
                     name="Verified Received"
-                    stroke="#288568"
+                    stroke="#000000"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#receivedGrad)"
@@ -300,7 +308,7 @@ export default function CentralDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.pendingAllocations.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 All allocations have been verified cleanly.
               </p>
             ) : (
@@ -312,18 +320,18 @@ export default function CentralDashboardPage() {
                 return (
                   <div
                     key={alloc.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-semibold text-[#222321]">
+                        <span className="font-mono text-xs font-semibold text-black">
                           {alloc.referenceCode}
                         </span>
-                        <span className="text-xs text-[#72736E]">
+                        <span className="text-xs text-black/55">
                           → {alloc.destinationCampus.code} ({alloc.destinationCampus.name})
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-[#72736E]">
+                      <p className="mt-1 text-xs text-black/55 tabular-nums">
                         {alloc.items.length} SKUs · {formatNumber(totalUnits)} units ·{" "}
                         {formatDateTime(alloc.createdAt)}
                       </p>
@@ -352,25 +360,25 @@ export default function CentralDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recentAuditLogs.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 No recent audit events recorded yet.
               </p>
             ) : (
               data.recentAuditLogs.slice(0, 6).map((log) => (
                 <div
                   key={log.id}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-start justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#222321]">
+                    <p className="text-xs font-semibold text-black">
                       {log.action.replaceAll("_", " ")}
                     </p>
-                    <p className="mt-0.5 text-xs text-[#72736E]">
+                    <p className="mt-0.5 text-xs text-black/55">
                       {log.actor?.fullName ?? "System"} · {log.entityType}
                       {log.campus ? ` · ${log.campus.code}` : ""}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[11px] text-[#72736E]">
+                  <span className="shrink-0 text-[11px] text-black/55 tabular-nums">
                     {formatDateTime(log.createdAt)}
                   </span>
                 </div>

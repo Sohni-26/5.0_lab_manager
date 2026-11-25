@@ -112,7 +112,7 @@ export default function LabManagerTicketsPage() {
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="p-8 text-center text-sm text-black/55">
           Loading campus tickets...
         </Card>
       ) : tickets.length === 0 ? (
@@ -126,34 +126,34 @@ export default function LabManagerTicketsPage() {
           {tickets.map((t) => (
             <Card
               key={t.id}
-              className="p-5 flex flex-wrap items-center justify-between gap-4 hover:border-[#F26943]/40 transition-colors"
+              className="p-5 flex flex-wrap items-center justify-between gap-4 hover:border-black/25 transition-colors"
             >
               <div className="space-y-1.5 min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-semibold text-[#F26943]">
+                  <span className="font-mono text-xs font-semibold text-black">
                     {t.ticketCode}
                   </span>
                   <TicketStatusBadge status={t.status} />
                   <PriorityBadge priority={t.priority} />
-                  <span className="text-xs text-[#72736E]">
+                  <span className="text-xs text-black/55">
                     {ISSUE_CATEGORY_LABELS[t.category]}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-[#222321]">
+                <h3 className="text-base font-semibold text-black">
                   {t.title}
                 </h3>
-                <p className="text-xs text-[#72736E] line-clamp-2">
+                <p className="text-xs text-black/55 line-clamp-2">
                   {t.description}
                 </p>
-                <p className="text-[11px] text-[#72736E]">
-                  Raised by <strong>{t.createdBy.fullName}</strong> ·{" "}
+                <p className="text-[11px] text-black/55">
+                  Raised by <strong className="text-black">{t.createdBy.fullName}</strong> ·{" "}
                   {t.item ? `${t.item.code} (${t.item.name}) · ` : ""}
                   {formatDateTime(t.createdAt)}
                 </p>
               </div>
               <Button variant="outline" onClick={() => openTicket(t)}>
                 <MessageSquare className="h-4 w-4" />
-                Manage ({t.comments?.length ?? 0})
+                Manage (<span className="tabular-nums">{t.comments?.length ?? 0}</span>)
               </Button>
             </Card>
           ))}
@@ -170,19 +170,19 @@ export default function LabManagerTicketsPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono">{activeTicket.ticketCode}</span>
+                  <span className="font-mono text-black">{activeTicket.ticketCode}</span>
                   <TicketStatusBadge status={activeTicket.status} />
                   <PriorityBadge priority={activeTicket.priority} />
                 </DialogTitle>
                 <DialogDescription>{activeTicket.title}</DialogDescription>
               </DialogHeader>
 
-              <p className="text-sm text-[#585955] bg-[#FAF9F6] rounded-xl p-3.5 border border-[#EFECE6]">
+              <p className="text-sm text-black/80 bg-[#F5F5F3] rounded-2xl p-3.5 border border-black/10">
                 {activeTicket.description}
               </p>
 
               {/* Status & Resolution Control */}
-              <div className="rounded-2xl border border-[#E6E5E0] p-4 space-y-3">
+              <div className="rounded-[22px] border border-black/12 bg-white p-4 space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label>Ticket Status</Label>
@@ -225,7 +225,7 @@ export default function LabManagerTicketsPage() {
 
               {/* Comments Thread */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase text-[#72736E]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-black/55">
                   Discussion Thread
                 </p>
                 <div className="max-h-48 overflow-y-auto space-y-2">
@@ -233,21 +233,21 @@ export default function LabManagerTicketsPage() {
                     activeTicket.comments.map((c) => (
                       <div
                         key={c.id}
-                        className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3 text-xs"
+                        className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3 text-xs"
                       >
                         <div className="flex justify-between mb-1">
-                          <span className="font-semibold text-[#222321]">
+                          <span className="font-semibold text-black">
                             {c.author.fullName}
                           </span>
-                          <span className="text-[#72736E]">
+                          <span className="text-black/55 tabular-nums">
                             {formatDateTime(c.createdAt)}
                           </span>
                         </div>
-                        <p className="text-[#585955]">{c.body}</p>
+                        <p className="text-black/80">{c.body}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#72736E]">No comments yet.</p>
+                    <p className="text-xs text-black/55">No comments yet.</p>
                   )}
                 </div>
 

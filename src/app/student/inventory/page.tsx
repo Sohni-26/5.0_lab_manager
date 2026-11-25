@@ -81,9 +81,9 @@ export default function StudentInventoryBrowsePage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -121,7 +121,7 @@ export default function StudentInventoryBrowsePage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-64" />
+            <Skeleton key={i} className="h-64 rounded-[22px] bg-[#F5F5F3] border border-black/10" />
           ))}
         </div>
       ) : (
@@ -133,10 +133,10 @@ export default function StudentInventoryBrowsePage() {
             return (
               <Card
                 key={row.id}
-                className="overflow-hidden flex flex-col justify-between hover:border-[#F26943]/40 transition-colors"
+                className="overflow-hidden flex flex-col justify-between transition-colors duration-150 hover:border-black/30"
               >
                 <div>
-                  <div className="relative h-36 bg-gradient-to-br from-[#FAF9F6] to-[#EAE9E4] flex items-center justify-center border-b border-[#EFECE6]">
+                  <div className="relative h-36 bg-[#F5F5F3] flex items-center justify-center border-b border-black/10">
                     {row.item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -145,11 +145,11 @@ export default function StudentInventoryBrowsePage() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex flex-col items-center gap-1.5 text-[#72736E]">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-[#E6E5E0] text-[#F26943] shadow-xs">
+                      <div className="flex flex-col items-center gap-1.5 text-black/55">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#C4F041] border border-black/12 text-black shadow-xs">
                           <Cpu className="h-6 w-6" />
                         </div>
-                        <span className="font-mono text-[11px] font-semibold">
+                        <span className="font-mono text-[11px] font-semibold text-black/70">
                           {row.item.code}
                         </span>
                       </div>
@@ -159,6 +159,7 @@ export default function StudentInventoryBrowsePage() {
                         variant={
                           row.availableQuantity > 0 ? "success" : "danger"
                         }
+                        className="tabular-nums"
                       >
                         {row.availableQuantity} {row.item.unit} avail
                       </Badge>
@@ -171,16 +172,16 @@ export default function StudentInventoryBrowsePage() {
                         {row.item.category.name}
                       </Badge>
                       {row.item.brand && (
-                        <span className="text-xs text-[#72736E]">
+                        <span className="text-xs text-black/55">
                           {row.item.brand}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-semibold text-[#222321] leading-snug">
+                    <h3 className="text-base font-semibold tracking-[-0.02em] text-black leading-snug">
                       {row.item.name}
                     </h3>
                     {row.item.description && (
-                      <p className="text-xs text-[#72736E] line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-black/55 line-clamp-2 leading-relaxed">
                         {row.item.description}
                       </p>
                     )}
@@ -190,9 +191,9 @@ export default function StudentInventoryBrowsePage() {
                         {specs.map(([k, v]) => (
                           <span
                             key={k}
-                            className="rounded-md bg-[#FAF9F6] border border-[#EFECE6] px-2 py-0.5 text-[10px] text-[#585955]"
+                            className="rounded-full bg-[#F5F5F3] border border-black/10 px-2.5 py-0.5 text-[10px] text-black/55 tabular-nums"
                           >
-                            {k}: <strong>{String(v)}</strong>
+                            {k}: <strong className="font-semibold text-black">{String(v)}</strong>
                           </span>
                         ))}
                       </div>

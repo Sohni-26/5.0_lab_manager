@@ -144,17 +144,17 @@ export default function LabManagerRequestsPage() {
 
       <Tabs defaultValue="pending">
         <TabsList>
-          <TabsTrigger value="pending">
+          <TabsTrigger value="pending" className="tabular-nums">
             Pending Final Approval ({pendingQueue.length})
           </TabsTrigger>
-          <TabsTrigger value="all">
+          <TabsTrigger value="all" className="tabular-nums">
             All Campus Requests ({requests.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
           {loading ? (
-            <Card className="p-8 text-center text-sm text-[#72736E]">
+            <Card className="p-8 text-center text-sm text-black/55">
               Loading request queue...
             </Card>
           ) : pendingQueue.length === 0 ? (
@@ -172,11 +172,11 @@ export default function LabManagerRequestsPage() {
 
               return (
                 <Card key={req.id}>
-                  <CardHeader className="border-b border-[#EFECE6]">
+                  <CardHeader className="border-b border-black/10">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <CardTitle className="font-mono text-base">
+                          <CardTitle className="font-mono text-base text-black">
                             {req.requestCode}
                           </CardTitle>
                           <RequestStatusBadge status={req.status} />
@@ -187,11 +187,19 @@ export default function LabManagerRequestsPage() {
                             </Badge>
                           )}
                         </div>
-                        <CardDescription className="mt-1">
-                          Student: <strong>{req.student.fullName}</strong> (
-                          {req.student.institutionalId}) · Endorsed by{" "}
-                          <strong>{req.instructor.fullName}</strong> ·{" "}
-                          {formatDateTime(req.createdAt)}
+                        <CardDescription className="mt-1 text-black/55">
+                          Student:{" "}
+                          <strong className="font-semibold text-black">
+                            {req.student.fullName}
+                          </strong>{" "}
+                          ({req.student.institutionalId}) · Endorsed by{" "}
+                          <strong className="font-semibold text-black">
+                            {req.instructor.fullName}
+                          </strong>{" "}
+                          ·{" "}
+                          <span className="tabular-nums">
+                            {formatDateTime(req.createdAt)}
+                          </span>
                         </CardDescription>
                       </div>
                       <div className="flex items-center gap-2">
@@ -204,7 +212,7 @@ export default function LabManagerRequestsPage() {
                             setRejectReason("");
                           }}
                         >
-                          <XCircle className="h-4 w-4 text-[#D9534F]" />
+                          <XCircle className="h-4 w-4 text-[#FA8E66]" />
                           Reject
                         </Button>
                         <Button
@@ -223,17 +231,17 @@ export default function LabManagerRequestsPage() {
                   </CardHeader>
 
                   <CardContent className="pt-4 space-y-4">
-                    <div className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3 text-sm">
-                      <span className="text-xs font-semibold uppercase text-[#72736E] block mb-0.5">
+                    <div className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3.5 text-sm text-black">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/55 block mb-1">
                         Academic Purpose
                       </span>
                       {req.purpose}
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border border-[#E6E5E0]">
+                    <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
                       <table className="w-full text-xs sheet-table">
                         <thead>
-                          <tr className="text-left">
+                          <tr className="text-left border-b border-black/10">
                             <th className="px-3.5 py-2.5">Requested Item</th>
                             <th className="px-3.5 py-2.5 text-right">Requested Qty</th>
                             <th className="px-3.5 py-2.5 text-right">Live Available</th>
@@ -246,18 +254,27 @@ export default function LabManagerRequestsPage() {
                             const avail = inv?.availableQuantity ?? 0;
                             const ok = avail >= it.requestedQuantity;
                             return (
-                              <tr key={it.id}>
-                                <td className="px-3.5 py-2.5 font-medium text-[#222321]">
+                              <tr
+                                key={it.id}
+                                className="hover:bg-[#F5F5F3] last:[&>td]:border-b-0"
+                              >
+                                <td className="px-3.5 py-2.5 font-medium text-black">
                                   {it.item.name}{" "}
-                                  <span className="font-mono text-[#72736E] ml-1">
+                                  <span className="font-mono text-black/55 ml-1">
                                     ({it.item.code})
                                   </span>
                                 </td>
-                                <td className="px-3.5 py-2.5 text-right font-semibold">
+                                <td className="px-3.5 py-2.5 text-right font-semibold text-black tabular-nums">
                                   {it.requestedQuantity}
                                 </td>
-                                <td className="px-3.5 py-2.5 text-right font-mono font-semibold text-[#288568]">
-                                  {avail}
+                                <td className="px-3.5 py-2.5 text-right">
+                                  <span
+                                    className={`inline-flex items-center rounded-full border border-black/10 px-2.5 py-0.5 font-mono font-semibold text-black tabular-nums ${
+                                      ok ? "bg-[#AAC2AA]/45" : "bg-[#FA8E66]/55"
+                                    }`}
+                                  >
+                                    {avail}
+                                  </span>
                                 </td>
                                 <td className="px-3.5 py-2.5 text-right">
                                   <Badge variant={ok ? "success" : "danger"}>
@@ -283,17 +300,19 @@ export default function LabManagerRequestsPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-semibold">
+                    <span className="font-mono text-sm font-semibold text-black">
                       {req.requestCode}
                     </span>
                     <RequestStatusBadge status={req.status} />
                   </div>
-                  <p className="text-xs text-[#72736E] mt-1">
-                    {req.student.fullName} · Instructor: {req.instructor.fullName} ·{" "}
-                    {req.purpose}
+                  <p className="text-xs text-black/55 mt-1">
+                    <span className="font-medium text-black">
+                      {req.student.fullName}
+                    </span>{" "}
+                    · Instructor: {req.instructor.fullName} · {req.purpose}
                   </p>
                 </div>
-                <span className="text-xs text-[#72736E]">
+                <span className="text-xs text-black/55 tabular-nums">
                   {formatDateTime(req.updatedAt)}
                 </span>
               </div>
@@ -308,21 +327,26 @@ export default function LabManagerRequestsPage() {
         open={Boolean(rejectTarget)}
         onOpenChange={(o) => !o && setRejectTarget(null)}
       >
-        <DialogContent>
+        <DialogContent className="rounded-[22px] border-black/12 bg-white text-black">
           <DialogHeader>
-            <DialogTitle>Reject Request {rejectTarget?.requestCode}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black">
+              Reject Request {rejectTarget?.requestCode}
+            </DialogTitle>
+            <DialogDescription className="text-black/55">
               Provide a clear reason for the student and instructor.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRejectSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="lm-reject-reason">Mandatory Rejection Reason</Label>
+              <Label htmlFor="lm-reject-reason" className="text-black/55">
+                Mandatory Rejection Reason
+              </Label>
               <Textarea
                 id="lm-reject-reason"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="e.g., Reserved for upcoming accreditation lab audit this week."
+                className="rounded-2xl border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                 required
               />
             </div>

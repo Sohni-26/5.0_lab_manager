@@ -146,6 +146,11 @@ export default function CentralUsersPage() {
       <PageHeader
         title="Users & Role Governance"
         description="Manage Lab Managers, Instructors, and Students across all 40 campuses. Single Central Lab Manager constraint enforced at database level."
+        badge={
+          <span className="inline-flex items-center rounded-full border border-black/10 bg-[#C4F041] px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums">
+            {users.length} Users
+          </span>
+        }
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -154,30 +159,32 @@ export default function CentralUsersPage() {
         }
       />
 
-      <div className="rounded-2xl border border-[#288568]/25 bg-[#EAF6F1]/70 px-4 py-3 text-xs text-[#288568] flex items-center gap-2.5">
-        <ShieldCheck className="h-4 w-4 shrink-0" />
-        <span>
-          <strong>Governance Policy:</strong> Exactly one{" "}
-          <strong>Central Lab Manager</strong> exists globally (no campus scope). Every
+      <div className="rounded-[22px] border border-black/12 bg-[#AAC2AA]/25 px-4 py-3 text-xs text-black flex items-center gap-3">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#AAC2AA] text-black">
+          <ShieldCheck className="h-4 w-4" />
+        </span>
+        <span className="leading-relaxed text-black/80">
+          <strong className="font-semibold text-black">Governance Policy:</strong> Exactly one{" "}
+          <strong className="font-semibold text-black">Central Lab Manager</strong> exists globally (no campus scope). Every
           Lab Manager, Instructor, and Student MUST belong to a single campus.
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, institutional ID, or campus..."
-            className="pl-10"
+            className="pl-10 bg-[#F5F5F3] border-black/10"
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-52">
+          <SelectTrigger className="w-52 rounded-xl border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
             <SelectValue placeholder="All Roles" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-black/12 bg-white text-black">
             <SelectItem value="ALL">All Roles</SelectItem>
             <SelectItem value="CENTRAL_LAB_MANAGER">Central Lab Manager</SelectItem>
             <SelectItem value="LAB_MANAGER">Lab Manager</SelectItem>
@@ -185,36 +192,42 @@ export default function CentralUsersPage() {
             <SelectItem value="STUDENT">Student</SelectItem>
           </SelectContent>
         </Select>
+        <span className="ml-auto inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-3 py-1 text-xs font-medium text-black/55 tabular-nums">
+          {filtered.length} {filtered.length === 1 ? "user" : "users"}
+        </span>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden rounded-[22px] border-black/12 bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
-                <th className="px-4 py-3">User</th>
-                <th className="px-4 py-3">Institutional ID</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Campus Scope</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Active</th>
+              <tr className="border-b border-black/10 text-left">
+                <th className="bg-[#F5F5F3] px-4 py-3 text-black/55">User</th>
+                <th className="bg-[#F5F5F3] px-4 py-3 text-black/55">Institutional ID</th>
+                <th className="bg-[#F5F5F3] px-4 py-3 text-black/55">Role</th>
+                <th className="bg-[#F5F5F3] px-4 py-3 text-black/55">Campus Scope</th>
+                <th className="bg-[#F5F5F3] px-4 py-3 text-black/55">Status</th>
+                <th className="bg-[#F5F5F3] px-4 py-3 text-right text-black/55">Active</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={6} className="p-8 text-center text-black/55">
                     Loading users...
                   </td>
                 </tr>
               ) : (
                 filtered.map((u) => (
-                  <tr key={u.id} className="hover:bg-[#FAF9F6]">
+                  <tr
+                    key={u.id}
+                    className="border-b border-black/10 last:border-b-0 transition-colors hover:bg-[#F5F5F3]"
+                  >
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#222321]">{u.fullName}</p>
-                      <p className="text-xs text-[#72736E]">{u.email}</p>
+                      <p className="font-medium text-black">{u.fullName}</p>
+                      <p className="text-xs text-black/55">{u.email}</p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#72736E]">
+                    <td className="px-4 py-3 font-mono text-xs text-black/55 tabular-nums">
                       {u.institutionalId}
                     </td>
                     <td className="px-4 py-3">
@@ -222,14 +235,14 @@ export default function CentralUsersPage() {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {u.campus ? (
-                        <span>
-                          <strong className="font-mono text-[#F26943] mr-1">
+                        <span className="inline-flex items-center gap-1.5 text-black">
+                          <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2 py-0.5 font-mono text-[11px] font-semibold text-black">
                             {u.campus.code}
-                          </strong>
-                          {u.campus.name}
+                          </span>
+                          <span className="text-black/75">{u.campus.name}</span>
                         </span>
                       ) : (
-                        <span className="font-medium text-[#222321]">
+                        <span className="inline-flex items-center rounded-full border border-black/10 bg-[#C4F041] px-2.5 py-0.5 text-[11px] font-semibold text-black tabular-nums">
                           Global (40 Campuses)
                         </span>
                       )}
@@ -254,19 +267,21 @@ export default function CentralUsersPage() {
 
       {/* Create User Modal */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-[22px] border-black/12 bg-white text-black">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-[#F26943]" />
+            <DialogTitle className="flex items-center gap-2.5 text-black">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-[#C4F041] text-black">
+                <UserPlus className="h-4 w-4" />
+              </span>
               Provision Platform User
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-black/55">
               Assign role and campus isolation scope. Single Central Lab Manager policy applies.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="user-name">Full Name</Label>
+              <Label htmlFor="user-name" className="text-black">Full Name</Label>
               <Input
                 id="user-name"
                 placeholder="Dr. Kavita Rao"
@@ -277,7 +292,7 @@ export default function CentralUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="user-email">Email</Label>
+                <Label htmlFor="user-email" className="text-black">Email</Label>
                 <Input
                   id="user-email"
                   type="email"
@@ -288,7 +303,7 @@ export default function CentralUsersPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="user-inst-id">Institutional ID</Label>
+                <Label htmlFor="user-inst-id" className="text-black">Institutional ID</Label>
                 <Input
                   id="user-inst-id"
                   placeholder="INS-0402"
@@ -302,15 +317,15 @@ export default function CentralUsersPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Role</Label>
+                <Label className="text-black">Role</Label>
                 <Select
                   value={form.role}
                   onValueChange={(v) => setForm({ ...form, role: v as UserRole })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-black/12 bg-white text-black">
                     {!hasCentralManager && (
                       <SelectItem value="CENTRAL_LAB_MANAGER">
                         Central Lab Manager (Unique)
@@ -323,13 +338,13 @@ export default function CentralUsersPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Assigned Campus</Label>
+                <Label className="text-black">Assigned Campus</Label>
                 <Select
                   value={form.campusId}
                   disabled={form.role === "CENTRAL_LAB_MANAGER"}
                   onValueChange={(v) => setForm({ ...form, campusId: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
                     <SelectValue
                       placeholder={
                         form.role === "CENTRAL_LAB_MANAGER"
@@ -338,7 +353,7 @@ export default function CentralUsersPage() {
                       }
                     />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border-black/12 bg-white text-black">
                     {campuses.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.code} · {c.name}

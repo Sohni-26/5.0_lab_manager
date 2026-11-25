@@ -76,9 +76,9 @@ export default function LabManagerHistoryPage() {
         }
       />
 
-      <div className="rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
-        <div className="relative max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
+        <div className="relative flex-1 max-w-md">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -86,13 +86,16 @@ export default function LabManagerHistoryPage() {
             className="pl-10"
           />
         </div>
+        <Badge variant="accent" className="font-mono tabular-nums">
+          {filtered.length} records
+        </Badge>
       </div>
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="border-b border-black/10 text-left">
                 <th className="px-4 py-3">Timestamp</th>
                 <th className="px-4 py-3">Transaction</th>
                 <th className="px-4 py-3">Equipment</th>
@@ -105,14 +108,17 @@ export default function LabManagerHistoryPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={7} className="p-8 text-center text-black/55">
                     Loading transaction ledger...
                   </td>
                 </tr>
               ) : (
                 filtered.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-[#FAF9F6]">
-                    <td className="px-4 py-3 text-xs text-[#72736E] whitespace-nowrap">
+                  <tr
+                    key={tx.id}
+                    className="border-b border-black/10 transition-colors hover:bg-[#F5F5F3]"
+                  >
+                    <td className="px-4 py-3 text-xs text-black/55 whitespace-nowrap tabular-nums">
                       {formatDateTime(tx.createdAt)}
                     </td>
                     <td className="px-4 py-3">
@@ -121,26 +127,26 @@ export default function LabManagerHistoryPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#222321]">
+                      <p className="font-medium text-black">
                         {tx.item?.name ?? tx.itemId}
                       </p>
-                      <p className="font-mono text-[11px] text-[#72736E]">
+                      <p className="font-mono text-[11px] text-black/55">
                         {tx.item?.code}
                       </p>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold">
+                    <td className="px-4 py-3 text-right font-semibold text-black tabular-nums">
                       {tx.quantity}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-right font-mono text-xs text-black/55 tabular-nums whitespace-nowrap">
                       {tx.previousQuantity} →{" "}
-                      <strong className="text-[#222321]">
+                      <strong className="font-semibold text-black">
                         {tx.updatedQuantity}
                       </strong>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55">
                       {tx.performedBy?.fullName ?? "System"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#585955] max-w-xs truncate">
+                    <td className="px-4 py-3 text-xs text-black/55 max-w-xs truncate">
                       {tx.remarks ?? "—"}
                     </td>
                   </tr>

@@ -130,8 +130,11 @@ function BrowseInventoryInner() {
     [selectedEntries]
   );
 
-  // Hovering top reveals the request bar; moving down hides it smoothly
+  // Hovering top OR scrolling upward (with parts selected) reveals the invisible navbar;
+  // moving cursor down or scrolling down hides it smoothly
   useEffect(() => {
+    let lastScrollY = window.scrollY;
+
     const scheduleHide = () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
       hideTimerRef.current = setTimeout(() => {
@@ -142,24 +145,39 @@ function BrowseInventoryInner() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY <= 68) {
+      if (e.clientY <= 84) {
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         setBarVisible(true);
       } else if (
         !pointerInsideBarRef.current &&
         !barFocused &&
-        e.clientY > 140
+        e.clientY > 150
       ) {
         scheduleHide();
       }
     };
 
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollY;
+      lastScrollY = currentY;
+
+      if (delta < -14 && selectedEntries.length > 0) {
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        setBarVisible(true);
+      } else if (delta > 18 && !pointerInsideBarRef.current && !barFocused) {
+        scheduleHide();
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
-  }, [barFocused]);
+  }, [barFocused, selectedEntries.length]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

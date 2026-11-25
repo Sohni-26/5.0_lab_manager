@@ -164,12 +164,20 @@ export function StudentRequestFlow() {
     [isDemoMode]
   );
 
-  // Hovering top reveals the fixed dashboard navbar; moving down hides it smoothly
+  // Hovering top OR scrolling upward (with parts selected) reveals the invisible navbar;
+  // moving cursor down or scrolling down hides it smoothly
+  const hasSelectedParts = useMemo(
+    () => Object.values(selectedQty).some((q) => q > 0),
+    [selectedQty]
+  );
+
   useEffect(() => {
     if (stage !== "parts") {
       setNavVisible(false);
       return;
     }
+
+    let lastScrollY = window.scrollY;
 
     const scheduleHide = () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -181,20 +189,35 @@ export function StudentRequestFlow() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY <= 68) {
+      if (e.clientY <= 84) {
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         setNavVisible(true);
-      } else if (!pointerInsideNavRef.current && !navFocused && e.clientY > 140) {
+      } else if (!pointerInsideNavRef.current && !navFocused && e.clientY > 150) {
+        scheduleHide();
+      }
+    };
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollY;
+      lastScrollY = currentY;
+
+      if (delta < -14 && hasSelectedParts) {
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        setNavVisible(true);
+      } else if (delta > 18 && !pointerInsideNavRef.current && !navFocused) {
         scheduleHide();
       }
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
-  }, [stage, navFocused]);
+  }, [stage, navFocused, hasSelectedParts]);
 
   // Smoothly reset scroll on stage transitions and sync Lenis
   useEffect(() => {

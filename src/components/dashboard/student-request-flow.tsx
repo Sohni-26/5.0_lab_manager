@@ -14,7 +14,10 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
+import {
+  DottedGridCanvas,
+  useDottedCanvas,
+} from "@/components/dashboard/spatial-canvas";
 import {
   FLOW_PALETTES,
   RequestFlowchartCard,
@@ -45,6 +48,33 @@ type FlowStage = "board" | "parts";
 const LP_EASE: [number, number, number, number] = [0.76, 0, 0.24, 1];
 const BATCH_SIZE = 24;
 const STORAGE_KEY = "campuslab_student_flowcharts_v1";
+
+/** Freehand draggable canvas item bounded inside the finite DottedGridCanvas */
+function CanvasDraggableItem({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { canvasRef, resetSignal, markMoved } = useDottedCanvas();
+
+  return (
+    <motion.div
+      key={`drag-item-${resetSignal}`}
+      data-canvas-draggable="true"
+      drag
+      dragConstraints={canvasRef}
+      dragElastic={0.08}
+      dragMomentum={false}
+      onDragStart={markMoved}
+      whileDrag={{ scale: 1.01, zIndex: 25 }}
+      className={`cursor-grab active:cursor-grabbing ${className ?? ""}`}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 /** Smooth WebP image with GPU-accelerated shimmer loader and fade-in */
 const ShimmerPartImage = React.memo(function ShimmerPartImage({
@@ -752,9 +782,12 @@ export function StudentRequestFlow() {
         )}
       </AnimatePresence>
 
-      <DottedGridCanvas className="flex flex-col">
+      <DottedGridCanvas
+        pannable={stage === "board"}
+        className="flex flex-col"
+      >
         <AnimatePresence mode="wait">
-          {/* MAIN STUDENT BOARD: EXACT 50/50 INVISIBLE SPLIT — CENTERED LEFT PROMPT + RIGHT FLOWCHARTS */}
+          {/* MAIN STUDENT BOARD: EXACT 50/50 INVISIBLE SPLIT — FREEHAND DRAGGABLE PROMPT & FLOWCHART */}
           {stage === "board" && (
             <motion.div
               key="stage-board"
@@ -768,7 +801,7 @@ export function StudentRequestFlow() {
                   : "flex items-center justify-center p-6 sm:p-8"
               }`}
             >
-              {/* Left 50%: Vertically & Horizontally Centered Prompt Card (no visible divider) */}
+              {/* Left 50%: Freehand Draggable Centered Prompt Card */}
               <div
                 className={
                   hasRequests
@@ -776,36 +809,40 @@ export function StudentRequestFlow() {
                     : "w-full max-w-xl"
                 }
               >
-                <div className="w-full max-w-md rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
-                  <h2
-                    className={`${
-                      hasRequests
-                        ? "text-[28px] sm:text-[32px]"
-                        : "text-[32px] sm:text-[38px]"
-                    } font-medium tracking-[-0.03em] text-black leading-[1.08]`}
-                  >
-                    Need lab components for your build?
-                  </h2>
-                  <p className="mt-3 text-[15px] text-black/60 leading-relaxed">
-                    Select the required parts and quantities from your campus
-                    lab catalog. Every request appears live as a visual
-                    flowchart on your board.
-                  </p>
+                <CanvasDraggableItem className="w-full max-w-md">
+                  <div className="w-full rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+                    <h2
+                      className={`${
+                        hasRequests
+                          ? "text-[28px] sm:text-[32px]"
+                          : "text-[32px] sm:text-[38px]"
+                      } font-medium tracking-[-0.03em] text-black leading-[1.08]`}
+                    >
+                      Need lab components for your build?
+                    </h2>
+                    <p className="mt-3 text-[15px] text-black/60 leading-relaxed">
+                      Select the required parts and quantities from your campus
+                      lab catalog. Every request appears live as a visual
+                      flowchart on your board.
+                    </p>
 
-                  <div className="mt-7">
-                    <LoopsiiButton
-                      label={
-                        hasRequests ? "Raise Another Request" : "Raise a Request"
-                      }
-                      size="lg"
-                      hideArrow
-                      onClick={() => setStage("parts")}
-                    />
+                    <div className="mt-7">
+                      <LoopsiiButton
+                        label={
+                          hasRequests
+                            ? "Raise Another Request"
+                            : "Raise a Request"
+                        }
+                        size="lg"
+                        hideArrow
+                        onClick={() => setStage("parts")}
+                      />
+                    </div>
                   </div>
-                </div>
+                </CanvasDraggableItem>
               </div>
 
-              {/* Right 50%: Zero-Scroll Focused Flowchart + 3-Request Cluster & Show More List */}
+              {/* Right 50%: Freehand Draggable Flowchart + 3-Request Cluster & Show More List */}
               {hasRequests && activeRequest && (
                 <div className="flex flex-col justify-center p-6 sm:p-10 space-y-4">
                   {/* Top Header + Compact 3-Request Cluster Switcher (only shown when 2+ requests) */}
@@ -873,16 +910,18 @@ export function StudentRequestFlow() {
                     )}
                   </div>
 
-                  {/* Single Focused Excalidraw Flowchart (zero vertical page bloat) */}
-                  <AnimatePresence mode="wait">
-                    <RequestFlowchartCard
-                      key={activeRequest.id}
-                      request={activeRequest}
-                      index={activeRequestNumber}
-                      compactMode={false}
-                      defaultExpanded={false}
-                    />
-                  </AnimatePresence>
+                  {/* Single Focused Excalidraw Flowchart (freely draggable up/down/around the canvas) */}
+                  <CanvasDraggableItem className="w-full">
+                    <AnimatePresence mode="wait">
+                      <RequestFlowchartCard
+                        key={activeRequest.id}
+                        request={activeRequest}
+                        index={activeRequestNumber}
+                        compactMode={false}
+                        defaultExpanded={false}
+                      />
+                    </AnimatePresence>
+                  </CanvasDraggableItem>
 
                   {/* "Show more" Below for 4+ Requests — Compact Selectable List */}
                   {overflowRequests.length > 0 && (

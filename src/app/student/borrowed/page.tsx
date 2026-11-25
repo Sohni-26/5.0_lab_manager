@@ -122,7 +122,7 @@ export default function StudentBorrowedCollectionPage() {
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="p-8 text-center text-sm text-black/55">
           Loading approved and borrowed items...
         </Card>
       ) : requests.length === 0 ? (
@@ -141,18 +141,22 @@ export default function StudentBorrowedCollectionPage() {
           {requests.map((req) => {
             const isIssued = req.status === "ISSUED";
             return (
-              <Card key={req.id}>
-                <CardHeader className="bg-[#FAF9F6] border-b border-[#EFECE6]">
+              <Card key={req.id} className="overflow-hidden">
+                <CardHeader className="bg-[#F5F5F3] border-b border-black/10">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="font-mono text-base">
+                        <CardTitle className="font-mono text-base text-black">
                           {req.requestCode}
                         </CardTitle>
                         <RequestStatusBadge status={req.status} />
                       </div>
-                      <CardDescription className="mt-1">
-                        Instructor: <strong>{req.instructor.fullName}</strong> ·{" "}
+                      <CardDescription className="mt-1 text-black/55">
+                        Instructor:{" "}
+                        <strong className="font-semibold text-black">
+                          {req.instructor.fullName}
+                        </strong>{" "}
+                        ·{" "}
                         {isIssued
                           ? "Items issued — original collection photos locked as immutable evidence."
                           : "Stock reserved! Upload 4 photos per item, then meet your Instructor for handover."}
@@ -177,14 +181,14 @@ export default function StudentBorrowedCollectionPage() {
                     return (
                       <div
                         key={it.id}
-                        className="rounded-2xl border border-[#E6E5E0] bg-white p-4 space-y-4"
+                        className="rounded-[22px] border border-black/12 bg-white p-4 space-y-4"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#EFECE6]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/10">
                           <div>
-                            <h3 className="text-base font-semibold text-[#222321]">
+                            <h3 className="text-base font-semibold text-black">
                               {it.item.name}
                             </h3>
-                            <p className="font-mono text-xs text-[#72736E]">
+                            <p className="font-mono text-xs text-black/55 tabular-nums">
                               {it.item.code} · Approved Qty:{" "}
                               {it.approvedQuantity || it.requestedQuantity}
                               {isIssued && it.borrowingRecords?.[0]?.issuedAt
@@ -195,8 +199,8 @@ export default function StudentBorrowedCollectionPage() {
                             </p>
                           </div>
                           {isIssued && (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#288568]">
-                              <CheckCircle2 className="h-4 w-4" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#AAC2AA]/40 border border-black/10 px-3 py-1 text-xs font-semibold text-black">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
                               Handover Confirmed
                             </span>
                           )}

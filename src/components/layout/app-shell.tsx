@@ -32,7 +32,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { BrandLogo } from "@/components/landing/brand-logo";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

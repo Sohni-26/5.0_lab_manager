@@ -9,20 +9,14 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  ArrowRight,
+  ArrowUpRight,
   Building2,
   CheckCircle2,
   Loader2,
-  ShieldCheck,
-  Sparkles,
   UserCheck,
 } from "lucide-react";
-import { BrandLogo } from "@/components/landing/brand-logo";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RoleBadge } from "@/components/ui/status-badge";
+import { LoopsiiWordmark } from "@/components/landing/primitives";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_MOCK_USERS } from "@/lib/demo-data";
@@ -33,10 +27,7 @@ import {
 } from "@/types/contracts";
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(3, "Enter your institutional email or ID")
-    .trim(),
+  email: z.string().min(3, "Enter your institutional email or ID").trim(),
   password: z.string().min(4, "Password must be at least 4 characters"),
   rememberMe: z.boolean().optional(),
 });
@@ -46,6 +37,13 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const ENABLE_MOCK_SWITCHER =
   process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === "true" ||
   process.env.NODE_ENV !== "production";
+
+const ROLE_META: Record<UserRole, { label: string; bg: string }> = {
+  CENTRAL_LAB_MANAGER: { label: "Central Lab Manager", bg: "#FA8E66" },
+  LAB_MANAGER: { label: "Lab Manager", bg: "#9EC3D5" },
+  INSTRUCTOR: { label: "Instructor", bg: "#AAC2AA" },
+  STUDENT: { label: "Student", bg: "#C4F041" },
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -81,7 +79,6 @@ export default function LoginPage() {
       .mockUsers()
       .then((res) => {
         if (res.data && res.data.length > 0) {
-          // Show one primary user per role + any extras cleanly (up to 6)
           const byRole = new Map<UserRole, MockUserOptionDTO>();
           for (const u of res.data) {
             if (!byRole.has(u.role)) byRole.set(u.role, u);
@@ -133,191 +130,253 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED] flex flex-col">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
-        <Link href="/">
-          <BrandLogo />
-        </Link>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/">
-            <ArrowLeft className="h-4 w-4" />
-            Back to overview
-          </Link>
-        </Button>
+    <div
+      className="relative flex min-h-screen flex-col overflow-hidden bg-[#101010] text-[#F0F0F0] selection:bg-[#C4F041] selection:text-black"
+      style={{
+        fontFamily: "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+      }}
+    >
+      {/* Matching Footer Ambient Glow Background (static — no motion) */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -bottom-32 -left-24 h-[520px] w-[560px] rounded-full bg-[#C4F041]/20 blur-[140px]" />
+        <div className="absolute -bottom-28 -right-20 h-[520px] w-[560px] rounded-full bg-[#BCE6FA]/22 blur-[140px]" />
+        <div className="absolute -bottom-36 left-1/2 h-[420px] w-[460px] -translate-x-1/2 rounded-full bg-[#FA8E66]/16 blur-[130px]" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center px-4 pb-16 pt-2 sm:px-6">
-        <div className="grid w-full gap-8 lg:grid-cols-12 items-start">
-          {/* Left: Login Form Card */}
-          <div className="lg:col-span-6 rounded-3xl border border-[#E6E5E0] bg-white p-7 sm:p-9 shadow-[0_18px_50px_rgba(34,35,33,0.06)]">
-            <div className="space-y-2 mb-7">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF0E9] px-3 py-1 text-xs font-semibold text-[#DA5835]">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Institutional Access
+      {/* Top Bar */}
+      <header className="relative z-10 mx-auto flex w-full max-w-[1220px] items-center justify-between px-5 py-6 sm:px-8">
+        <Link href="/" className="text-white">
+          <LoopsiiWordmark />
+        </Link>
+
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-[13px] font-medium text-white/80 hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to overview
+        </Link>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-10 mx-auto flex w-full max-w-[1220px] flex-1 items-center justify-center px-5 pb-14 pt-2 sm:px-8">
+        {/* Architectural hairline frame with 4 crisp corner registration dots */}
+        <div className="relative w-full border border-white/12 p-4 sm:p-8">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-[3.5px] -top-[3.5px] h-[7px] w-[7px] bg-white"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-[3.5px] -top-[3.5px] h-[7px] w-[7px] bg-white"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-[3.5px] -left-[3.5px] h-[7px] w-[7px] bg-white"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-[3.5px] -right-[3.5px] h-[7px] w-[7px] bg-white"
+          />
+
+          <div className="grid w-full items-start gap-6 lg:grid-cols-12">
+            {/* Left: Sign-In Form Card */}
+            <div className="rounded-[22px] border border-white/12 bg-[#161615]/85 p-7 backdrop-blur-md sm:p-9 lg:col-span-6">
+              <div className="mb-7 space-y-2">
+                <p
+                  className="text-[24px] leading-none text-[#C4F041]"
+                  style={{ fontFamily: "var(--font-caveat), cursive" }}
+                >
+                  Institutional access
+                </p>
+                <h1 className="text-[28px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#F0F0F0] sm:text-[34px]">
+                  Welcome back to CampusLab
+                </h1>
+                <p className="text-[14px] text-white/55">
+                  Sign in with your institutional email or ID to open your role workspace.
+                </p>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#222321] font-display">
-                Welcome back to CampusLab
-              </h1>
-              <p className="text-sm text-[#72736E]">
-                Sign in with your institutional email or ID to open your role workspace.
-              </p>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-[11px] font-medium uppercase tracking-[0.08em] text-white/60"
+                  >
+                    Email or Institutional ID
+                  </label>
+                  <input
+                    id="email"
+                    type="text"
+                    placeholder="name@campuslab.edu or STU-0101"
+                    className="h-11 w-full rounded-[12px] border border-white/15 bg-[#101010]/85 px-3.5 text-[14px] text-white placeholder:text-white/30 focus:border-[#C4F041] focus:outline-none"
+                    {...register("email")}
+                  />
+                  {errors.email && (
+                    <p className="text-[12px] font-medium text-[#FA8E66]">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="password"
+                      className="block text-[11px] font-medium uppercase tracking-[0.08em] text-white/60"
+                    >
+                      Password
+                    </label>
+                    <span className="text-[11px] text-white/40">SSO / Campus Credentials</span>
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="h-11 w-full rounded-[12px] border border-white/15 bg-[#101010]/85 px-3.5 text-[14px] text-white placeholder:text-white/30 focus:border-[#C4F041] focus:outline-none"
+                    {...register("password")}
+                  />
+                  {errors.password && (
+                    <p className="text-[12px] font-medium text-[#FA8E66]">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-white/65">
+                    <Checkbox
+                      checked={watch("rememberMe")}
+                      onCheckedChange={(v) => setValue("rememberMe", Boolean(v))}
+                      className="border-white/30 data-[state=checked]:border-[#C4F041] data-[state=checked]:bg-[#C4F041] data-[state=checked]:text-black"
+                    />
+                    <span>Keep me signed in</span>
+                  </label>
+                  <span
+                    className="text-[11px] text-white/45"
+                    style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+                  >
+                    40 CAMPUSES ENABLED
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex h-12 w-full cursor-pointer items-center justify-between rounded-full bg-[#C4F041] px-6 text-[15px] font-semibold text-black hover:bg-[#D4F664] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? (
+                    <span className="mx-auto inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    <>
+                      <span>Sign in to Workspace</span>
+                      <ArrowUpRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email or Institutional ID</Label>
-                <Input
-                  id="email"
-                  type="text"
-                  placeholder="name@campuslab.edu or STU-0101"
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <p className="text-xs font-medium text-[#D9534F]">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <span className="text-xs text-[#72736E]">SSO / Campus Credentials</span>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-xs font-medium text-[#D9534F]">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-sm text-[#72736E] cursor-pointer">
-                  <Checkbox
-                    checked={watch("rememberMe")}
-                    onCheckedChange={(v) => setValue("rememberMe", Boolean(v))}
-                  />
-                  <span>Keep me signed in</span>
-                </label>
-                <span className="text-xs text-[#72736E]">40 Campuses Enabled</span>
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    Sign in to Workspace
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </div>
-
-          {/* Right: Development-Only Mock Role Switcher */}
-          <div className="lg:col-span-6 space-y-5">
-            {ENABLE_MOCK_SWITCHER && (
-              <div className="rounded-3xl border border-[#E6E5E0] bg-white p-6 sm:p-7 shadow-card">
-                <div className="flex items-start justify-between gap-3 mb-5">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#F26943] mb-1">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Development Role Switcher
-                    </div>
-                    <h2 className="text-lg font-semibold text-[#222321] font-display">
+            {/* Right: Development Role Switcher + Multi-Campus Isolation */}
+            <div className="space-y-5 lg:col-span-6">
+              {ENABLE_MOCK_SWITCHER && (
+                <div className="rounded-[22px] border border-white/12 bg-[#161615]/85 p-6 backdrop-blur-md sm:p-7">
+                  <div className="mb-5">
+                    <p
+                      className="text-[22px] leading-none text-[#BCE6FA]"
+                      style={{ fontFamily: "var(--font-caveat), cursive" }}
+                    >
+                      Development role switcher
+                    </p>
+                    <h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#F0F0F0]">
                       One-click workspace access
                     </h2>
-                    <p className="text-xs text-[#72736E] mt-0.5">
-                      Instantly sign in as any seeded role to inspect permissions, live sheets,
-                      and end-to-end approval flows.
+                    <p className="mt-1 text-[13px] text-white/50">
+                      Sign in as any seeded role to inspect permissions, live stock sheets, and
+                      approval workflows.
                     </p>
                   </div>
-                </div>
 
-                <div className="grid gap-3">
-                  {mockUsers.map((opt) => {
-                    const isLoading = loadingMockId === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        disabled={Boolean(loadingMockId)}
-                        onClick={() => handleQuickLogin(opt)}
-                        className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-4 text-left transition-all hover:border-[#F26943]/50 hover:bg-[#FFF0E9]/40 cursor-pointer disabled:opacity-60"
-                      >
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-[#222321]">
-                              {opt.fullName}
-                            </span>
-                            <RoleBadge role={opt.role} />
+                  <div className="grid gap-2.5">
+                    {mockUsers.map((opt) => {
+                      const isLoading = loadingMockId === opt.id;
+                      const roleInfo = ROLE_META[opt.role];
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          disabled={Boolean(loadingMockId)}
+                          onClick={() => handleQuickLogin(opt)}
+                          className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-[16px] border border-white/10 bg-white/[0.03] p-4 text-left hover:border-[#C4F041]/60 hover:bg-white/[0.06] disabled:opacity-60"
+                        >
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[14px] font-semibold text-[#F0F0F0]">
+                                {opt.fullName}
+                              </span>
+                              <span
+                                style={{ backgroundColor: roleInfo.bg }}
+                                className="inline-flex rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold text-black"
+                              >
+                                {roleInfo.label}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-[12px] text-white/50">
+                              <span className="truncate">{opt.email}</span>
+                              <span>·</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Building2 className="h-3 w-3" />
+                                {opt.campusCode
+                                  ? `${opt.campusCode} (${opt.campusName})`
+                                  : "Global Scope (40 Campuses)"}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-[#72736E]">
-                            <span className="truncate">{opt.email}</span>
-                            <span>·</span>
-                            <span className="inline-flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {opt.campusCode
-                                ? `${opt.campusCode} (${opt.campusName})`
-                                : "Global Scope (40 Campuses)"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white border border-[#E6E5E0] text-[#72736E] group-hover:border-[#F26943] group-hover:bg-[#F26943] group-hover:text-white transition-colors">
-                          {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ArrowRight className="h-4 w-4" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
-            <div className="rounded-2xl border border-[#E6E5E0] bg-[#EAE9E4]/65 p-5 flex items-start gap-3.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#288568] border border-[#E6E5E0]">
-                <UserCheck className="h-4.5 w-4.5" />
-              </div>
-              <div className="text-xs text-[#72736E] space-y-1">
-                <p className="font-semibold text-[#222321]">
-                  Strict Multi-Campus Isolation Enforced
-                </p>
-                <p className="leading-relaxed">
-                  Only one Central Lab Manager holds global cross-campus authority. Lab
-                  Managers, Instructors, and Students are automatically scoped to their
-                  assigned campus at the API and database layers.
-                </p>
-                <div className="flex items-center gap-3 pt-1 text-[11px] font-medium text-[#288568]">
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> HTTP-only session
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" /> Live SSE updates
-                  </span>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] text-white/70 group-hover:border-[#C4F041] group-hover:bg-[#C4F041] group-hover:text-black">
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ArrowUpRight className="h-4 w-4" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-start gap-3.5 rounded-[20px] border border-white/12 bg-[#161615]/75 p-5 backdrop-blur-md">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.05] text-[#C4F041]">
+                  <UserCheck className="h-4 w-4" />
+                </div>
+                <div className="space-y-1.5 text-[12px] text-white/55">
+                  <p className="font-semibold text-[#F0F0F0]">
+                    Strict Multi-Campus Isolation Enforced
+                  </p>
+                  <p className="leading-relaxed">
+                    Only one Central Lab Manager holds global cross-campus authority. Lab
+                    Managers, Instructors, and Students are automatically scoped to their
+                    assigned campus at the API and database layers.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] font-medium text-[#C4F041]">
+                    <span className="inline-flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> HTTP-only session
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Live SSE updates
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

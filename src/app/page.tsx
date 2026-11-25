@@ -1,5 +1,5 @@
-import { LandingPage } from "@/components/landing/landing-page";
+import { LoopsiiLandingPage } from "@/components/landing/loopsii-landing-page";
 
 export default function HomePage() {
-  return <LandingPage />;
+  return <LoopsiiLandingPage />;
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Caveat, DM_Sans, Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,10 +18,30 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-saans",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "CampusLab — Multi-Campus Lab Management System",
+  title: "CampusLab — The all-in-one lab manager for campuses",
   description:
-    "One unified system for 40 campuses. Manage master lab inventory, stock allocations, multi-stage student borrowing, 4-angle photo verification, and real-time operational audits.",
+    "The all-in-one lab management system for multi-campus institutions. Keeps your inventory, allocations, borrowing, 4-angle photo proofs and audits connected.",
 };
 
 export default function RootLayout({
@@ -30,7 +50,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jakarta.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${jakarta.variable} ${dmSans.variable} ${caveat.variable} ${geistMono.variable}`}
+    >
       <body className="min-h-screen bg-[#F2F1ED] text-[#222321] antialiased selection:bg-[#FFF0E9] selection:text-[#DA5835]">
         <AuthProvider>
           <TooltipProvider delayDuration={200}>

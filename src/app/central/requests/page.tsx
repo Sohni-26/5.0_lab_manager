@@ -75,9 +75,9 @@ export default function CentralRequestsMonitorPage() {
         description="Read-only operational visibility across all campus borrowing workflows, approvals, and return verifications."
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -86,10 +86,10 @@ export default function CentralRequestsMonitorPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-56 border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-black/12 bg-white text-black">
             <SelectItem value="ALL">All Statuses</SelectItem>
             <SelectItem value="PENDING_INSTRUCTOR">Pending Instructor</SelectItem>
             <SelectItem value="PENDING_LAB_MANAGER">Pending Lab Manager</SelectItem>
@@ -100,13 +100,16 @@ export default function CentralRequestsMonitorPage() {
             <SelectItem value="CLOSED">Closed</SelectItem>
           </SelectContent>
         </Select>
+        <span className="ml-auto rounded-full border border-black/10 bg-[#F5F5F3] px-3 py-1 text-xs font-semibold text-black tabular-nums">
+          {filtered.length} requests
+        </span>
       </div>
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="text-left border-b border-black/10">
                 <th className="px-4 py-3">Request</th>
                 <th className="px-4 py-3">Campus</th>
                 <th className="px-4 py-3">Student</th>
@@ -120,35 +123,39 @@ export default function CentralRequestsMonitorPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={8} className="p-8 text-center text-black/55">
                     Loading requests...
                   </td>
                 </tr>
               ) : (
                 filtered.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#FAF9F6]">
+                  <tr key={req.id} className="hover:bg-[#F5F5F3]">
                     <td className="px-4 py-3">
-                      <p className="font-mono text-xs font-semibold text-[#222321]">
+                      <p className="font-mono text-xs font-semibold text-black">
                         {req.requestCode}
                       </p>
-                      <p className="text-xs text-[#72736E] truncate max-w-[200px]">
+                      <p className="text-xs text-black/55 truncate max-w-[200px]">
                         {req.purpose}
                       </p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#F26943]">
-                      {req.campus.code}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
+                        {req.campus.code}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs font-medium">
+                    <td className="px-4 py-3 text-xs font-medium text-black">
                       {req.student.fullName}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55">
                       {req.instructor.fullName}
                     </td>
-                    <td className="px-4 py-3 text-right">{req.items.length}</td>
+                    <td className="px-4 py-3 text-right font-medium text-black tabular-nums">
+                      {req.items.length}
+                    </td>
                     <td className="px-4 py-3">
                       <RequestStatusBadge status={req.status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55 tabular-nums">
                       {formatDateTime(req.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -170,41 +177,43 @@ export default function CentralRequestsMonitorPage() {
       </Card>
 
       <Dialog open={Boolean(selected)} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-[22px] border-black/12 bg-white text-black">
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex items-center gap-2 text-black">
                   <span className="font-mono">{selected.requestCode}</span>
                   <RequestStatusBadge status={selected.status} />
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-black/55">
                   {selected.campus.code} · {selected.student.fullName} →{" "}
                   {selected.instructor.fullName}
                 </DialogDescription>
               </DialogHeader>
               <RequestTimeline status={selected.status} />
-              <div className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3.5 text-sm">
-                <p className="text-xs font-semibold uppercase text-[#72736E] mb-1">
+              <div className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3.5 text-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/55 mb-1">
                   Purpose
                 </p>
-                <p className="text-[#222321]">{selected.purpose}</p>
+                <p className="text-black">{selected.purpose}</p>
               </div>
               <div className="space-y-2">
                 {selected.items.map((it) => (
                   <div
                     key={it.id}
-                    className="flex items-center justify-between rounded-xl border border-[#EFECE6] px-3.5 py-2.5 text-sm"
+                    className="flex items-center justify-between rounded-2xl border border-black/10 bg-white px-3.5 py-2.5 text-sm"
                   >
                     <div>
-                      <p className="font-medium text-[#222321]">{it.item.name}</p>
-                      <p className="font-mono text-xs text-[#72736E]">
+                      <p className="font-medium text-black">{it.item.name}</p>
+                      <p className="font-mono text-xs text-black/55">
                         {it.item.code}
                       </p>
                     </div>
-                    <div className="text-right text-xs">
-                      <p>Requested: <strong>{it.requestedQuantity}</strong></p>
-                      <p className="text-[#72736E]">
+                    <div className="text-right text-xs tabular-nums">
+                      <p className="text-black">
+                        Requested: <strong>{it.requestedQuantity}</strong>
+                      </p>
+                      <p className="text-black/55">
                         Issued: {it.issuedQuantity} · Returned: {it.returnedQuantity}
                       </p>
                     </div>

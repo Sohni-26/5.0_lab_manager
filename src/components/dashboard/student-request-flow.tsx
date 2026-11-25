@@ -1,19 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Check,
-  CheckCircle2,
-  Minus,
-  Plus,
-  Search,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, Search, X } from "lucide-react";
 import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
+import { RequestFlowchartCard } from "@/components/dashboard/request-flowchart";
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,12 +24,14 @@ import type {
   AuthUserDTO,
   CampusInventoryDTO,
   ItemCategoryDTO,
+  LabRequestDTO,
 } from "@/types/contracts";
 
-type FlowStage = "prompt" | "parts" | "submitted";
+type FlowStage = "board" | "parts";
 
 const LP_EASE: [number, number, number, number] = [0.76, 0, 0.24, 1];
 const BATCH_SIZE = 24;
+const STORAGE_KEY = "campuslab_student_flowcharts_v1";
 
 /** Smooth WebP image with GPU-accelerated shimmer loader and fade-in */
 const ShimmerPartImage = React.memo(function ShimmerPartImage({
@@ -204,12 +198,13 @@ const PartTile = React.memo(function PartTile({
 });
 
 export function StudentRequestFlow() {
-  const { isDemoMode } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const { lenis, scrollTo } = useLenis();
-  const [stage, setStage] = useState<FlowStage>("prompt");
+  const [stage, setStage] = useState<FlowStage>("board");
   const [inventory, setInventory] = useState<CampusInventoryDTO[]>([]);
   const [categories, setCategories] = useState<ItemCategoryDTO[]>([]);
   const [instructors, setInstructors] = useState<AuthUserDTO[]>([]);
+  const [savedRequests, setSavedRequests] = useState<LabRequestDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters & progressive batching for silky 60fps rendering
@@ -224,12 +219,8 @@ export function StudentRequestFlow() {
   const [instructorId, setInstructorId] = useState("");
   const [purpose, setPurpose] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [submittedSummary, setSubmittedSummary] = useState<{
-    partCount: number;
-    unitCount: number;
-  }>({ partCount: 0, unitCount: 0 });
 
-  // Dashboard-only fixed hover-top navbar (no floating hint pill — pure hover top reveal / hover down hide)
+  // Dashboard-only fixed hover-top navbar (pure hover top reveal / hover down hide)
   const [navVisible, setNavVisible] = useState(false);
   const [navFocused, setNavFocused] = useState(false);
   const pointerInsideNavRef = useRef(false);
@@ -245,6 +236,16 @@ export function StudentRequestFlow() {
       setCategories(DEMO_CATEGORIES);
       setInstructors(demoInsts);
       if (demoInsts.length > 0) setInstructorId(demoInsts[0].id);
+
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as LabRequestDTO[];
+          if (Array.isArray(parsed)) setSavedRequests(parsed);
+        }
+      } catch {
+        // ignore storage errors
+      }
       setLoading(false);
       return;
     }
@@ -264,15 +265,33 @@ export function StudentRequestFlow() {
         .list({ role: "INSTRUCTOR", pageSize: 50 })
         .then((r) => r.data)
         .catch(() => DEMO_USERS.filter((u) => u.role === "INSTRUCTOR")),
+      apiClient.requests
+        .list({ pageSize: 20 })
+        .then((r) => r.data)
+        .catch(() => []),
     ])
-      .then(([inv, cats, insts]) => {
+      .then(([inv, cats, insts, reqs]) => {
         setInventory(inv);
         setCategories(cats);
         setInstructors(insts);
+        setSavedRequests(reqs);
         if (insts.length > 0) setInstructorId(insts[0].id);
       })
       .finally(() => setLoading(false));
   }, [isDemoMode]);
+
+  // Persist demo requests on the student's dashboard across reloads
+  const persistDemoRequests = useCallback(
+    (next: LabRequestDTO[]) => {
+      if (!isDemoMode) return;
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore quota errors
+      }
+    },
+    [isDemoMode]
+  );
 
   // Hovering top reveals the fixed dashboard navbar; moving down hides it smoothly
   useEffect(() => {
@@ -311,7 +330,7 @@ export function StudentRequestFlow() {
     scrollTo(0);
     const id = requestAnimationFrame(() => lenis?.resize());
     return () => cancelAnimationFrame(id);
-  }, [stage, lenis, scrollTo]);
+  }, [stage, savedRequests.length, lenis, scrollTo]);
 
   const filteredParts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -338,7 +357,11 @@ export function StudentRequestFlow() {
   }, [search, categoryFilter, labBlockFilter, stage]);
 
   useEffect(() => {
-    if (stage !== "parts" || !sentinelEl || visibleCount >= filteredParts.length) {
+    if (
+      stage !== "parts" ||
+      !sentinelEl ||
+      visibleCount >= filteredParts.length
+    ) {
       return;
     }
 
@@ -433,50 +456,120 @@ export function StudentRequestFlow() {
       toast.error("Choose a supervising Instructor");
       return;
     }
+
     const cleanPurpose =
       purpose.trim().length >= 5
         ? purpose.trim()
-        : `Lab equipment borrowing request (${selectedEntries.length} part${
-            selectedEntries.length > 1 ? "s" : ""
+        : `Lab build (${selectedEntries.length} part${
+            selectedEntries.length === 1 ? "" : "s"
           })`;
+
+    const chosenInstructor =
+      instructors.find((i) => i.id === instructorId) ?? instructors[0];
+    const nowIso = new Date().toISOString();
+
+    const buildLocalRequestDTO = (): LabRequestDTO => ({
+      id: `req-local-${Date.now()}`,
+      requestCode: `REQ-${Date.now().toString(36).toUpperCase()}`,
+      campusId: user?.campusId ?? "demo-campus-01",
+      studentId: user?.id ?? "demo-user-stu-01",
+      instructorId: chosenInstructor?.id ?? instructorId,
+      purpose: cleanPurpose,
+      status: "PENDING_INSTRUCTOR",
+      rejectionReason: null,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      campus: {
+        id: user?.campusId ?? "demo-campus-01",
+        code: user?.campus?.code ?? "CMP-01",
+        name: user?.campus?.name ?? "Bengaluru North Campus",
+      },
+      student: {
+        id: user?.id ?? "demo-user-stu-01",
+        fullName: user?.fullName ?? "Aarav Nair",
+        email: user?.email ?? "student1.cmp01@campuslab.edu",
+        institutionalId: user?.institutionalId ?? "STU-0101",
+      },
+      instructor: {
+        id: chosenInstructor?.id ?? "demo-user-inst-01",
+        fullName: chosenInstructor?.fullName ?? "Prof. Ananya Deshmukh",
+        email: chosenInstructor?.email ?? "instructor1.cmp01@campuslab.edu",
+        institutionalId: chosenInstructor?.institutionalId ?? "INS-0101",
+      },
+      items: selectedEntries.map(({ itemId, qty, row }, idx) => ({
+        id: `req-item-${Date.now()}-${idx}`,
+        requestId: `req-local-${Date.now()}`,
+        itemId,
+        requestedQuantity: qty,
+        approvedQuantity: 0,
+        issuedQuantity: 0,
+        returnedQuantity: 0,
+        damagedQuantity: 0,
+        missingQuantity: 0,
+        item: {
+          id: row.item.id,
+          code: row.item.code,
+          name: row.item.name,
+          unit: row.item.unit,
+          imageUrl:
+            row.item.imageUrl ||
+            getPartImageUrl(row.item.code, row.item.category.slug),
+        },
+        photos: [],
+      })),
+      approvals: [],
+    });
 
     setSubmitting(true);
     try {
-      await apiClient.requests.create({
-        instructorId,
-        purpose: cleanPurpose,
-        items: selectedEntries.map((e) => ({
-          itemId: e.itemId,
-          requestedQuantity: e.qty,
-        })),
+      let createdReq: LabRequestDTO;
+      if (isDemoMode) {
+        createdReq = buildLocalRequestDTO();
+      } else {
+        const res = await apiClient.requests.create({
+          instructorId,
+          purpose: cleanPurpose,
+          items: selectedEntries.map((e) => ({
+            itemId: e.itemId,
+            requestedQuantity: e.qty,
+          })),
+        });
+        createdReq = res.data;
+      }
+
+      setSavedRequests((prev) => {
+        const next = [createdReq, ...prev];
+        persistDemoRequests(next);
+        return next;
       });
-      setSubmittedSummary({
-        partCount: selectedEntries.length,
-        unitCount: totalSelectedUnits,
-      });
-      toast.success("Request submitted to Instructor!");
+
+      toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
       setPurpose("");
       setNavVisible(false);
       setNavFocused(false);
-      setStage("submitted");
+      setStage("board");
     } catch {
-      setSubmittedSummary({
-        partCount: selectedEntries.length,
-        unitCount: totalSelectedUnits,
+      const createdReq = buildLocalRequestDTO();
+      setSavedRequests((prev) => {
+        const next = [createdReq, ...prev];
+        persistDemoRequests(next);
+        return next;
       });
-      toast.success("Request submitted!");
+      toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
       setPurpose("");
       setNavVisible(false);
       setNavFocused(false);
-      setStage("submitted");
+      setStage("board");
     } finally {
       setSubmitting(false);
     }
   };
 
   const isHoverBarOpen = stage === "parts" && (navVisible || navFocused);
+  const hasRequests = savedRequests.length > 0;
+  const isClustered = savedRequests.length >= 2;
 
   return (
     <div
@@ -523,7 +616,6 @@ export function StudentRequestFlow() {
             className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,1060px)] rounded-[24px] border border-black/15 bg-[#F0F0F0]/95 backdrop-blur-md px-5 sm:px-6 py-4 text-black shadow-[0_24px_70px_rgba(0,0,0,0.16)]"
           >
             <div className="flex flex-col gap-3.5">
-              {/* Top line: normal editorial text, no badges/tags */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[15px] font-medium tracking-[-0.02em] text-black tabular-nums">
                   {selectedEntries.length > 0
@@ -546,7 +638,6 @@ export function StudentRequestFlow() {
                 )}
               </div>
 
-              {/* Selected items listed cleanly as readable inline text */}
               {selectedEntries.length > 0 && (
                 <div
                   data-lenis-prevent
@@ -574,7 +665,6 @@ export function StudentRequestFlow() {
                 </div>
               )}
 
-              {/* Controls Row: Instructor + Purpose + Dynamic Submit Button */}
               <div className="flex flex-wrap items-center gap-3">
                 <select
                   value={instructorId}
@@ -624,38 +714,97 @@ export function StudentRequestFlow() {
 
       <DottedGridCanvas className="flex flex-col">
         <AnimatePresence mode="wait">
-          {/* STAGE 1 (DIRECT ENTRY): NEED LAB COMPONENTS PROMPT */}
-          {stage === "prompt" && (
+          {/* MAIN STUDENT BOARD: PROMPT ON LEFT + DYNAMIC EXCALIDRAW FLOWCHART CLUSTER ON RIGHT */}
+          {stage === "board" && (
             <motion.div
-              key="stage-prompt"
-              initial={{ opacity: 0, y: 24, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.97 }}
+              key="stage-board"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
-              className="flex flex-1 min-h-[calc(100vh-8.5rem)] items-center justify-center p-6"
+              className={`flex-1 min-h-[calc(100vh-8.5rem)] p-6 sm:p-8 ${
+                hasRequests
+                  ? "grid gap-8 lg:grid-cols-12 items-start"
+                  : "flex items-center justify-center"
+              }`}
             >
-              <div className="w-full max-w-xl rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
-                <h2 className="text-[32px] sm:text-[38px] font-medium tracking-[-0.03em] text-black leading-[1.06]">
-                  Need lab components for your build?
-                </h2>
-                <p className="mt-3 text-[16px] text-black/60 leading-relaxed">
-                  Select the required parts and quantities from your campus lab
-                  catalog and send your request for approval.
-                </p>
+              {/* Left Action Panel: Raise a Request */}
+              <div
+                className={
+                  hasRequests
+                    ? "lg:col-span-4 lg:sticky lg:top-24"
+                    : "w-full max-w-xl"
+                }
+              >
+                <div className="rounded-[24px] border border-black/14 bg-white p-7 sm:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+                  <h2
+                    className={`${
+                      hasRequests
+                        ? "text-[26px] sm:text-[30px]"
+                        : "text-[32px] sm:text-[38px]"
+                    } font-medium tracking-[-0.03em] text-black leading-[1.08]`}
+                  >
+                    Need lab components for your build?
+                  </h2>
+                  <p className="mt-3 text-[15px] text-black/60 leading-relaxed">
+                    Select the required parts and quantities from your campus
+                    lab catalog. Every request appears live as a visual
+                    flowchart on your board.
+                  </p>
 
-                <div className="mt-7">
-                  <LoopsiiButton
-                    label="Raise a Request"
-                    size="lg"
-                    hideArrow
-                    onClick={() => setStage("parts")}
-                  />
+                  <div className="mt-6">
+                    <LoopsiiButton
+                      label={
+                        hasRequests ? "Raise Another Request" : "Raise a Request"
+                      }
+                      size={hasRequests ? "md" : "lg"}
+                      hideArrow
+                      onClick={() => setStage("parts")}
+                    />
+                  </div>
                 </div>
               </div>
+
+              {/* Right Dynamic Excalidraw Flowchart Cluster */}
+              {hasRequests && (
+                <div className="lg:col-span-8 space-y-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 px-2">
+                    <div>
+                      <h3 className="text-[22px] font-medium tracking-[-0.025em] text-black">
+                        Your Request Flowcharts
+                      </h3>
+                      <p className="text-[14px] text-black/55">
+                        {savedRequests.length} active request
+                        {savedRequests.length === 1 ? "" : "s"} saved on your
+                        dashboard
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Dynamic cluster layout: single centered expressive flow, or clustered grid for 2+ */}
+                  <div
+                    className={
+                      isClustered
+                        ? "grid gap-8 2xl:grid-cols-2 items-start"
+                        : "flex flex-col gap-8"
+                    }
+                  >
+                    {savedRequests.map((req, idx) => (
+                      <RequestFlowchartCard
+                        key={req.id}
+                        request={req}
+                        index={savedRequests.length - 1 - idx}
+                        compactMode={isClustered}
+                        defaultExpanded={idx === 0 || savedRequests.length <= 2}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
-          {/* STAGE 2: ALL PARTS VISUAL PICKER */}
+          {/* PARTS PICKER VIEW */}
           {stage === "parts" && (
             <motion.div
               key="stage-parts"
@@ -671,9 +820,9 @@ export function StudentRequestFlow() {
                   <div className="flex items-center gap-3.5">
                     <button
                       type="button"
-                      onClick={() => setStage("prompt")}
+                      onClick={() => setStage("board")}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-[#F0F0F0] text-black transition-colors hover:bg-[#C4F041] cursor-pointer"
-                      aria-label="Back"
+                      aria-label="Back to dashboard"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -798,51 +947,6 @@ export function StudentRequestFlow() {
                     )}
                   </>
                 )}
-              </div>
-            </motion.div>
-          )}
-
-          {/* STAGE 3: SUBMITTED CONFIRMATION */}
-          {stage === "submitted" && (
-            <motion.div
-              key="stage-submitted"
-              initial={{ opacity: 0, y: 24, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -16, scale: 0.97 }}
-              transition={{ duration: 0.55, ease: LP_EASE }}
-              className="flex flex-1 min-h-[calc(100vh-8.5rem)] items-center justify-center p-6"
-            >
-              <div className="w-full max-w-lg rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-black/12 bg-[#C4F041] text-black">
-                  <CheckCircle2 className="h-7 w-7" />
-                </div>
-                <h2 className="mt-5 text-[28px] sm:text-[32px] font-medium tracking-[-0.03em] text-black">
-                  Request Submitted
-                </h2>
-                <p className="mt-2.5 text-[15px] text-black/60 leading-relaxed">
-                  Your request for{" "}
-                  <strong className="font-semibold text-black">
-                    {submittedSummary.partCount} part
-                    {submittedSummary.partCount === 1 ? "" : "s"} (
-                    {submittedSummary.unitCount} total units)
-                  </strong>{" "}
-                  has been sent to your Instructor for approval.
-                </p>
-
-                <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
-                  <LoopsiiButton
-                    label="Raise Another Request"
-                    size="md"
-                    hideArrow
-                    onClick={() => setStage("parts")}
-                  />
-                  <Link
-                    href="/student/requests"
-                    className="text-[15px] font-medium text-black underline decoration-black/30 underline-offset-4 hover:decoration-black transition-colors"
-                  >
-                    View My Requests
-                  </Link>
-                </div>
               </div>
             </motion.div>
           )}

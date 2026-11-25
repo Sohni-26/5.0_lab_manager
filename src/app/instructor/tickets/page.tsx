@@ -166,8 +166,10 @@ export default function InstructorTicketsPage() {
         {/* Raise Ticket Form */}
         <Card className="lg:col-span-5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-4.5 w-4.5 text-[#F26943]" />
+            <CardTitle className="flex items-center gap-2.5">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#C4F041] text-black">
+                <Plus className="h-4 w-4" />
+              </span>
               Raise New Issue Ticket
             </CardTitle>
             <CardDescription>
@@ -255,8 +257,8 @@ export default function InstructorTicketsPage() {
 
               <div className="space-y-2">
                 <Label>Attach Evidence Photo (Optional)</Label>
-                <label className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#DAD8D0] bg-[#FAF9F6] px-4 py-3 text-xs font-medium text-[#72736E] hover:border-[#F26943] cursor-pointer">
-                  <Upload className="h-4 w-4 text-[#F26943]" />
+                <label className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-black/20 bg-[#F5F5F3] px-4 py-3 text-xs font-medium text-black/55 transition-colors duration-150 hover:border-black/45 hover:text-black cursor-pointer">
+                  <Upload className="h-4 w-4 text-black" />
                   <span>
                     {uploading
                       ? "Uploading photo..."
@@ -282,32 +284,35 @@ export default function InstructorTicketsPage() {
         {/* Campus Ticket Tracker */}
         <div className="lg:col-span-7 space-y-3.5">
           {loading ? (
-            <Card className="p-8 text-center text-sm text-[#72736E]">
+            <Card className="p-8 text-center text-sm text-black/55">
               Loading tickets...
             </Card>
           ) : (
             tickets.map((t) => (
-              <Card key={t.id} className="p-5 space-y-2.5">
+              <Card
+                key={t.id}
+                className="p-5 space-y-2.5 transition-colors duration-150 hover:border-black/25"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-[#F26943]">
+                    <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
                       {t.ticketCode}
                     </span>
                     <TicketStatusBadge status={t.status} />
                     <PriorityBadge priority={t.priority} />
                   </div>
-                  <span className="text-xs text-[#72736E]">
+                  <span className="text-xs text-black/55 tabular-nums">
                     {formatDateTime(t.createdAt)}
                   </span>
                 </div>
-                <h3 className="text-base font-semibold text-[#222321]">
+                <h3 className="text-base font-semibold tracking-[-0.01em] text-black">
                   {t.title}
                 </h3>
-                <p className="text-xs text-[#72736E] leading-relaxed">
+                <p className="text-xs text-black/55 leading-relaxed">
                   {t.description}
                 </p>
-                <div className="flex items-center justify-between pt-2 border-t border-[#EFECE6]">
-                  <span className="text-xs text-[#72736E]">
+                <div className="flex items-center justify-between pt-2.5 border-t border-black/10">
+                  <span className="text-xs text-black/55">
                     {ISSUE_CATEGORY_LABELS[t.category]}
                     {t.item ? ` · ${t.item.code}` : ""}
                   </span>
@@ -320,7 +325,7 @@ export default function InstructorTicketsPage() {
                     }}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    Comments ({t.comments?.length ?? 0})
+                    Comments (<span className="tabular-nums">{t.comments?.length ?? 0}</span>)
                   </Button>
                 </div>
               </Card>
@@ -339,7 +344,7 @@ export default function InstructorTicketsPage() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <span className="font-mono">{activeTicket.ticketCode}</span>
+                  <span className="font-mono text-black">{activeTicket.ticketCode}</span>
                   <TicketStatusBadge status={activeTicket.status} />
                 </DialogTitle>
                 <DialogDescription>{activeTicket.title}</DialogDescription>
@@ -349,21 +354,21 @@ export default function InstructorTicketsPage() {
                   activeTicket.comments.map((c) => (
                     <div
                       key={c.id}
-                      className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3 text-xs"
+                      className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3 text-xs"
                     >
                       <div className="flex justify-between mb-1">
-                        <span className="font-semibold text-[#222321]">
+                        <span className="font-semibold text-black">
                           {c.author.fullName}
                         </span>
-                        <span className="text-[#72736E]">
+                        <span className="text-black/55 tabular-nums">
                           {formatDateTime(c.createdAt)}
                         </span>
                       </div>
-                      <p className="text-[#585955]">{c.body}</p>
+                      <p className="text-black/80">{c.body}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-[#72736E]">No comments yet.</p>
+                  <p className="text-xs text-black/55">No comments yet.</p>
                 )}
               </div>
               <form onSubmit={handleAddComment} className="flex gap-2">

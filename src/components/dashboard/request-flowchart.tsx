@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
   ChevronDown,
@@ -166,7 +166,10 @@ function deriveFlowchartSteps(request: LabRequestDTO): FlowchartStep[] {
   ];
 }
 
-/** Excalidraw-inspired organic squiggly S-curve vertical SVG connector */
+/**
+ * Smooth, continuous Excalidraw-style organic squiggly vertical S-curve connector.
+ * Flows flush from box edge to box edge with matched smooth Bézier tangents and subtle anchor dot.
+ */
 function SquigglyConnector({
   direction = "right",
   dashed = false,
@@ -174,59 +177,68 @@ function SquigglyConnector({
   direction?: "left" | "right";
   dashed?: boolean;
 }) {
-  // Gentle hand-drawn S-curve winding left or right
-  const path =
+  // Smooth continuous S-curve with vertical entry/exit tangents (matching Excalidraw's spine)
+  const curvePath =
     direction === "right"
-      ? "M 50 2 C 50 18, 76 16, 68 30 C 60 44, 34 40, 50 56"
-      : "M 50 2 C 50 18, 24 16, 32 30 C 40 44, 66 40, 50 56";
+      ? "M 60 2 C 60 18, 96 18, 80 30 C 64 42, 34 40, 60 56"
+      : "M 60 2 C 60 18, 24 18, 40 30 C 56 42, 86 40, 60 56";
 
   return (
-    <div className="flex justify-center -my-0.5 select-none" aria-hidden="true">
+    <div
+      className="flex justify-center py-0 select-none"
+      aria-hidden="true"
+    >
       <svg
-        width="100"
+        width="120"
         height="58"
-        viewBox="0 0 100 58"
+        viewBox="0 0 120 58"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="overflow-visible"
       >
         <path
-          d={path}
+          d={curvePath}
           stroke="#000000"
-          strokeOpacity={dashed ? 0.35 : 0.85}
-          strokeWidth={dashed ? 2 : 2.3}
+          strokeOpacity={dashed ? 0.32 : 0.88}
+          strokeWidth={dashed ? 1.9 : 2.25}
           strokeLinecap="round"
           strokeDasharray={dashed ? "5 6" : undefined}
         />
-        {/* Small hand-drawn arrowhead at the bottom */}
-        <path
-          d="M 44 49 L 50 56 L 56 49"
+        <circle
+          cx="60"
+          cy="55"
+          r="2.6"
+          fill={dashed ? "#FFFFFF" : "#000000"}
           stroke="#000000"
-          strokeOpacity={dashed ? 0.35 : 0.85}
-          strokeWidth={dashed ? 1.8 : 2.1}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          strokeOpacity={dashed ? 0.45 : 0.88}
+          strokeWidth="1.6"
         />
       </svg>
     </div>
   );
 }
 
-/** Dotted squiggly horizontal branch connector from a step card to its parts preview box */
+/** Smooth dotted squiggly horizontal branch connector from Step 1 to the Parts preview box */
 function SquigglyBranchConnector() {
   return (
     <svg
-      width="56"
-      height="32"
-      viewBox="0 0 56 32"
+      width="44"
+      height="28"
+      viewBox="0 0 44 28"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="hidden 2xl:block shrink-0 self-center -mx-1"
+      className="hidden 2xl:block shrink-0 self-center"
       aria-hidden="true"
     >
-      <circle cx="4" cy="16" r="3" fill="#FFFFFF" stroke="#000000" strokeWidth="1.8" />
+      <circle
+        cx="4"
+        cy="14"
+        r="2.6"
+        fill="#FFFFFF"
+        stroke="#000000"
+        strokeWidth="1.7"
+      />
       <path
-        d="M 7 16 C 18 6, 28 26, 38 14 C 44 8, 49 16, 53 16"
+        d="M 7 14 C 15 6, 23 22, 31 12 C 35 8, 38 14, 41 14"
         stroke="#000000"
         strokeOpacity="0.65"
         strokeWidth="1.8"
@@ -237,12 +249,38 @@ function SquigglyBranchConnector() {
   );
 }
 
-const BANNER_COLORS = ["#F3BD77", "#C4F041", "#BCE6FA", "#AAC2AA"] as const;
-const BLOB_COLORS = [
-  "rgba(188, 230, 250, 0.32)",
-  "rgba(196, 240, 65, 0.22)",
-  "rgba(243, 189, 119, 0.26)",
-  "rgba(170, 194, 170, 0.28)",
+/** 6 distinct Landing-Page palette combinations so multiple requests each get their own color */
+const FLOW_PALETTES = [
+  {
+    backdrop: "rgba(188, 230, 250, 0.40)", // Sky
+    banner: "#F3BD77", // Apricot
+    pendingBg: "#F3BD77",
+  },
+  {
+    backdrop: "rgba(196, 240, 65, 0.24)", // Lime
+    banner: "#BCE6FA", // Sky
+    pendingBg: "#C4F041",
+  },
+  {
+    backdrop: "rgba(243, 189, 119, 0.30)", // Apricot
+    banner: "#AAC2AA", // Sage
+    pendingBg: "#F3BD77",
+  },
+  {
+    backdrop: "rgba(170, 194, 170, 0.34)", // Sage
+    banner: "#C4F041", // Lime
+    pendingBg: "#BCE6FA",
+  },
+  {
+    backdrop: "rgba(250, 142, 102, 0.24)", // Coral
+    banner: "#9EC3D5", // Steel
+    pendingBg: "#FA8E66",
+  },
+  {
+    backdrop: "rgba(158, 195, 213, 0.34)", // Steel
+    banner: "#FA8E66", // Coral
+    pendingBg: "#F3BD77",
+  },
 ] as const;
 
 interface RequestFlowchartCardProps {
@@ -254,32 +292,32 @@ interface RequestFlowchartCardProps {
 
 /**
  * Single request rendered in Excalidraw's organic flowchart style:
- * pastel aura blob, ink-bordered header pill, two-tier step boxes,
- * squiggly S-curve connectors, dashed parts branch, and Clock icon on pending steps.
+ * self-contained colored backdrop (no content overflow), distinct multi-request theme colors,
+ * smooth landing-page accordion expand/collapse, continuous squiggly S-curves,
+ * and a right-side Clock indicator on the pending step.
  */
 export function RequestFlowchartCard({
   request,
   index,
   compactMode = false,
-  defaultExpanded = true,
+  defaultExpanded = false,
 }: RequestFlowchartCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const steps = deriveFlowchartSteps(request);
-  const pendingStep = steps.find((st) => st.state === "pending");
-  const bannerBg = BANNER_COLORS[index % BANNER_COLORS.length];
-  const blobColor = BLOB_COLORS[index % BLOB_COLORS.length];
+  const palette = FLOW_PALETTES[index % FLOW_PALETTES.length];
 
   const totalUnits = request.items.reduce(
     (sum, it) => sum + it.requestedQuantity,
     0
   );
 
-  // In compact cluster mode when collapsed, show Step 1 + Current Pending Step with a squiggly link
-  const displayedSteps = expanded
-    ? steps
-    : steps.filter(
-        (st, idx) => idx === 0 || st.state === "pending" || st.state === "rejected"
-      );
+  // Primary steps always visible: Step 1 (Request Raised) + Current Active/Pending step
+  const activeStepIdx = Math.max(
+    1,
+    steps.findIndex((st) => st.state === "pending" || st.state === "rejected")
+  );
+  const primarySteps = steps.slice(0, activeStepIdx + 1);
+  const extraSteps = steps.slice(activeStepIdx + 1);
 
   const formattedDate = (() => {
     try {
@@ -294,234 +332,208 @@ export function RequestFlowchartCard({
     }
   })();
 
+  const renderStepNode = (step: FlowchartStep, sIdx: number) => {
+    const isPending = step.state === "pending";
+    const isCompleted = step.state === "completed";
+    const isRejected = step.state === "rejected";
+    const isUpcoming = step.state === "upcoming";
+
+    return (
+      <div className="flex w-full items-center justify-center gap-0">
+        <div
+          className={`w-full ${
+            step.showPartsBranch && !compactMode
+              ? "max-w-[360px]"
+              : "max-w-[440px]"
+          } transition-opacity duration-300 ${
+            isUpcoming ? "opacity-55" : "opacity-100"
+          }`}
+        >
+          {/* Floating Step Title Tab */}
+          <div className="mb-1.5 pl-2">
+            <div
+              className={`inline-block rounded-[10px] border-2 px-3.5 py-1 text-[14px] font-semibold tracking-[-0.015em] ${
+                isPending
+                  ? "border-black bg-[#FFF9E6] text-black shadow-[2px_2px_0px_#000000]"
+                  : isCompleted
+                    ? "border-black bg-[#F0F0F0] text-black shadow-[2px_2px_0px_#000000]"
+                    : isRejected
+                      ? "border-black bg-[#FCE4DF] text-black shadow-[2px_2px_0px_#000000]"
+                      : "border-black/40 border-dashed bg-white/85 text-black/65"
+              }`}
+            >
+              {step.title}
+            </div>
+          </div>
+
+          {/* Step Body Box */}
+          <div
+            className={`flex items-center justify-between gap-4 rounded-[14px] border-2 px-4 py-3.5 ${
+              isPending
+                ? "border-black bg-[#FFFDF7] shadow-[4px_4px_0px_#000000]"
+                : isCompleted
+                  ? "border-black bg-white shadow-[3px_3px_0px_#000000]"
+                  : isRejected
+                    ? "border-black bg-[#FFF5F3] shadow-[3px_3px_0px_#000000]"
+                    : "border-black/35 border-dashed bg-white/80"
+            }`}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] leading-snug text-black">
+                {step.description}
+              </p>
+
+              {/* Inline WebP Part Previews (always kept inside container bounds) */}
+              {step.showPartsBranch && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-2 2xl:hidden">
+                  {request.items.slice(0, 4).map((it) => (
+                    <div
+                      key={it.id}
+                      className="inline-flex items-center gap-2 rounded-[10px] border border-black/15 bg-[#F5F5F3] pr-2.5 overflow-hidden"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={it.item.imageUrl || getPartImageUrl(it.item.code)}
+                        alt={it.item.name}
+                        className="h-8 w-8 object-cover border-r border-black/10"
+                      />
+                      <span className="text-[13px] font-medium text-black max-w-[140px] truncate">
+                        {it.item.name} ×{it.requestedQuantity}
+                      </span>
+                    </div>
+                  ))}
+                  {request.items.length > 4 && (
+                    <span className="text-[13px] text-black/60">
+                      +{request.items.length - 4} more
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Right-Side Status Symbol (Clock on Pending Step) */}
+            <div className="shrink-0">
+              {isPending && (
+                <div
+                  title="Pending"
+                  style={{ backgroundColor: palette.pendingBg }}
+                  className="flex items-center gap-2 rounded-full border-2 border-black px-3 py-1.5 text-black shadow-[2px_2px_0px_#000000]"
+                >
+                  <Clock className="h-4 w-4 stroke-[2.3]" />
+                  <span className="text-[13px] font-semibold">Pending</span>
+                </div>
+              )}
+              {isCompleted && (
+                <div
+                  title="Completed"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#C4F041] text-black"
+                >
+                  <Check className="h-4 w-4 stroke-[2.6]" />
+                </div>
+              )}
+              {isRejected && (
+                <div
+                  title="Rejected"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#FA8E66] text-black"
+                >
+                  <XCircle className="h-4 w-4 stroke-[2.2]" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Dotted Squiggly Side Branch (strictly inside padded container on 2xl+) */}
+        {step.showPartsBranch && !compactMode && (
+          <>
+            <SquigglyBranchConnector />
+            <div className="hidden 2xl:flex flex-col justify-center w-[196px] shrink-0 rounded-[14px] border-2 border-dashed border-black/55 bg-white/95 p-3">
+              <p className="text-[13px] font-semibold text-black mb-2">
+                Parts ({totalUnits} units)
+              </p>
+              <div className="space-y-2">
+                {request.items.slice(0, 3).map((it) => (
+                  <div key={it.id} className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={it.item.imageUrl || getPartImageUrl(it.item.code)}
+                      alt={it.item.name}
+                      className="h-9 w-11 shrink-0 rounded-[8px] border border-black/15 object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium text-black truncate">
+                        {it.item.name}
+                      </p>
+                      <p className="text-[12px] text-black/55 tabular-nums">
+                        Qty {it.requestedQuantity}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {request.items.length > 3 && (
+                  <p className="text-[12px] font-medium text-black/55">
+                    +{request.items.length - 3} more parts
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <motion.section
-      layout
-      initial={{ opacity: 0, y: 24, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.55, ease: LP_EASE }}
-      className="relative py-4 px-2 sm:px-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: LP_EASE }}
+      style={{ backgroundColor: palette.backdrop }}
+      className="relative w-full overflow-hidden rounded-[36px] px-5 sm:px-8 py-7"
     >
-      {/* Excalidraw-style Soft Organic Pastel Blob Behind the Flowchart */}
-      <svg
-        viewBox="0 0 520 680"
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        aria-hidden="true"
-      >
-        <path
-          d="M90,48 C185,6 380,12 448,88 C515,164 475,270 492,372 C508,475 456,620 340,656 C225,692 66,645 36,522 C6,399 42,306 24,200 C6,94 20,80 90,48 Z"
-          fill={blobColor}
-        />
-      </svg>
-
       <div className="relative z-10 flex flex-col items-center">
-        {/* Top Excalidraw Anchor Header Pill (like "June" / "August") */}
+        {/* Top Excalidraw Anchor Header Pill */}
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          style={{ backgroundColor: bannerBg }}
-          className="group inline-flex items-center gap-3 rounded-[14px] border-2 border-black px-5 py-2.5 text-black shadow-[3px_3px_0px_#000000] transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
+          style={{ backgroundColor: palette.banner }}
+          className="inline-flex items-center gap-3 rounded-[14px] border-2 border-black px-5 py-2.5 text-black shadow-[3px_3px_0px_#000000] transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
         >
           <span className="text-[16px] font-semibold tracking-[-0.02em]">
             Request {index + 1}
           </span>
-          <span className="text-[14px] text-black/70">
-            {formattedDate}
-          </span>
-          <span className="text-black/70">
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </span>
+          <span className="text-[14px] text-black/75">{formattedDate}</span>
+          {extraSteps.length > 0 && (
+            <span className="text-black/75">
+              {expanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </span>
+          )}
         </button>
 
         {/* Initial Squiggly Connector from Header Banner */}
         <SquigglyConnector direction={index % 2 === 0 ? "left" : "right"} />
 
-        {/* Vertical Flowchart Spine */}
-        <div className="w-full space-y-0">
-          {displayedSteps.map((step, sIdx) => {
-            const isLast = sIdx === displayedSteps.length - 1;
-            const isPending = step.state === "pending";
-            const isCompleted = step.state === "completed";
-            const isRejected = step.state === "rejected";
-            const isUpcoming = step.state === "upcoming";
-
-            // Gentle Excalidraw alternating horizontal stagger when wide
-            const staggerClass = compactMode
-              ? ""
-              : sIdx % 2 === 1
-                ? "sm:translate-x-3"
-                : "sm:-translate-x-2";
-
-            const nextStep = displayedSteps[sIdx + 1];
-            const nextConnectorDashed =
+        {/* Always-Visible Primary Steps (Raised -> Active Pending Step) */}
+        <div className="w-full">
+          {primarySteps.map((step, sIdx) => {
+            const isLastPrimary = sIdx === primarySteps.length - 1;
+            const nextStep = primarySteps[sIdx + 1];
+            const nextDashed =
               !nextStep ||
               nextStep.state === "upcoming" ||
-              step.state === "pending" ||
               step.state === "rejected";
 
             return (
               <div key={step.id} className="flex flex-col items-center">
-                <div
-                  className={`flex w-full items-stretch justify-center ${staggerClass}`}
-                >
-                  {/* Step Node (Excalidraw two-tier tab + description card) */}
-                  <div
-                    className={`w-full ${
-                      step.showPartsBranch && !compactMode
-                        ? "max-w-[400px]"
-                        : "max-w-[460px]"
-                    } transition-opacity ${isUpcoming ? "opacity-55" : "opacity-100"}`}
-                  >
-                    {/* Floating Step Title Header Tab (just like Excalidraw's "New landing pages" box) */}
-                    <div className="mb-1.5 flex items-center justify-between gap-2 pl-2">
-                      <div
-                        className={`inline-block rounded-[10px] border-2 px-3.5 py-1 text-[14px] font-semibold tracking-[-0.015em] ${
-                          isPending
-                            ? "border-black bg-[#FFF9E6] text-black shadow-[2px_2px_0px_#000000]"
-                            : isCompleted
-                              ? "border-black bg-[#F0F0F0] text-black shadow-[2px_2px_0px_#000000]"
-                              : isRejected
-                                ? "border-black bg-[#FCE4DF] text-black shadow-[2px_2px_0px_#000000]"
-                                : "border-black/40 border-dashed bg-white/80 text-black/65"
-                        }`}
-                      >
-                        {step.title}
-                      </div>
-                    </div>
-
-                    {/* Step Body Box with Clock Symbol on the Right when Pending */}
-                    <div
-                      className={`flex items-center justify-between gap-4 rounded-[14px] border-2 px-4 py-3.5 ${
-                        isPending
-                          ? "border-black bg-[#FFFDF7] shadow-[4px_4px_0px_#000000]"
-                          : isCompleted
-                            ? "border-black bg-white shadow-[3px_3px_0px_#000000]"
-                            : isRejected
-                              ? "border-black bg-[#FFF5F3] shadow-[3px_3px_0px_#000000]"
-                              : "border-black/35 border-dashed bg-white/75"
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[15px] leading-snug text-black">
-                          {step.description}
-                        </p>
-                        {step.showPartsBranch && (
-                          <div className="mt-2.5 flex flex-wrap items-center gap-2 2xl:hidden">
-                            {request.items.slice(0, 4).map((it) => (
-                              <div
-                                key={it.id}
-                                className="inline-flex items-center gap-2 rounded-[10px] border border-black/15 bg-[#F5F5F3] pr-2.5 overflow-hidden"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={
-                                    it.item.imageUrl ||
-                                    getPartImageUrl(it.item.code)
-                                  }
-                                  alt={it.item.name}
-                                  className="h-8 w-8 object-cover border-r border-black/10"
-                                />
-                                <span className="text-[13px] font-medium text-black max-w-[140px] truncate">
-                                  {it.item.name} ×{it.requestedQuantity}
-                                </span>
-                              </div>
-                            ))}
-                            {request.items.length > 4 && (
-                              <span className="text-[13px] text-black/60">
-                                +{request.items.length - 4} more
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right-Side Status Symbol (Clock for Pending, Check for Completed) */}
-                      <div className="shrink-0">
-                        {isPending && (
-                          <div
-                            title="Pending"
-                            className="flex items-center gap-2 rounded-full border-2 border-black bg-[#F3BD77] px-3 py-1.5 text-black shadow-[2px_2px_0px_#000000]"
-                          >
-                            <Clock className="h-4 w-4 stroke-[2.3]" />
-                            <span className="text-[13px] font-semibold">
-                              Pending
-                            </span>
-                          </div>
-                        )}
-                        {isCompleted && (
-                          <div
-                            title="Completed"
-                            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#C4F041] text-black"
-                          >
-                            <Check className="h-4 w-4 stroke-[2.6]" />
-                          </div>
-                        )}
-                        {isRejected && (
-                          <div
-                            title="Rejected"
-                            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#FA8E66] text-black"
-                          >
-                            <XCircle className="h-4 w-4 stroke-[2.2]" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Excalidraw-style Dotted Squiggly Side Callout with WebP Part Previews (on wide view) */}
-                  {step.showPartsBranch && !compactMode && (
-                    <>
-                      <SquigglyBranchConnector />
-                      <div className="hidden 2xl:flex flex-col justify-center w-[200px] shrink-0 rounded-[14px] border-2 border-dashed border-black/55 bg-white/92 p-3 shadow-[3px_3px_0px_rgba(0,0,0,0.08)]">
-                        <p className="text-[13px] font-semibold text-black mb-2">
-                          Parts ({totalUnits} units)
-                        </p>
-                        <div className="space-y-2">
-                          {request.items.slice(0, 3).map((it) => (
-                            <div
-                              key={it.id}
-                              className="flex items-center gap-2"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={
-                                  it.item.imageUrl ||
-                                  getPartImageUrl(it.item.code)
-                                }
-                                alt={it.item.name}
-                                className="h-9 w-11 shrink-0 rounded-[8px] border border-black/15 object-cover"
-                              />
-                              <div className="min-w-0">
-                                <p className="text-[13px] font-medium text-black truncate">
-                                  {it.item.name}
-                                </p>
-                                <p className="text-[12px] text-black/55 tabular-nums">
-                                  Qty {it.requestedQuantity}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                          {request.items.length > 3 && (
-                            <p className="text-[12px] font-medium text-black/55">
-                              +{request.items.length - 3} more parts
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Squiggly Connector to Next Step */}
-                {!isLast && (
+                {renderStepNode(step, sIdx)}
+                {!isLastPrimary && (
                   <SquigglyConnector
                     direction={sIdx % 2 === 0 ? "right" : "left"}
-                    dashed={nextConnectorDashed}
+                    dashed={nextDashed}
                   />
                 )}
               </div>
@@ -529,14 +541,43 @@ export function RequestFlowchartCard({
           })}
         </div>
 
-        {/* Toggle full flowchart link when collapsed */}
-        {!expanded && pendingStep && (
+        {/* Smooth Accordion Reveal for Remaining Steps (Zero Layout Squash) */}
+        {extraSteps.length > 0 && (
+          <AnimatePresence initial={false}>
+            {expanded && (
+              <motion.div
+                key="extra-steps"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.45, ease: LP_EASE }}
+                className="w-full overflow-hidden"
+              >
+                {extraSteps.map((step, eIdx) => {
+                  const globalIdx = primarySteps.length + eIdx;
+                  return (
+                    <div key={step.id} className="flex flex-col items-center">
+                      <SquigglyConnector
+                        direction={globalIdx % 2 === 0 ? "left" : "right"}
+                        dashed
+                      />
+                      {renderStepNode(step, globalIdx)}
+                    </div>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+
+        {/* Clean Toggle Link */}
+        {extraSteps.length > 0 && (
           <button
             type="button"
-            onClick={() => setExpanded(true)}
-            className="mt-3 text-[14px] font-medium text-black/65 underline decoration-black/25 underline-offset-4 hover:text-black hover:decoration-black cursor-pointer"
+            onClick={() => setExpanded((prev) => !prev)}
+            className="mt-4 text-[14px] font-medium text-black/65 underline decoration-black/25 underline-offset-4 hover:text-black hover:decoration-black transition-colors cursor-pointer"
           >
-            Show all {steps.length} steps
+            {expanded ? "Hide upcoming steps" : `Show all ${steps.length} steps`}
           </button>
         )}
       </div>

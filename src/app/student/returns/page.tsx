@@ -188,7 +188,7 @@ export default function StudentReturnsPage() {
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="rounded-[22px] border-black/12 bg-white p-8 text-center text-sm text-black/55">
           Loading open borrowings...
         </Card>
       ) : requests.length === 0 ? (
@@ -206,19 +206,24 @@ export default function StudentReturnsPage() {
             );
 
             return (
-              <Card key={req.id}>
-                <CardHeader className="bg-[#FAF9F6] border-b border-[#EFECE6]">
+              <Card
+                key={req.id}
+                className="overflow-hidden rounded-[22px] border-black/12 bg-white"
+              >
+                <CardHeader className="border-b border-black/10 bg-[#F5F5F3]">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="font-mono text-base">
+                        <CardTitle className="font-mono text-base font-semibold text-black tabular-nums">
                           {req.requestCode}
                         </CardTitle>
                         <RequestStatusBadge status={req.status} />
                       </div>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-1 text-black/55">
                         Verifying Instructor:{" "}
-                        <strong>{req.instructor.fullName}</strong>
+                        <strong className="font-semibold text-black">
+                          {req.instructor.fullName}
+                        </strong>
                       </CardDescription>
                     </div>
 
@@ -226,6 +231,7 @@ export default function StudentReturnsPage() {
                       <Button
                         disabled={!allPhotosUploaded || submittingId === req.id}
                         onClick={() => handleSubmitReturn(req)}
+                        className="rounded-full bg-black text-white hover:bg-[#C4F041] hover:text-black"
                       >
                         <Send className="h-4 w-4" />
                         {submittingId === req.id
@@ -252,14 +258,14 @@ export default function StudentReturnsPage() {
                     return (
                       <div
                         key={it.id}
-                        className="rounded-2xl border border-[#E6E5E0] bg-white p-4 space-y-4"
+                        className="rounded-[22px] border border-black/12 bg-white p-4 sm:p-5 space-y-4"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#EFECE6]">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/10">
                           <div>
-                            <h3 className="text-base font-semibold text-[#222321]">
+                            <h3 className="text-base font-semibold tracking-[-0.01em] text-black">
                               {it.item.name}
                             </h3>
-                            <p className="font-mono text-xs text-[#72736E]">
+                            <p className="font-mono text-xs text-black/55 tabular-nums">
                               {it.item.code} · Issued Qty: {it.issuedQuantity}
                             </p>
                           </div>
@@ -275,9 +281,11 @@ export default function StudentReturnsPage() {
                         />
 
                         {!awaitingCheck && (
-                          <div className="grid sm:grid-cols-3 gap-3 pt-2">
+                          <div className="grid sm:grid-cols-3 gap-3 rounded-[20px] border border-black/10 bg-[#F5F5F3] p-4">
                             <div className="space-y-1.5">
-                              <Label>Return Quantity</Label>
+                              <Label className="text-black/55">
+                                Return Quantity
+                              </Label>
                               <Input
                                 type="number"
                                 min={1}
@@ -295,10 +303,13 @@ export default function StudentReturnsPage() {
                                     ),
                                   }))
                                 }
+                                className="tabular-nums rounded-xl border-black/15 bg-white text-black focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                               />
                             </div>
                             <div className="sm:col-span-2 space-y-1.5">
-                              <Label>Student Return Notes (optional)</Label>
+                              <Label className="text-black/55">
+                                Student Return Notes (optional)
+                              </Label>
                               <Textarea
                                 value={notesByItem[it.id] ?? ""}
                                 onChange={(e) =>
@@ -308,7 +319,7 @@ export default function StudentReturnsPage() {
                                   }))
                                 }
                                 placeholder="Note any accessories returned, calibration status, or wear..."
-                                className="min-h-[42px]"
+                                className="min-h-[42px] rounded-xl border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                               />
                             </div>
                           </div>

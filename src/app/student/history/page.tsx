@@ -43,7 +43,7 @@ export default function StudentHistoryPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="border-b border-black/10 text-left">
                 <th className="px-4 py-3">Request Code</th>
                 <th className="px-4 py-3">Items</th>
                 <th className="px-4 py-3">Instructor</th>
@@ -55,28 +55,31 @@ export default function StudentHistoryPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={6} className="p-8 text-center text-black/55">
                     Loading borrowing history...
                   </td>
                 </tr>
               ) : (
                 requests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#FAF9F6]">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold">
+                  <tr
+                    key={req.id}
+                    className="border-b border-black/10 transition-colors duration-150 hover:bg-[#F5F5F3]"
+                  >
+                    <td className="px-4 py-3 font-mono text-xs font-semibold text-black tabular-nums whitespace-nowrap">
                       {req.requestCode}
                     </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td className="px-4 py-3 text-xs text-black">
                       {req.items
                         .map((i) => `${i.item.name} (×${i.requestedQuantity})`)
                         .join(", ")}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55">
                       {req.instructor.fullName}
                     </td>
                     <td className="px-4 py-3">
                       <RequestStatusBadge status={req.status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55 tabular-nums whitespace-nowrap">
                       {formatDateTime(req.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -101,21 +104,24 @@ export default function StudentHistoryPage() {
         open={Boolean(photoModalReq)}
         onOpenChange={(o) => !o && setPhotoModalReq(null)}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl rounded-[22px] border-black/12 bg-white text-black">
           {photoModalReq && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-mono">
+                <DialogTitle className="font-mono text-black">
                   {photoModalReq.requestCode} · Photo Evidence Archive
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-black/55">
                   Preserved 4-angle collection and return photos
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
                 {photoModalReq.items.map((it) => (
-                  <div key={it.id} className="space-y-2">
-                    <p className="text-sm font-semibold text-[#222321]">
+                  <div
+                    key={it.id}
+                    className="space-y-2.5 border-t border-black/10 pt-5 first:border-t-0 first:pt-0"
+                  >
+                    <p className="text-sm font-semibold text-black">
                       {it.item.name}
                     </p>
                     <PhotoComparisonGrid

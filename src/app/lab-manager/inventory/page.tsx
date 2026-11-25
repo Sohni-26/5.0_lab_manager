@@ -202,16 +202,16 @@ export default function LabManagerInventorySheetPage() {
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="inline-flex items-center gap-1 cursor-pointer hover:text-[#222321]"
+            className="inline-flex items-center gap-1 cursor-pointer transition-colors duration-150 hover:text-black"
           >
             Item Name <ArrowUpDown className="h-3 w-3" />
           </button>
         ),
         cell: ({ row }) => (
           <div className="min-w-[180px]">
-            <p className="font-medium text-[#222321]">{row.original.item.name}</p>
+            <p className="font-medium text-black">{row.original.item.name}</p>
             {!row.original.isVerified && (
-              <span className="text-[10px] font-semibold text-[#D69A35]">
+              <span className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/75 px-2 py-0.5 text-[10px] font-semibold text-black">
                 Unverified stock
               </span>
             )}
@@ -223,7 +223,7 @@ export default function LabManagerInventorySheetPage() {
         accessorFn: (row) => row.item.code,
         header: "Item Code",
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-semibold text-[#F26943]">
+          <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
             {row.original.item.code}
           </span>
         ),
@@ -242,22 +242,28 @@ export default function LabManagerInventorySheetPage() {
         accessorKey: "allocatedQuantity",
         header: () => <div className="text-right">Allocated</div>,
         cell: ({ getValue }) => (
-          <div className="text-right font-mono text-xs">{Number(getValue())}</div>
+          <div className="text-right font-mono text-xs tabular-nums text-black">
+            {Number(getValue())}
+          </div>
         ),
       },
       {
         accessorKey: "receivedQuantity",
         header: () => <div className="text-right">Received</div>,
         cell: ({ getValue }) => (
-          <div className="text-right font-mono text-xs">{Number(getValue())}</div>
+          <div className="text-right font-mono text-xs tabular-nums text-black">
+            {Number(getValue())}
+          </div>
         ),
       },
       {
         accessorKey: "availableQuantity",
         header: () => <div className="text-right">Available</div>,
         cell: ({ getValue }) => (
-          <div className="text-right font-mono text-xs font-bold text-[#288568]">
-            {Number(getValue())}
+          <div className="text-right">
+            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/65 px-2.5 py-0.5 font-mono text-xs font-bold tabular-nums text-black">
+              {Number(getValue())}
+            </span>
           </div>
         ),
       },
@@ -265,8 +271,10 @@ export default function LabManagerInventorySheetPage() {
         accessorKey: "reservedQuantity",
         header: () => <div className="text-right">Reserved</div>,
         cell: ({ getValue }) => (
-          <div className="text-right font-mono text-xs font-semibold text-[#4D83B5]">
-            {Number(getValue())}
+          <div className="text-right">
+            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#BCE6FA]/75 px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-black">
+              {Number(getValue())}
+            </span>
           </div>
         ),
       },
@@ -274,8 +282,10 @@ export default function LabManagerInventorySheetPage() {
         accessorKey: "borrowedQuantity",
         header: () => <div className="text-right">Borrowed</div>,
         cell: ({ getValue }) => (
-          <div className="text-right font-mono text-xs font-semibold text-[#F26943]">
-            {Number(getValue())}
+          <div className="text-right">
+            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/65 px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-black">
+              {Number(getValue())}
+            </span>
           </div>
         ),
       },
@@ -285,12 +295,16 @@ export default function LabManagerInventorySheetPage() {
         cell: ({ getValue }) => {
           const val = Number(getValue());
           return (
-            <div
-              className={`text-right font-mono text-xs font-semibold ${
-                val > 0 ? "text-[#D9534F]" : "text-[#969791]"
-              }`}
-            >
-              {val}
+            <div className="text-right">
+              {val > 0 ? (
+                <span className="inline-flex items-center rounded-full border border-black/10 bg-[#FA8E66]/75 px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-black">
+                  {val}
+                </span>
+              ) : (
+                <span className="font-mono text-xs font-semibold tabular-nums text-black/45">
+                  {val}
+                </span>
+              )}
             </div>
           );
         },
@@ -305,7 +319,7 @@ export default function LabManagerInventorySheetPage() {
               checked={row.original.isVisible}
               onCheckedChange={(v) => handleToggleVisibility(row.original, v)}
             />
-            <span className="text-[11px] text-[#72736E]">
+            <span className="text-[11px] text-black/55">
               {row.original.isVisible ? "Visible" : "Hidden"}
             </span>
           </div>
@@ -315,7 +329,7 @@ export default function LabManagerInventorySheetPage() {
         accessorKey: "updatedAt",
         header: "Last Updated",
         cell: ({ row }) => (
-          <span className="text-xs text-[#72736E] whitespace-nowrap">
+          <span className="text-xs text-black/55 whitespace-nowrap tabular-nums">
             {formatDateTime(row.original.updatedAt)}
           </span>
         ),
@@ -434,7 +448,7 @@ export default function LabManagerInventorySheetPage() {
         badge={
           <Badge
             variant={liveFlash ? "accent" : "success"}
-            className="transition-colors"
+            className="transition-colors duration-150"
           >
             <Radio className={`h-3 w-3 ${liveFlash ? "animate-ping" : "animate-pulse"}`} />
             {liveFlash ? "Synced just now" : "Live Sheet"}
@@ -449,10 +463,10 @@ export default function LabManagerInventorySheetPage() {
       />
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[240px]">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -489,8 +503,8 @@ export default function LabManagerInventorySheetPage() {
 
         <div className="flex items-center gap-2">
           {selectedRows.length > 0 && (
-            <div className="flex items-center gap-1.5 rounded-xl bg-[#FFF0E9] border border-[#F26943]/25 px-2.5 py-1">
-              <span className="text-xs font-semibold text-[#DA5835] mr-1">
+            <div className="flex items-center gap-1.5 rounded-full bg-[#C4F041]/35 border border-black/15 px-3 py-1">
+              <span className="text-xs font-semibold tabular-nums text-black mr-1">
                 {selectedRows.length} selected
               </span>
               <Button
@@ -547,7 +561,7 @@ export default function LabManagerInventorySheetPage() {
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
                   {hg.headers.map((header) => (
-                    <th key={header.id} className="px-3.5 py-3 text-left whitespace-nowrap">
+                    <th key={header.id} className="border-b border-black/10 px-3.5 py-3 text-left whitespace-nowrap">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -562,13 +576,13 @@ export default function LabManagerInventorySheetPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={columns.length} className="p-8 text-center text-black/55">
                     Loading live campus inventory...
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="p-10 text-center text-[#72736E]">
+                  <td colSpan={columns.length} className="p-10 text-center text-black/55">
                     No inventory items match your filters.
                   </td>
                 </tr>
@@ -576,10 +590,10 @@ export default function LabManagerInventorySheetPage() {
                 table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className={`transition-colors ${
+                    className={`transition-colors duration-150 ${
                       row.getIsSelected()
-                        ? "bg-[#FFF0E9]/50"
-                        : "hover:bg-[#FAF9F6]"
+                        ? "bg-[#C4F041]/15"
+                        : "hover:bg-[#F5F5F3]"
                     }`}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -610,27 +624,30 @@ export default function LabManagerInventorySheetPage() {
                 <DialogTitle>Adjust Campus Stock</DialogTitle>
                 <DialogDescription>
                   {adjustItem.item.code} · {adjustItem.item.name}. Every adjustment writes
-                  an immutable <code className="font-mono">INVENTORY_ADJUSTMENT</code>{" "}
+                  an immutable{" "}
+                  <code className="rounded-md bg-[#F5F5F3] px-1.5 py-0.5 font-mono text-xs text-black">
+                    INVENTORY_ADJUSTMENT
+                  </code>{" "}
                   transaction.
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmitAdjustment} className="space-y-4">
-                <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3 text-center text-xs">
+                <div className="grid grid-cols-3 gap-2 rounded-[18px] bg-[#F5F5F3] border border-black/10 p-3 text-center text-xs">
                   <div>
-                    <p className="text-[#72736E]">Available</p>
-                    <p className="font-bold text-[#288568]">
+                    <p className="text-black/55">Available</p>
+                    <p className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/65 px-2.5 py-0.5 font-mono font-bold tabular-nums text-black">
                       {adjustItem.availableQuantity}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#72736E]">Damaged</p>
-                    <p className="font-bold text-[#D9534F]">
+                    <p className="text-black/55">Damaged</p>
+                    <p className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#FA8E66]/75 px-2.5 py-0.5 font-mono font-bold tabular-nums text-black">
                       {adjustItem.damagedQuantity}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[#72736E]">Missing</p>
-                    <p className="font-bold text-[#D69A35]">
+                    <p className="text-black/55">Missing</p>
+                    <p className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/75 px-2.5 py-0.5 font-mono font-bold tabular-nums text-black">
                       {adjustItem.missingQuantity}
                     </p>
                   </div>

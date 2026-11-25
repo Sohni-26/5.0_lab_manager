@@ -16,6 +16,7 @@ import {
 import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
+import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import {
   DEMO_CAMPUS_INVENTORY,
@@ -203,6 +204,7 @@ const PartTile = React.memo(function PartTile({
 });
 
 export function StudentRequestFlow() {
+  const { isDemoMode } = useAuth();
   const { lenis, scrollTo } = useLenis();
   const [stage, setStage] = useState<FlowStage>("prompt");
   const [inventory, setInventory] = useState<CampusInventoryDTO[]>([]);
@@ -215,7 +217,7 @@ export function StudentRequestFlow() {
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [labBlockFilter, setLabBlockFilter] = useState("ALL");
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
 
   // Selected parts map: itemId -> quantity
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({});
@@ -235,6 +237,19 @@ export function StudentRequestFlow() {
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (isDemoMode) {
+      const demoInv = DEMO_CAMPUS_INVENTORY.filter(
+        (i) => i.isVerified && i.isVisible
+      );
+      const demoInsts = DEMO_USERS.filter((u) => u.role === "INSTRUCTOR");
+      setInventory(demoInv);
+      setCategories(DEMO_CATEGORIES);
+      setInstructors(demoInsts);
+      if (demoInsts.length > 0) setInstructorId(demoInsts[0].id);
+      setLoading(false);
+      return;
+    }
+
     Promise.all([
       apiClient.inventory
         .list({ pageSize: 250 })
@@ -258,7 +273,7 @@ export function StudentRequestFlow() {
         if (insts.length > 0) setInstructorId(insts[0].id);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [isDemoMode]);
 
   // Hovering top reveals the fixed dashboard navbar; moving down hides it smoothly
   useEffect(() => {
@@ -324,9 +339,9 @@ export function StudentRequestFlow() {
   }, [search, categoryFilter, labBlockFilter, stage]);
 
   useEffect(() => {
-    if (stage !== "parts") return;
-    const el = sentinelRef.current;
-    if (!el) return;
+    if (stage !== "parts" || !sentinelEl || visibleCount >= filteredParts.length) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -338,11 +353,11 @@ export function StudentRequestFlow() {
           );
         }
       },
-      { rootMargin: "500px 0px" }
+      { rootMargin: "900px 0px" }
     );
-    observer.observe(el);
+    observer.observe(sentinelEl);
     return () => observer.disconnect();
-  }, [stage, filteredParts.length]);
+  }, [stage, sentinelEl, visibleCount, filteredParts.length]);
 
   useEffect(() => {
     if (stage !== "parts") return;
@@ -768,7 +783,7 @@ export function StudentRequestFlow() {
 
                     {visibleCount < filteredParts.length && (
                       <div
-                        ref={sentinelRef}
+                        ref={setSentinelEl}
                         className="mt-6 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                       >
                         {Array.from({ length: 4 }).map((_, i) => (

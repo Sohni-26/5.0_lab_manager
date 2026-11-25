@@ -150,19 +150,21 @@ export default function InstructorRequestsPage() {
 
       <Tabs defaultValue="review">
         <TabsList>
-          <TabsTrigger value="review">
+          <TabsTrigger value="review" className="tabular-nums">
             Pending Review ({pendingReview.length})
           </TabsTrigger>
-          <TabsTrigger value="collection">
+          <TabsTrigger value="collection" className="tabular-nums">
             Confirm Collection ({readyForCollection.length})
           </TabsTrigger>
-          <TabsTrigger value="all">All Assigned ({requests.length})</TabsTrigger>
+          <TabsTrigger value="all" className="tabular-nums">
+            All Assigned ({requests.length})
+          </TabsTrigger>
         </TabsList>
 
         {/* Stage 1: Instructor Review */}
         <TabsContent value="review" className="space-y-4">
           {loading ? (
-            <Card className="p-8 text-center text-sm text-[#72736E]">
+            <Card className="p-8 text-center text-sm text-black/55">
               Loading requests...
             </Card>
           ) : pendingReview.length === 0 ? (
@@ -174,19 +176,28 @@ export default function InstructorRequestsPage() {
           ) : (
             pendingReview.map((req) => (
               <Card key={req.id}>
-                <CardHeader className="border-b border-[#EFECE6]">
+                <CardHeader className="border-b border-black/10">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <CardTitle className="font-mono text-base">
+                        <CardTitle className="font-mono text-base text-black">
                           {req.requestCode}
                         </CardTitle>
                         <RequestStatusBadge status={req.status} />
                       </div>
-                      <CardDescription className="mt-1">
-                        Student: <strong>{req.student.fullName}</strong> (
-                        {req.student.institutionalId}) · Submitted{" "}
-                        {formatDateTime(req.createdAt)}
+                      <CardDescription className="mt-1 text-black/55">
+                        Student:{" "}
+                        <strong className="font-semibold text-black">
+                          {req.student.fullName}
+                        </strong>{" "}
+                        (
+                        <span className="tabular-nums">
+                          {req.student.institutionalId}
+                        </span>
+                        ) · Submitted{" "}
+                        <span className="tabular-nums">
+                          {formatDateTime(req.createdAt)}
+                        </span>
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
@@ -199,7 +210,7 @@ export default function InstructorRequestsPage() {
                           setRejectReason("");
                         }}
                       >
-                        <XCircle className="h-4 w-4 text-[#D9534F]" />
+                        <XCircle className="h-4 w-4 text-[#FA8E66]" />
                         Reject
                       </Button>
                       <Button
@@ -220,8 +231,8 @@ export default function InstructorRequestsPage() {
                 </CardHeader>
 
                 <CardContent className="pt-4 space-y-4">
-                  <div className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3.5 text-sm">
-                    <span className="text-xs font-semibold uppercase text-[#72736E] block mb-0.5">
+                  <div className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3.5 text-sm text-black">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/55 block mb-1">
                       Purpose / Lab Coursework
                     </span>
                     {req.purpose}
@@ -231,17 +242,17 @@ export default function InstructorRequestsPage() {
                     {req.items.map((it) => (
                       <div
                         key={it.id}
-                        className="flex items-center justify-between rounded-xl border border-[#EFECE6] px-3.5 py-2.5 text-sm"
+                        className="flex items-center justify-between rounded-2xl border border-black/10 bg-[#F5F5F3] px-3.5 py-2.5 text-sm"
                       >
                         <div>
-                          <p className="font-medium text-[#222321]">
+                          <p className="font-medium text-black">
                             {it.item.name}
                           </p>
-                          <p className="font-mono text-xs text-[#72736E]">
+                          <p className="font-mono text-xs text-black/55">
                             {it.item.code}
                           </p>
                         </div>
-                        <Badge variant="accent">
+                        <Badge variant="accent" className="tabular-nums">
                           Qty: {it.requestedQuantity} {it.item.unit}
                         </Badge>
                       </div>
@@ -249,7 +260,9 @@ export default function InstructorRequestsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label>Instructor Comments (optional)</Label>
+                    <Label className="text-black/55">
+                      Instructor Comments (optional)
+                    </Label>
                     <Textarea
                       value={commentsByReq[req.id] ?? ""}
                       onChange={(e) =>
@@ -259,7 +272,7 @@ export default function InstructorRequestsPage() {
                         }))
                       }
                       placeholder="Add endorsement notes for the Campus Lab Manager..."
-                      className="min-h-[64px]"
+                      className="min-h-[64px] rounded-2xl border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                     />
                   </div>
                 </CardContent>
@@ -283,11 +296,11 @@ export default function InstructorRequestsPage() {
               );
               return (
                 <Card key={req.id}>
-                  <CardHeader className="border-b border-[#EFECE6]">
+                  <CardHeader className="border-b border-black/10">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <CardTitle className="font-mono text-base">
+                          <CardTitle className="font-mono text-base text-black">
                             {req.requestCode}
                           </CardTitle>
                           <RequestStatusBadge status={req.status} />
@@ -298,9 +311,12 @@ export default function InstructorRequestsPage() {
                               : "Waiting on student photos"}
                           </Badge>
                         </div>
-                        <CardDescription className="mt-1">
-                          Student: <strong>{req.student.fullName}</strong> · Stock
-                          reserved by Lab Manager
+                        <CardDescription className="mt-1 text-black/55">
+                          Student:{" "}
+                          <strong className="font-semibold text-black">
+                            {req.student.fullName}
+                          </strong>{" "}
+                          · Stock reserved by Lab Manager
                         </CardDescription>
                       </div>
                       <Button
@@ -321,18 +337,21 @@ export default function InstructorRequestsPage() {
                       return (
                         <div
                           key={it.id}
-                          className="rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5 space-y-2.5"
+                          className="rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 space-y-2.5"
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm font-semibold text-[#222321]">
+                              <p className="text-sm font-semibold text-black">
                                 {it.item.name}
                               </p>
-                              <p className="font-mono text-xs text-[#72736E]">
+                              <p className="font-mono text-xs text-black/55 tabular-nums">
                                 {it.item.code} · Approved Qty: {it.approvedQuantity || it.requestedQuantity}
                               </p>
                             </div>
-                            <Badge variant={count === 4 ? "success" : "warning"}>
+                            <Badge
+                              variant={count === 4 ? "success" : "warning"}
+                              className="tabular-nums"
+                            >
                               {count}/4 Collection Photos
                             </Badge>
                           </div>
@@ -343,7 +362,7 @@ export default function InstructorRequestsPage() {
                                 .map((p) => (
                                   <div
                                     key={p.id}
-                                    className="overflow-hidden rounded-lg border border-[#E6E5E0] bg-white"
+                                    className="overflow-hidden rounded-xl border border-black/10 bg-white"
                                   >
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img
@@ -351,7 +370,7 @@ export default function InstructorRequestsPage() {
                                       alt={p.angle}
                                       className="aspect-[4/3] w-full object-cover"
                                     />
-                                    <p className="px-1.5 py-1 text-[10px] text-center font-medium text-[#72736E] truncate">
+                                    <p className="px-1.5 py-1 text-[10px] text-center font-medium text-black/55 truncate">
                                       {p.angle.replace("_", " ")}
                                     </p>
                                   </div>
@@ -370,20 +389,23 @@ export default function InstructorRequestsPage() {
 
         <TabsContent value="all" className="space-y-4">
           {requests.map((req) => (
-            <Card key={req.id} className="p-5 space-y-3">
+            <Card key={req.id} className="p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-semibold">
+                    <span className="font-mono text-sm font-semibold text-black">
                       {req.requestCode}
                     </span>
                     <RequestStatusBadge status={req.status} />
                   </div>
-                  <p className="text-xs text-[#72736E] mt-1">
-                    {req.student.fullName} · {req.purpose}
+                  <p className="text-xs text-black/55 mt-1">
+                    <span className="font-medium text-black">
+                      {req.student.fullName}
+                    </span>{" "}
+                    · {req.purpose}
                   </p>
                 </div>
-                <span className="text-xs text-[#72736E]">
+                <span className="text-xs text-black/55 tabular-nums">
                   {formatDateTime(req.updatedAt)}
                 </span>
               </div>
@@ -398,20 +420,25 @@ export default function InstructorRequestsPage() {
         open={Boolean(rejectTarget)}
         onOpenChange={(o) => !o && setRejectTarget(null)}
       >
-        <DialogContent>
+        <DialogContent className="rounded-[22px] border-black/12 bg-white text-black">
           <DialogHeader>
-            <DialogTitle>Reject {rejectTarget?.requestCode}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black">
+              Reject {rejectTarget?.requestCode}
+            </DialogTitle>
+            <DialogDescription className="text-black/55">
               Explain why this request is rejected so the student can revise and resubmit.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="inst-rej">Rejection Comments</Label>
+            <Label htmlFor="inst-rej" className="text-black/55">
+              Rejection Comments
+            </Label>
             <Textarea
               id="inst-rej"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="e.g., Please reduce requested quantity to 1 unit per lab team."
+              className="rounded-2xl border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
             />
           </div>
           <DialogFooter>

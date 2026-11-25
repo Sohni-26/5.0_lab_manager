@@ -318,8 +318,8 @@ export function HeroSection() {
                   scale: { duration: 0.9, ease: [0.3, 1.3, 0.4, 1] },
                 }}
               >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-[#FA8E66] text-black shadow-sm">
-                  <LoopsiiMark className="h-[34%] w-auto" />
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-[#FA8E66] p-3 text-black shadow-sm">
+                  <LoopsiiMark className="h-auto w-[72%]" />
                 </div>
               </motion.div>
             </div>

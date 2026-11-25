@@ -135,9 +135,8 @@ export function AppDemoSection() {
               <div>
                 {/* Sidebar Logo */}
                 <div className="mb-3 flex items-center justify-between px-2 py-1">
-                  <div className="flex items-center gap-2 text-black">
-                    <LoopsiiMark className="h-[18px] w-auto" />
-                    <span className="text-[14px] font-semibold tracking-tight">CampusLab</span>
+                  <div className="flex items-center text-black">
+                    <LoopsiiMark className="h-6 w-auto" />
                   </div>
                   <span className="rounded-md border border-black/10 bg-white px-1.5 py-0.5 text-[10px] text-black/50">
                     ⌘K
@@ -396,7 +395,7 @@ export function AppDemoSection() {
                 <div className="relative h-11 w-11 rounded-full p-[2.5px] shadow-lg">
                   <div className="lp-conic-ring absolute inset-0 rounded-full" />
                   <div className="relative flex h-full w-full items-center justify-center rounded-full bg-black text-white">
-                    <LoopsiiMark className="h-3.5 w-auto" />
+                    <LoopsiiMark inverse className="h-3.5 w-auto" />
                   </div>
                 </div>
               </div>

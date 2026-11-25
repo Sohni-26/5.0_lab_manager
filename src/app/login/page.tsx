@@ -146,7 +146,7 @@ export default function LoginPage() {
       {/* Top Bar */}
       <header className="relative z-10 mx-auto flex w-full max-w-[1220px] items-center justify-between px-5 py-6 sm:px-8">
         <Link href="/" className="text-white">
-          <LoopsiiWordmark />
+          <LoopsiiWordmark inverse className="h-9 w-auto" />
         </Link>
 
         <Link

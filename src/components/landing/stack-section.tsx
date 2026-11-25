@@ -131,8 +131,7 @@ export function StackSection() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <LoopsiiMark className="h-6 w-auto" />
-                  <span className="text-[22px] font-semibold tracking-tight">CampusLab</span>
+                  <LoopsiiMark className="h-8 w-auto" />
                 </div>
                 <span className="rounded-full bg-black px-3 py-1 text-[12px] font-medium text-white">
                   All of the above
@@ -181,7 +180,7 @@ export function StackSection() {
 
               {/* Center Hub Pill */}
               <div className="relative z-10 flex flex-col items-center gap-1.5 rounded-full border border-black bg-black px-6 py-3.5 text-white shadow-lg">
-                <LoopsiiMark className="h-4 w-auto text-[#C4F041]" />
+                <LoopsiiMark inverse className="h-5 w-auto" />
                 <span className="whitespace-nowrap text-[14px] font-semibold">Lab Request</span>
               </div>
 

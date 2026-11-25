@@ -78,10 +78,13 @@ export function NavMorph() {
           <a
             href="#top"
             onClick={(e) => scrollTo(e, "#top")}
-            aria-label="CampusLab"
+            aria-label="NxtWave"
             className="relative z-10 flex items-center"
           >
-            <LoopsiiWordmark className="h-[20px] w-auto sm:h-[22px]" />
+            <LoopsiiWordmark
+              inverse={isInverse && !isFooterExpanded}
+              className="h-[24px] w-auto sm:h-[26px]"
+            />
           </a>
 
           <nav aria-label="Sections" className="hidden items-center gap-8 text-[14px] md:flex">

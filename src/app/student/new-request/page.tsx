@@ -142,25 +142,29 @@ function NewRequestBuilderInner() {
         <div className="lg:col-span-8 space-y-5">
           {/* Item Picker */}
           <Card>
-            <CardHeader>
+            <CardHeader className="border-b border-black/10">
               <CardTitle>1. Select Equipment &amp; Quantities</CardTitle>
               <CardDescription>
                 Live campus availability is checked before submission.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-4">
+            <CardContent className="pt-5 space-y-4">
+              <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-4">
                 <div className="flex-1 min-w-[220px] space-y-1.5">
-                  <Label>Verified Campus Item</Label>
+                  <Label className="text-black/55">Verified Campus Item</Label>
                   <Select value={pickItemId} onValueChange={setPickItemId}>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
                       <SelectValue placeholder="Choose equipment..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-2xl border-black/12 bg-white text-black">
                       {inventory
                         .filter((i) => i.availableQuantity > 0)
                         .map((i) => (
-                          <SelectItem key={i.itemId} value={i.itemId}>
+                          <SelectItem
+                            key={i.itemId}
+                            value={i.itemId}
+                            className="focus:bg-[#F5F5F3] focus:text-black"
+                          >
                             {i.item.code} · {i.item.name} ({i.availableQuantity}{" "}
                             avail)
                           </SelectItem>
@@ -169,7 +173,9 @@ function NewRequestBuilderInner() {
                   </Select>
                 </div>
                 <div className="w-28 space-y-1.5">
-                  <Label htmlFor="req-qty">Quantity</Label>
+                  <Label htmlFor="req-qty" className="text-black/55">
+                    Quantity
+                  </Label>
                   <Input
                     id="req-qty"
                     type="number"
@@ -179,6 +185,7 @@ function NewRequestBuilderInner() {
                     onChange={(e) =>
                       setPickQty(Math.max(1, Number(e.target.value) || 1))
                     }
+                    className="tabular-nums"
                   />
                 </div>
                 <Button type="button" onClick={handleAddItem}>
@@ -188,26 +195,28 @@ function NewRequestBuilderInner() {
               </div>
 
               {selectedItems.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#DAD8D0] p-6 text-center text-sm text-[#72736E]">
+                <div className="rounded-2xl border border-dashed border-black/15 bg-[#F5F5F3]/60 p-6 text-center text-sm text-black/55">
                   No items added yet. Pick equipment from the selector above.
                 </div>
               ) : (
-                <div className="divide-y divide-[#EFECE6] rounded-2xl border border-[#E6E5E0]">
+                <div className="divide-y divide-black/10 overflow-hidden rounded-2xl border border-black/12 bg-white">
                   {selectedItems.map((line) => {
                     const inv = invMap.get(line.itemId);
                     const maxAvail = inv?.availableQuantity ?? 1;
                     return (
                       <div
                         key={line.itemId}
-                        className="flex flex-wrap items-center justify-between gap-3 p-3.5"
+                        className="flex flex-wrap items-center justify-between gap-3 p-3.5 transition-colors hover:bg-[#F5F5F3]/60"
                       >
                         <div>
-                          <p className="text-sm font-semibold text-[#222321]">
+                          <p className="text-sm font-semibold text-black">
                             {inv?.item.name}
                           </p>
-                          <p className="text-xs text-[#72736E]">
-                            <span className="font-mono">{inv?.item.code}</span> ·{" "}
-                            <span className="text-[#288568] font-medium">
+                          <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-black/55">
+                            <span className="font-mono text-black/65">
+                              {inv?.item.code}
+                            </span>
+                            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/45 px-2.5 py-0.5 text-[11px] font-semibold text-black tabular-nums">
                               {maxAvail} available now
                             </span>
                           </p>
@@ -231,13 +240,13 @@ function NewRequestBuilderInner() {
                                 )
                               );
                             }}
-                            className="w-20 h-8 text-right"
+                            className="w-20 h-8 text-right tabular-nums"
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-[#D9534F]"
+                            className="h-8 w-8 rounded-full text-black/60 hover:bg-[#FA8E66]/35 hover:text-black"
                             onClick={() =>
                               setSelectedItems((prev) =>
                                 prev.filter((l) => l.itemId !== line.itemId)
@@ -257,22 +266,26 @@ function NewRequestBuilderInner() {
 
           {/* Instructor & Purpose */}
           <Card>
-            <CardHeader>
+            <CardHeader className="border-b border-black/10">
               <CardTitle>2. Supervising Instructor &amp; Purpose</CardTitle>
               <CardDescription>
                 Only instructors assigned to your campus are listed.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-5 space-y-4">
               <div className="space-y-1.5">
-                <Label>Select Campus Instructor</Label>
+                <Label className="text-black/55">Select Campus Instructor</Label>
                 <Select value={instructorId} onValueChange={setInstructorId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-[#C4F041]/50">
                     <SelectValue placeholder="Choose your instructor..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-2xl border-black/12 bg-white text-black">
                     {instructors.map((inst) => (
-                      <SelectItem key={inst.id} value={inst.id}>
+                      <SelectItem
+                        key={inst.id}
+                        value={inst.id}
+                        className="focus:bg-[#F5F5F3] focus:text-black"
+                      >
                         {inst.fullName} ({inst.institutionalId})
                       </SelectItem>
                     ))}
@@ -280,12 +293,15 @@ function NewRequestBuilderInner() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="req-purpose">Lab Course / Project Purpose</Label>
+                <Label htmlFor="req-purpose" className="text-black/55">
+                  Lab Course / Project Purpose
+                </Label>
                 <Textarea
                   id="req-purpose"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   placeholder="Describe your experiment, lab course code, or capstone project..."
+                  className="rounded-2xl border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                   required
                 />
               </div>
@@ -295,31 +311,33 @@ function NewRequestBuilderInner() {
 
         {/* Summary Sidebar */}
         <Card className="lg:col-span-4 sticky top-24">
-          <CardHeader>
+          <CardHeader className="border-b border-black/10">
             <CardTitle>Request Summary</CardTitle>
             <CardDescription>Approval workflow preview</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3.5 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#72736E]">Selected SKUs</span>
-                <strong className="text-[#222321]">{selectedItems.length}</strong>
+          <CardContent className="pt-5 space-y-4">
+            <div className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-4 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-black/55">Selected SKUs</span>
+                <strong className="font-semibold text-black tabular-nums">
+                  {selectedItems.length}
+                </strong>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#72736E]">Total Units</span>
-                <strong className="text-[#222321]">
+              <div className="flex items-center justify-between">
+                <span className="text-black/55">Total Units</span>
+                <strong className="font-semibold text-black tabular-nums">
                   {selectedItems.reduce((s, l) => s + l.requestedQuantity, 0)}
                 </strong>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#72736E]">Next Stage</span>
+              <div className="flex items-center justify-between pt-1 border-t border-black/10">
+                <span className="text-black/55">Next Stage</span>
                 <Badge variant="warning">Instructor Review</Badge>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-[#72736E]">
+            <div className="rounded-2xl border border-black/10 bg-[#AAC2AA]/25 p-3.5 text-xs text-black/75">
               <p className="flex items-start gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#288568] shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-black shrink-0 mt-0.5" />
                 <span>
                   After Instructor &amp; Lab Manager approval, upload 4 collection
                   angle photos to collect your items.
@@ -347,7 +365,7 @@ export default function StudentNewRequestPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-8 text-center text-sm text-[#72736E]">
+        <div className="p-8 text-center text-sm text-black/55">
           Loading request builder...
         </div>
       }

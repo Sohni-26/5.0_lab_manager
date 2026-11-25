@@ -177,39 +177,40 @@ function SquigglyConnector({
   direction?: "left" | "right";
   dashed?: boolean;
 }) {
-  // Smooth continuous S-curve with vertical entry/exit tangents (matching Excalidraw's spine)
+  // Smooth continuous S-curve with vertical entry/exit tangents and ample viewBox padding so nothing clips
   const curvePath =
     direction === "right"
-      ? "M 50 2 C 50 13, 82 13, 68 22 C 54 31, 28 29, 50 40"
-      : "M 50 2 C 50 13, 18 13, 32 22 C 46 31, 72 29, 50 40";
+      ? "M 50 1 C 50 15, 82 15, 68 25 C 54 35, 28 33, 50 45"
+      : "M 50 1 C 50 15, 18 15, 32 25 C 46 35, 72 33, 50 45";
 
   return (
     <div
-      className="flex justify-center py-0 select-none"
+      className="flex justify-center -my-1 select-none"
       aria-hidden="true"
     >
       <svg
         width="100"
-        height="42"
-        viewBox="0 0 100 42"
+        height="50"
+        viewBox="0 0 100 50"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        className="overflow-visible"
       >
         <path
           d={curvePath}
           stroke="#000000"
-          strokeOpacity={dashed ? 0.32 : 0.88}
+          strokeOpacity={dashed ? 0.34 : 0.9}
           strokeWidth={dashed ? 1.9 : 2.25}
           strokeLinecap="round"
           strokeDasharray={dashed ? "5 6" : undefined}
         />
         <circle
           cx="50"
-          cy="39.5"
-          r="2.4"
+          cy="45"
+          r="2.8"
           fill={dashed ? "#FFFFFF" : "#000000"}
           stroke="#000000"
-          strokeOpacity={dashed ? 0.45 : 0.88}
+          strokeOpacity={dashed ? 0.5 : 0.9}
           strokeWidth="1.6"
         />
       </svg>
@@ -221,24 +222,24 @@ function SquigglyConnector({
 function SquigglyBranchConnector() {
   return (
     <svg
-      width="44"
-      height="28"
-      viewBox="0 0 44 28"
+      width="48"
+      height="32"
+      viewBox="0 0 48 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="hidden 2xl:block shrink-0 self-center"
+      className="hidden 2xl:block shrink-0 self-center overflow-visible"
       aria-hidden="true"
     >
       <circle
-        cx="4"
-        cy="14"
-        r="2.6"
+        cx="5"
+        cy="16"
+        r="2.8"
         fill="#FFFFFF"
         stroke="#000000"
         strokeWidth="1.7"
       />
       <path
-        d="M 7 14 C 15 6, 23 22, 31 12 C 35 8, 38 14, 41 14"
+        d="M 8 16 C 16 7, 25 25, 34 14 C 38 9, 41 16, 45 16"
         stroke="#000000"
         strokeOpacity="0.65"
         strokeWidth="1.8"

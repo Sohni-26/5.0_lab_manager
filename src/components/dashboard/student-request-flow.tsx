@@ -224,7 +224,6 @@ export function StudentRequestFlow() {
   const [instructorId, setInstructorId] = useState("");
   const [purpose, setPurpose] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [submittedSummary, setSubmittedSummary] = useState<{
     partCount: number;
     unitCount: number;
@@ -443,7 +442,7 @@ export function StudentRequestFlow() {
 
     setSubmitting(true);
     try {
-      const res = await apiClient.requests.create({
+      await apiClient.requests.create({
         instructorId,
         purpose: cleanPurpose,
         items: selectedEntries.map((e) => ({
@@ -451,25 +450,22 @@ export function StudentRequestFlow() {
           requestedQuantity: e.qty,
         })),
       });
-      setSubmittedCode(res.data.requestCode);
       setSubmittedSummary({
         partCount: selectedEntries.length,
         unitCount: totalSelectedUnits,
       });
-      toast.success(`Request ${res.data.requestCode} submitted to Instructor!`);
+      toast.success("Request submitted to Instructor!");
       setSelectedQty({});
       setPurpose("");
       setNavVisible(false);
       setNavFocused(false);
       setStage("submitted");
     } catch {
-      const fallbackCode = `REQ-CMP01-${Math.floor(1000 + Math.random() * 9000)}`;
-      setSubmittedCode(fallbackCode);
       setSubmittedSummary({
         partCount: selectedEntries.length,
         unitCount: totalSelectedUnits,
       });
-      toast.success(`Request ${fallbackCode} submitted!`);
+      toast.success("Request submitted!");
       setSelectedQty({});
       setPurpose("");
       setNavVisible(false);
@@ -820,10 +816,7 @@ export function StudentRequestFlow() {
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-black/12 bg-[#C4F041] text-black">
                   <CheckCircle2 className="h-7 w-7" />
                 </div>
-                <p className="mt-4 font-mono text-[14px] font-medium text-black/55">
-                  {submittedCode}
-                </p>
-                <h2 className="mt-1.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.03em] text-black">
+                <h2 className="mt-5 text-[28px] sm:text-[32px] font-medium tracking-[-0.03em] text-black">
                   Request Submitted
                 </h2>
                 <p className="mt-2.5 text-[15px] text-black/60 leading-relaxed">

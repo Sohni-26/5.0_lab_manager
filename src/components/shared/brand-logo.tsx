@@ -14,17 +14,9 @@ export function BrandLogo({ compact = false, className }: BrandLogoProps) {
         <LoopsiiMark className="h-[15px] w-auto" />
       </div>
       {!compact && (
-        <div className="flex flex-col leading-none">
-          <span className="text-[1.02rem] font-bold uppercase tracking-[-0.04em] text-black font-display">
-            CAMPUSLAB
-          </span>
-          <span
-            className="mt-0.5 text-[9.5px] font-medium uppercase tracking-[0.08em] text-black/50"
-            style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-          >
-            40-Campus Network
-          </span>
-        </div>
+        <span className="text-[1.08rem] font-bold uppercase tracking-[-0.04em] text-black leading-none font-display">
+          CAMPUSLAB
+        </span>
       )}
     </div>
   );

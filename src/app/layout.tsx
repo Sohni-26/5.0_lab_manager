@@ -54,7 +54,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jakarta.variable} ${dmSans.variable} ${caveat.variable} ${geistMono.variable}`}
     >
-      <body className="min-h-screen bg-[#F2F1ED] text-[#222321] antialiased selection:bg-[#FFF0E9] selection:text-[#DA5835]">
+      <body className="min-h-screen bg-[#F0F0F0] text-black antialiased selection:bg-[#C4F041] selection:text-black">
         <AuthProvider>
           <TooltipProvider delayDuration={200}>
             {children}
@@ -63,9 +63,9 @@ export default function RootLayout({
               richColors
               toastOptions={{
                 style: {
-                  borderRadius: "14px",
-                  border: "1px solid #E6E5E0",
-                  fontFamily: "var(--font-inter), sans-serif",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(0, 0, 0, 0.14)",
+                  fontFamily: "var(--font-saans), var(--font-inter), sans-serif",
                 },
               }}
             />

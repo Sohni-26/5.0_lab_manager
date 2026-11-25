@@ -8,11 +8,7 @@ import {
   ArrowLeft,
   Check,
   CheckCircle2,
-  ChevronDown,
-  ClipboardList,
-  MapPin,
   Minus,
-  Package,
   Plus,
   Search,
   X,
@@ -20,9 +16,6 @@ import {
 import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import {
   DEMO_CAMPUS_INVENTORY,
@@ -57,14 +50,20 @@ const ShimmerPartImage = React.memo(function ShimmerPartImage({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+    if (
+      imgRef.current &&
+      imgRef.current.complete &&
+      imgRef.current.naturalWidth > 0
+    ) {
       setLoaded(true);
     }
   }, [src]);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#E6E6E2]">
-      {!loaded && <div className="lp-shimmer absolute inset-0" aria-hidden="true" />}
+      {!loaded && (
+        <div className="lp-shimmer absolute inset-0" aria-hidden="true" />
+      )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
@@ -74,7 +73,7 @@ const ShimmerPartImage = React.memo(function ShimmerPartImage({
         decoding="async"
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}
-        className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-105 ${
+        className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-[1.04] ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -82,8 +81,8 @@ const ShimmerPartImage = React.memo(function ShimmerPartImage({
   );
 });
 
-/** Memoized part card so incrementing quantity on one part never re-renders the whole grid */
-const PartCard = React.memo(function PartCard({
+/** Clean editorial part item — zero tiny tags or micro-badges, landing-page DM Sans typography */
+const PartTile = React.memo(function PartTile({
   row,
   qty,
   onToggle,
@@ -101,14 +100,14 @@ const PartCard = React.memo(function PartCard({
     row.item.imageUrl || getPartImageUrl(row.item.code, row.item.category.slug);
 
   return (
-    <div
+    <article
       className={`part-card-perf group flex flex-col justify-between overflow-hidden rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-200 ${
         isSelected
-          ? "border-black ring-2 ring-[#C4F041] shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
-          : "border-black/12 hover:border-black/35 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
-      } ${outOfStock ? "opacity-60" : ""}`}
+          ? "border-black ring-2 ring-[#C4F041] shadow-[0_10px_28px_rgba(0,0,0,0.08)]"
+          : "border-black/14 hover:border-black/35"
+      } ${outOfStock ? "opacity-55" : ""}`}
     >
-      {/* Clickable Image + Info */}
+      {/* Clickable Photo + Clean Editorial Copy */}
       <div
         role="button"
         tabIndex={outOfStock ? -1 : 0}
@@ -123,75 +122,58 @@ const PartCard = React.memo(function PartCard({
       >
         <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-black/10">
           <ShimmerPartImage src={imgSrc} alt={row.item.name} />
-
-          {/* SKU pill */}
-          <span className="absolute left-2.5 top-2.5 z-10 rounded-full border border-black/10 bg-white/92 backdrop-blur-sm px-2.5 py-0.5 font-mono text-[10px] font-bold text-black">
-            {row.item.code}
-          </span>
-
-          {/* Stock / Selected indicator */}
-          <div className="absolute right-2.5 top-2.5 z-10 flex items-center gap-1.5">
-            <span
-              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums backdrop-blur-sm ${
-                outOfStock
-                  ? "border-[#E8A598] bg-[#FCE4DF]/95 text-[#991B1B]"
-                  : "border-black/10 bg-white/92 text-black"
-              }`}
-            >
-              {row.availableQuantity} {row.item.unit}
+          {isSelected && (
+            <span className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-[#C4F041] text-black">
+              <Check className="h-4 w-4 stroke-[2.5]" />
             </span>
-            {isSelected && (
-              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-black/15 bg-[#C4F041] text-black shadow-xs">
-                <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-              </span>
-            )}
-          </div>
+          )}
         </div>
 
-        <div className="p-3.5 space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="rounded-full bg-[#F2F2EF] border border-black/8 px-2 py-0.5 text-[10px] font-semibold text-black/75 truncate">
-              {row.item.category.name}
-            </span>
-            {meta.labBlock && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] text-black/50 truncate">
-                <MapPin className="h-2.5 w-2.5 shrink-0" />
-                {meta.labBlock.split(" ")[0]}
-              </span>
-            )}
-          </div>
-          <h3 className="text-sm font-semibold tracking-[-0.015em] text-black leading-snug line-clamp-2 min-h-[2.4rem]">
+        <div className="px-4 pt-4 pb-3 space-y-1.5">
+          <p className="text-[13px] font-medium text-black/50">
+            {row.item.category.name}
+            {meta.labBlock ? ` · ${meta.labBlock}` : ""}
+          </p>
+
+          <h3 className="text-[16px] font-medium tracking-[-0.02em] text-black leading-snug line-clamp-2 min-h-[2.75rem]">
             {row.item.name}
           </h3>
+
+          <p className="text-[14px] text-black/60 tabular-nums">
+            {outOfStock
+              ? "Currently out of stock"
+              : `${row.availableQuantity} ${row.item.unit} available`}
+          </p>
         </div>
       </div>
 
-      {/* Quantity Selection Footer */}
-      <div className="px-3.5 pb-3.5 pt-1">
+      {/* Quantity Selection Row */}
+      <div className="px-4 pb-4 pt-1">
         {outOfStock ? (
-          <div className="rounded-full border border-black/10 bg-[#F5F5F3] py-1.5 text-center text-xs font-medium text-black/45">
-            Out of Stock
-          </div>
+          <p className="py-2 text-center text-[14px] font-medium text-black/40">
+            Unavailable
+          </p>
         ) : !isSelected ? (
           <button
             type="button"
             onClick={() => onUpdateQty(row, 1)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-black/15 bg-[#F7F7F5] py-1.5 text-xs font-semibold text-black transition-colors hover:bg-[#C4F041] hover:border-black/25 cursor-pointer"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/16 bg-[#F0F0F0] text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/25 cursor-pointer"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Select Part
+            <Plus className="h-4 w-4" />
+            Select
           </button>
         ) : (
-          <div className="flex items-center justify-between rounded-full border border-black bg-black p-1 text-white">
+          <div className="flex h-11 items-center justify-between rounded-full border border-black bg-black px-1.5 text-white">
             <button
               type="button"
               onClick={() => onUpdateQty(row, qty - 1)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
               aria-label="Decrease quantity"
             >
-              <Minus className="h-3.5 w-3.5" />
+              <Minus className="h-4 w-4" />
             </button>
-            <div className="flex items-center gap-1">
+
+            <div className="flex items-center gap-1.5 text-[14px] tabular-nums">
               <input
                 type="number"
                 min={1}
@@ -199,25 +181,24 @@ const PartCard = React.memo(function PartCard({
                 value={qty}
                 onChange={(e) => onUpdateQty(row, Number(e.target.value) || 1)}
                 aria-label={`Quantity for ${row.item.name}`}
-                className="w-11 bg-transparent text-center text-xs font-bold tabular-nums text-[#C4F041] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-12 bg-transparent text-center font-semibold text-[#C4F041] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <span className="text-[10px] text-white/60">
-                / {row.availableQuantity}
-              </span>
+              <span className="text-white/60">of {row.availableQuantity}</span>
             </div>
+
             <button
               type="button"
               onClick={() => onUpdateQty(row, qty + 1)}
               disabled={qty >= row.availableQuantity}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-[#C4F041] text-black transition-opacity hover:opacity-90 disabled:opacity-35 cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C4F041] text-black transition-opacity hover:opacity-90 disabled:opacity-35 cursor-pointer"
               aria-label="Increase quantity"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
             </button>
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 });
 
@@ -247,7 +228,7 @@ export function StudentRequestFlow() {
     unitCount: number;
   }>({ partCount: 0, unitCount: 0 });
 
-  // Dynamic hover-top Dashboard Action Navbar state (only active on Student Dashboard)
+  // Dashboard-only fixed hover-top navbar (no floating hint pill — pure hover top reveal / hover down hide)
   const [navVisible, setNavVisible] = useState(false);
   const [navFocused, setNavFocused] = useState(false);
   const pointerInsideNavRef = useRef(false);
@@ -279,7 +260,7 @@ export function StudentRequestFlow() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Hover-top reveals the fixed Dashboard Navbar; moving cursor down hides it smoothly
+  // Hovering top reveals the fixed dashboard navbar; moving down hides it smoothly
   useEffect(() => {
     if (stage !== "parts") {
       setNavVisible(false);
@@ -296,7 +277,7 @@ export function StudentRequestFlow() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY <= 64) {
+      if (e.clientY <= 68) {
         if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
         setNavVisible(true);
       } else if (!pointerInsideNavRef.current && !navFocused && e.clientY > 140) {
@@ -311,7 +292,7 @@ export function StudentRequestFlow() {
     };
   }, [stage, navFocused]);
 
-  // Smoothly reset scroll to top on stage transitions and sync Lenis layout
+  // Smoothly reset scroll on stage transitions and sync Lenis
   useEffect(() => {
     scrollTo(0);
     const id = requestAnimationFrame(() => lenis?.resize());
@@ -338,12 +319,10 @@ export function StudentRequestFlow() {
     });
   }, [inventory, search, categoryFilter, labBlockFilter]);
 
-  // Reset visible batch when filters change
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
   }, [search, categoryFilter, labBlockFilter, stage]);
 
-  // Progressive infinite reveal via IntersectionObserver so 162 WebP cards never stutter the main thread
   useEffect(() => {
     if (stage !== "parts") return;
     const el = sentinelRef.current;
@@ -365,7 +344,6 @@ export function StudentRequestFlow() {
     return () => observer.disconnect();
   }, [stage, filteredParts.length]);
 
-  // Sync Lenis height cleanly when more cards append
   useEffect(() => {
     if (stage !== "parts") return;
     const id = requestAnimationFrame(() => lenis?.resize());
@@ -490,215 +468,171 @@ export function StudentRequestFlow() {
   const isHoverBarOpen = stage === "parts" && (navVisible || navFocused);
 
   return (
-    <>
-      {/* DASHBOARD-ONLY FIXED HOVER-TOP DYNAMIC NAVBAR */}
-      {stage === "parts" && (
-        <>
-          {/* Subtle top-edge indicator pill when hidden (hovering reveals the navbar) */}
-          <AnimatePresence>
-            {!isHoverBarOpen && (
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.35, ease: LP_EASE }}
-                onMouseEnter={() => setNavVisible(true)}
-                onClick={() => setNavVisible(true)}
-                className={`fixed top-3 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-md transition-colors cursor-pointer ${
-                  selectedEntries.length > 0
-                    ? "border-black/20 bg-[#C4F041] text-black"
-                    : "border-black/14 bg-white/92 text-black/75 hover:text-black"
-                }`}
-              >
-                <Package className="h-3.5 w-3.5" />
-                <span className="tabular-nums">
+    <div
+      style={{
+        fontFamily:
+          "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+      }}
+    >
+      {/* DASHBOARD-ONLY FIXED HOVER-TOP NAVBAR (MATCHING LANDING NAVMORPH) */}
+      <AnimatePresence>
+        {isHoverBarOpen && (
+          <motion.nav
+            key="dashboard-hover-navbar"
+            aria-label="Request submission bar"
+            initial={{ opacity: 0, y: -104 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -104 }}
+            transition={{ duration: 0.48, ease: LP_EASE }}
+            onMouseEnter={() => {
+              pointerInsideNavRef.current = true;
+              if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+              setNavVisible(true);
+            }}
+            onMouseLeave={() => {
+              pointerInsideNavRef.current = false;
+              if (!navFocused) {
+                if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+                hideTimerRef.current = setTimeout(() => {
+                  if (!pointerInsideNavRef.current && !navFocused) {
+                    setNavVisible(false);
+                  }
+                }, 180);
+              }
+            }}
+            onFocusCapture={() => setNavFocused(true)}
+            onBlurCapture={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                setNavFocused(false);
+                if (!pointerInsideNavRef.current) {
+                  setNavVisible(false);
+                }
+              }
+            }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,1060px)] rounded-[24px] border border-black/15 bg-[#F0F0F0]/95 backdrop-blur-md px-5 sm:px-6 py-4 text-black shadow-[0_24px_70px_rgba(0,0,0,0.16)]"
+          >
+            <div className="flex flex-col gap-3.5">
+              {/* Top line: normal editorial text, no badges/tags */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[15px] font-medium tracking-[-0.02em] text-black tabular-nums">
                   {selectedEntries.length > 0
                     ? `${selectedEntries.length} part${
                         selectedEntries.length === 1 ? "" : "s"
-                      } · ${totalSelectedUnits} unit${
+                      } selected · ${totalSelectedUnits} unit${
                         totalSelectedUnits === 1 ? "" : "s"
-                      } — Hover top to submit`
-                    : "Hover top for request bar"}
-                </span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+                      } total`
+                    : "Select parts below to build your request"}
+                </p>
 
-          {/* Fixed Dynamic Hover-Reveal Submit Navbar */}
-          <AnimatePresence>
-            {isHoverBarOpen && (
-              <motion.div
-                key="dashboard-hover-navbar"
-                initial={{ opacity: 0, y: -96 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -96 }}
-                transition={{ duration: 0.48, ease: LP_EASE }}
-                onMouseEnter={() => {
-                  pointerInsideNavRef.current = true;
-                  if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-                  setNavVisible(true);
-                }}
-                onMouseLeave={() => {
-                  pointerInsideNavRef.current = false;
-                  if (!navFocused) {
-                    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-                    hideTimerRef.current = setTimeout(() => {
-                      if (!pointerInsideNavRef.current && !navFocused) {
-                        setNavVisible(false);
-                      }
-                    }, 180);
-                  }
-                }}
-                onFocusCapture={() => setNavFocused(true)}
-                onBlurCapture={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                    setNavFocused(false);
-                    if (!pointerInsideNavRef.current) {
-                      setNavVisible(false);
-                    }
-                  }
-                }}
-                className="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[min(96vw,1080px)] rounded-[24px] border border-black/16 bg-white/96 backdrop-blur-xl px-4 sm:px-5 py-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.16)]"
-              >
-                <div className="flex flex-col gap-3">
-                  {/* Top Row: Title + Selected Count + Quick Clear */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#C4F041] border border-black/12 text-black">
-                        <Package className="h-3.5 w-3.5" />
+                {selectedEntries.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQty({})}
+                    className="text-[14px] font-medium text-black/55 hover:text-black transition-colors cursor-pointer"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Selected items listed cleanly as readable inline text */}
+              {selectedEntries.length > 0 && (
+                <div
+                  data-lenis-prevent
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1.5 max-h-20 overflow-y-auto border-y border-black/10 py-2.5 text-[14px] text-black"
+                >
+                  {selectedEntries.map(({ itemId, qty, row }) => (
+                    <span
+                      key={itemId}
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      <span className="font-medium max-w-[200px] truncate">
+                        {row.item.name}
                       </span>
-                      <span className="text-xs font-semibold tracking-tight text-black">
-                        Active Request Tray
-                      </span>
-                      <Badge
-                        variant={selectedEntries.length > 0 ? "accent" : "outline"}
-                        className="text-[11px] tabular-nums"
-                      >
-                        {selectedEntries.length} parts · {totalSelectedUnits} units
-                      </Badge>
-                    </div>
-                    {selectedEntries.length > 0 && (
+                      <span className="text-black/55 tabular-nums">×{qty}</span>
                       <button
                         type="button"
-                        onClick={() => setSelectedQty({})}
-                        className="text-[11px] font-medium text-black/50 hover:text-black transition-colors cursor-pointer"
+                        onClick={() => updatePartQty(row, 0)}
+                        className="text-black/40 hover:text-black transition-colors cursor-pointer"
+                        aria-label={`Remove ${row.item.name}`}
                       >
-                        Clear selection
+                        <X className="h-3.5 w-3.5" />
                       </button>
-                    )}
-                  </div>
-
-                  {/* Selected Chips (scrollable cleanly without fighting Lenis) */}
-                  {selectedEntries.length > 0 ? (
-                    <div
-                      data-lenis-prevent
-                      className="flex flex-wrap items-center gap-1.5 max-h-20 overflow-y-auto pr-1"
-                    >
-                      {selectedEntries.map(({ itemId, qty, row }) => (
-                        <span
-                          key={itemId}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#F5F5F3] pl-2.5 pr-1.5 py-0.5 text-xs font-medium text-black"
-                        >
-                          <span className="font-mono text-[10px] font-bold">
-                            {row.item.code}
-                          </span>
-                          <span className="max-w-[140px] truncate">
-                            {row.item.name}
-                          </span>
-                          <span className="rounded-full bg-[#C4F041] px-1.5 text-[10px] font-bold tabular-nums">
-                            ×{qty}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updatePartQty(row, 0)}
-                            className="rounded-full p-0.5 text-black/45 hover:text-black cursor-pointer"
-                            aria-label={`Remove ${row.item.name}`}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-black/50">
-                      Select one or more parts from the grid below and set quantities to submit your request.
-                    </p>
-                  )}
-
-                  {/* Controls Row: Instructor + Purpose + Dynamic Submit CTA */}
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <select
-                      value={instructorId}
-                      onChange={(e) => setInstructorId(e.target.value)}
-                      className="h-11 rounded-full border border-black/15 bg-[#F7F7F5] px-4 text-xs font-medium text-black focus:border-black focus:outline-none min-w-[200px]"
-                    >
-                      {instructors.map((inst) => (
-                        <option key={inst.id} value={inst.id}>
-                          Instructor: {inst.fullName}
-                        </option>
-                      ))}
-                    </select>
-
-                    <Input
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                      placeholder="Project / lab course purpose (e.g., Autonomous Rover Lab)..."
-                      className="h-11 flex-1 min-w-[220px] rounded-full bg-[#F7F7F5] px-4 text-xs"
-                    />
-
-                    <div
-                      className={
-                        selectedEntries.length === 0
-                          ? "opacity-50 pointer-events-none"
-                          : ""
-                      }
-                    >
-                      <LoopsiiButton
-                        label={
-                          submitting
-                            ? "Submitting..."
-                            : selectedEntries.length > 0
-                              ? `Submit Request (${totalSelectedUnits})`
-                              : "Select Parts to Submit"
-                        }
-                        size="md"
-                        hideArrow
-                        onClick={handleSubmitRequest}
-                      />
-                    </div>
-                  </div>
+                    </span>
+                  ))}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </>
-      )}
+              )}
+
+              {/* Controls Row: Instructor + Purpose + Dynamic Submit Button */}
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={instructorId}
+                  onChange={(e) => setInstructorId(e.target.value)}
+                  className="h-12 rounded-full border border-black/16 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none min-w-[220px]"
+                >
+                  {instructors.map((inst) => (
+                    <option key={inst.id} value={inst.id}>
+                      {inst.fullName}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  placeholder="Project or lab course purpose..."
+                  className="h-12 flex-1 min-w-[220px] rounded-full border border-black/16 bg-white px-5 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
+                />
+
+                <div
+                  className={
+                    selectedEntries.length === 0
+                      ? "opacity-45 pointer-events-none"
+                      : ""
+                  }
+                >
+                  <LoopsiiButton
+                    label={
+                      submitting
+                        ? "Submitting..."
+                        : selectedEntries.length > 0
+                          ? `Submit Request (${totalSelectedUnits})`
+                          : "Submit Request"
+                    }
+                    size="md"
+                    hideArrow
+                    onClick={handleSubmitRequest}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
 
       <DottedGridCanvas className="flex flex-col">
         <AnimatePresence mode="wait">
-          {/* STAGE 1 (DIRECT ENTRY): NEED LAB COMPONENTS PROMPT CARD */}
+          {/* STAGE 1 (DIRECT ENTRY): NEED LAB COMPONENTS PROMPT */}
           {stage === "prompt" && (
             <motion.div
               key="stage-prompt"
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -22, scale: 0.97 }}
+              exit={{ opacity: 0, y: -20, scale: 0.97 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
               className="flex flex-1 min-h-[calc(100vh-8.5rem)] items-center justify-center p-6"
             >
-              <div className="relative w-full max-w-lg rounded-[26px] border border-black/14 bg-white p-7 sm:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
-                <h2 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-black leading-tight">
+              <div className="w-full max-w-xl rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+                <h2 className="text-[32px] sm:text-[38px] font-medium tracking-[-0.03em] text-black leading-[1.06]">
                   Need lab components for your build?
                 </h2>
-                <p className="mt-2.5 text-sm text-black/60 leading-relaxed">
-                  Raise a borrowing request by selecting the exact hardware
-                  parts and quantities you need from our verified campus lab
-                  catalog.
+                <p className="mt-3 text-[16px] text-black/60 leading-relaxed">
+                  Select the required parts and quantities from your campus lab
+                  catalog and send your request for approval.
                 </p>
 
-                <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="mt-7">
                   <LoopsiiButton
                     label="Raise a Request"
                     size="lg"
@@ -710,63 +644,67 @@ export function StudentRequestFlow() {
             </motion.div>
           )}
 
-          {/* STAGE 2: ALL PARTS VISUAL PICKER (SHIMMER LOADERS + PROGRESSIVE RENDER + LENIS) */}
+          {/* STAGE 2: ALL PARTS VISUAL PICKER */}
           {stage === "parts" && (
             <motion.div
               key="stage-parts"
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 26 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
               className="flex flex-1 flex-col min-h-[calc(100vh-8.5rem)]"
             >
-              {/* Clean Picker Toolbar */}
-              <div className="border-b border-black/10 bg-white/90 backdrop-blur-md px-4 sm:px-6 py-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+              {/* Clean Editorial Header & Filters */}
+              <div className="border-b border-black/12 bg-white/90 backdrop-blur-md px-5 sm:px-7 py-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
                     <button
                       type="button"
                       onClick={() => setStage("prompt")}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/14 bg-[#F5F5F3] text-black transition-colors hover:bg-[#C4F041] cursor-pointer"
-                      aria-label="Back to prompt"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-[#F0F0F0] text-black transition-colors hover:bg-[#C4F041] cursor-pointer"
+                      aria-label="Back"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
                     <div>
-                      <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.025em] text-black">
-                        Raise a Request — Select Parts &amp; Quantities
+                      <h2 className="text-[22px] sm:text-[26px] font-medium tracking-[-0.03em] text-black leading-tight">
+                        Select Lab Parts
                       </h2>
-                      <p className="text-xs text-black/55 tabular-nums">
-                        Showing {visibleParts.length} of {filteredParts.length} verified campus parts · Hover top to submit anytime
+                      <p className="mt-0.5 text-[14px] text-black/55 tabular-nums">
+                        {filteredParts.length} verified parts available · Hover
+                        the top edge to review and submit
                       </p>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setNavVisible(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-black/14 bg-[#F5F5F3] px-3 py-1.5 text-xs font-semibold text-black hover:bg-[#C4F041] transition-colors cursor-pointer tabular-nums"
-                  >
-                    <Package className="h-3.5 w-3.5" />
-                    {selectedEntries.length} parts · {totalSelectedUnits} units
-                  </button>
+                  {selectedEntries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setNavVisible(true)}
+                      className="text-[15px] font-medium text-black underline decoration-black/30 underline-offset-4 hover:decoration-black transition-colors cursor-pointer tabular-nums"
+                    >
+                      {selectedEntries.length} selected ({totalSelectedUnits}{" "}
+                      units)
+                    </button>
+                  )}
                 </div>
 
                 {/* Search & Filter Row */}
-                <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                  <div className="relative flex-1 min-w-[210px] max-w-md">
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
-                    <Input
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <div className="relative flex-1 min-w-[240px] max-w-md">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
+                    <input
+                      type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search Arduino, DHT22, ESP32, servo, soldering..."
-                      className="h-9 pl-9 text-xs bg-[#F7F7F5]"
+                      className="h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-4 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
                     />
                   </div>
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="h-9 rounded-full border border-black/15 bg-white px-3.5 text-xs font-medium text-black focus:border-black focus:outline-none"
+                    className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
                   >
                     <option value="ALL">
                       All Categories ({categories.length})
@@ -780,9 +718,9 @@ export function StudentRequestFlow() {
                   <select
                     value={labBlockFilter}
                     onChange={(e) => setLabBlockFilter(e.target.value)}
-                    className="h-9 rounded-full border border-black/15 bg-white px-3.5 text-xs font-medium text-black focus:border-black focus:outline-none"
+                    className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
                   >
-                    <option value="ALL">All 6 Lab Blocks</option>
+                    <option value="ALL">All Lab Blocks</option>
                     {PROCUREMENT_LAB_BLOCKS.map((b) => (
                       <option key={b} value={b}>
                         {b}
@@ -792,33 +730,33 @@ export function StudentRequestFlow() {
                 </div>
               </div>
 
-              {/* All Parts WebP Visual Grid */}
-              <div className="flex-1 p-4 sm:p-6 pb-16">
+              {/* All Parts WebP Grid */}
+              <div className="flex-1 p-5 sm:p-7 pb-16">
                 {loading ? (
-                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div
                         key={i}
-                        className="overflow-hidden rounded-[22px] border border-black/10 bg-white"
+                        className="overflow-hidden rounded-[22px] border border-black/12 bg-white"
                       >
                         <div className="lp-shimmer aspect-[4/3] w-full" />
-                        <div className="p-3.5 space-y-2">
-                          <div className="lp-shimmer h-4 w-20 rounded-full" />
-                          <div className="lp-shimmer h-4 w-3/4 rounded-md" />
-                          <div className="lp-shimmer h-8 w-full rounded-full mt-2" />
+                        <div className="p-4 space-y-2.5">
+                          <div className="lp-shimmer h-4 w-28 rounded-md" />
+                          <div className="lp-shimmer h-5 w-4/5 rounded-md" />
+                          <div className="lp-shimmer h-11 w-full rounded-full mt-2" />
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : filteredParts.length === 0 ? (
-                  <div className="mx-auto max-w-md rounded-[22px] border border-black/12 bg-white p-10 text-center text-sm text-black/55">
+                  <p className="py-16 text-center text-[16px] text-black/55">
                     No parts match your search or filter.
-                  </div>
+                  </p>
                 ) : (
                   <>
-                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                       {visibleParts.map((row) => (
-                        <PartCard
+                        <PartTile
                           key={row.id}
                           row={row}
                           qty={selectedQty[row.itemId] ?? 0}
@@ -828,21 +766,20 @@ export function StudentRequestFlow() {
                       ))}
                     </div>
 
-                    {/* Smooth progressive scroll sentinel */}
                     {visibleCount < filteredParts.length && (
                       <div
                         ref={sentinelRef}
-                        className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                        className="mt-6 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                       >
                         {Array.from({ length: 4 }).map((_, i) => (
                           <div
                             key={i}
-                            className="overflow-hidden rounded-[22px] border border-black/10 bg-white"
+                            className="overflow-hidden rounded-[22px] border border-black/12 bg-white"
                           >
                             <div className="lp-shimmer aspect-[4/3] w-full" />
-                            <div className="p-3.5 space-y-2">
-                              <div className="lp-shimmer h-4 w-20 rounded-full" />
-                              <div className="lp-shimmer h-4 w-3/4 rounded-md" />
+                            <div className="p-4 space-y-2.5">
+                              <div className="lp-shimmer h-4 w-28 rounded-md" />
+                              <div className="lp-shimmer h-5 w-4/5 rounded-md" />
                             </div>
                           </div>
                         ))}
@@ -854,29 +791,29 @@ export function StudentRequestFlow() {
             </motion.div>
           )}
 
-          {/* STAGE 3: REQUEST SUBMITTED CONFIRMATION */}
+          {/* STAGE 3: SUBMITTED CONFIRMATION */}
           {stage === "submitted" && (
             <motion.div
               key="stage-submitted"
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -16, scale: 0.96 }}
+              exit={{ opacity: 0, y: -16, scale: 0.97 }}
               transition={{ duration: 0.55, ease: LP_EASE }}
               className="flex flex-1 min-h-[calc(100vh-8.5rem)] items-center justify-center p-6"
             >
-              <div className="w-full max-w-md rounded-[26px] border border-black/14 bg-white p-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+              <div className="w-full max-w-lg rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-black/12 bg-[#C4F041] text-black">
                   <CheckCircle2 className="h-7 w-7" />
                 </div>
-                <p className="mt-4 font-mono text-xs font-bold uppercase tracking-wider text-black/55">
+                <p className="mt-4 font-mono text-[14px] font-medium text-black/55">
                   {submittedCode}
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-black">
+                <h2 className="mt-1.5 text-[28px] sm:text-[32px] font-medium tracking-[-0.03em] text-black">
                   Request Submitted
                 </h2>
-                <p className="mt-2 text-sm text-black/60">
+                <p className="mt-2.5 text-[15px] text-black/60 leading-relaxed">
                   Your request for{" "}
-                  <strong className="text-black">
+                  <strong className="font-semibold text-black">
                     {submittedSummary.partCount} part
                     {submittedSummary.partCount === 1 ? "" : "s"} (
                     {submittedSummary.unitCount} total units)
@@ -884,25 +821,25 @@ export function StudentRequestFlow() {
                   has been sent to your Instructor for approval.
                 </p>
 
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <div className="mt-7 flex flex-wrap items-center justify-center gap-4">
                   <LoopsiiButton
                     label="Raise Another Request"
                     size="md"
                     hideArrow
                     onClick={() => setStage("parts")}
                   />
-                  <Button variant="outline" asChild>
-                    <Link href="/student/requests">
-                      <ClipboardList className="h-4 w-4" />
-                      View My Requests
-                    </Link>
-                  </Button>
+                  <Link
+                    href="/student/requests"
+                    className="text-[15px] font-medium text-black underline decoration-black/30 underline-offset-4 hover:decoration-black transition-colors"
+                  >
+                    View My Requests
+                  </Link>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </DottedGridCanvas>
-    </>
+    </div>
   );
 }

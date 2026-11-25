@@ -23,7 +23,6 @@ import {
   Package,
   PackageCheck,
   PlusCircle,
-  Radio,
   RotateCcw,
   Send,
   Settings,
@@ -34,7 +33,6 @@ import {
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,7 +128,7 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [campuses, setCampuses] = useState<CampusDTO[]>([]);
 
-  const { status: realtimeStatus, events } = useRealtime({
+  const { events } = useRealtime({
     enabled: Boolean(user),
     isDemoMode,
   });
@@ -313,26 +311,21 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
               <Menu className="h-4.5 w-4.5" />
             </button>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-black/50">
-                <span>{ROLE_LABELS[user.role]}</span>
-                <span>/</span>
-                <span className="text-black truncate">{activeNav?.label}</span>
-              </div>
-              <p className="text-sm font-semibold text-black truncate font-display">
+              <p className="text-[16px] font-medium tracking-[-0.02em] text-black truncate">
                 {activeNav?.label}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Scope Selector for Central Lab Manager OR Campus Badge */}
+          <div className="flex items-center gap-4">
+            {/* Scope Selector for Central Lab Manager OR plain Campus Text */}
             {user.role === "CENTRAL_LAB_MANAGER" ? (
-              <div className="hidden sm:block w-52">
+              <div className="hidden sm:block w-56">
                 <Select
                   value={selectedCampusId || "ALL"}
                   onValueChange={(v) => setSelectedCampusId(v === "ALL" ? "" : v)}
                 >
-                  <SelectTrigger className="h-9 rounded-full text-xs bg-white border-black/15">
+                  <SelectTrigger className="h-10 rounded-full text-[14px] bg-white border-black/15">
                     <SelectValue placeholder="All 40 Campuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,39 +340,11 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
               </div>
             ) : (
               user.campus && (
-                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-medium text-black">
-                  <Building2 className="h-3.5 w-3.5 text-black" />
-                  <span className="font-mono text-[11px] text-black/55">
-                    {user.campus.code}
-                  </span>
-                  <span className="max-w-[150px] truncate">{user.campus.name}</span>
-                </div>
+                <span className="hidden sm:inline text-[14px] font-medium text-black/65 truncate max-w-[220px]">
+                  {user.campus.name}
+                </span>
               )
             )}
-
-            {/* Realtime SSE Indicator */}
-            <div
-              className={cn(
-                "hidden md:inline-flex items-center gap-1.5 rounded-full border border-black/12 px-3 py-1 text-[11px] font-semibold text-black",
-                realtimeStatus === "connected"
-                  ? "bg-[#C4F041]"
-                  : realtimeStatus === "demo"
-                    ? "bg-[#BCE6FA]"
-                    : "bg-[#F3BD77]"
-              )}
-            >
-              <Radio
-                className={cn(
-                  "h-3 w-3",
-                  realtimeStatus === "connected" && "animate-pulse"
-                )}
-              />
-              {realtimeStatus === "connected"
-                ? "Live Sync"
-                : realtimeStatus === "demo"
-                  ? "Preview"
-                  : "Syncing"}
-            </div>
 
             {/* Live Events / Notifications Dropdown */}
             <DropdownMenu>
@@ -392,24 +357,21 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel className="flex items-center justify-between">
-                  <span>Live Campus Activity</span>
-                  <Badge variant="accent" className="text-[10px]">
-                    SSE Stream
-                  </Badge>
+                <DropdownMenuLabel className="text-[14px] font-medium text-black">
+                  Live Campus Activity
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {events.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-xs text-black/55">
+                  <div className="px-3 py-6 text-center text-[14px] text-black/55">
                     <Activity className="mx-auto h-5 w-5 text-black/30 mb-1.5" />
-                    No new live events yet. Mutations appear here instantly.
+                    No new live events yet.
                   </div>
                 ) : (
                   <div className="max-h-72 overflow-y-auto divide-y divide-black/10">
                     {events.map((ev) => (
-                      <div key={ev.id} className="px-3 py-2.5 text-xs">
+                      <div key={ev.id} className="px-3 py-2.5 text-[14px]">
                         <p className="font-medium text-black">{ev.summary}</p>
-                        <p className="mt-0.5 text-[11px] text-black/55">
+                        <p className="mt-0.5 text-[13px] text-black/55">
                           {ev.type} · {formatRelativeTime(ev.timestamp)}
                         </p>
                       </div>
@@ -424,14 +386,14 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-black/15 bg-white p-1 pr-3 hover:border-black/35 transition-colors cursor-pointer"
+                  className="flex items-center gap-2.5 text-[14px] font-medium text-black hover:opacity-75 transition-opacity cursor-pointer"
                 >
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="bg-[#C4F041] text-black text-xs font-semibold">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-[#C4F041] text-black text-[13px] font-semibold">
                       {getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-xs font-semibold text-black max-w-[110px] truncate">
+                  <span className="hidden sm:inline max-w-[130px] truncate">
                     {user.fullName}
                   </span>
                 </button>

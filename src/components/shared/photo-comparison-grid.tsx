@@ -44,10 +44,10 @@ export function PhotoComparisonGrid({
           return (
             <div
               key={angle}
-              className="rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-3.5"
+              className="rounded-[20px] border border-black/12 bg-[#F5F5F3] p-3.5"
             >
               <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-semibold text-[#222321]">
+                <span className="text-xs font-semibold text-black">
                   {meta.label}
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -67,10 +67,10 @@ export function PhotoComparisonGrid({
                 ].map(({ label, photo }) => (
                   <div
                     key={label}
-                    className="overflow-hidden rounded-xl border border-[#E6E5E0] bg-white"
+                    className="overflow-hidden rounded-xl border border-black/12 bg-white"
                   >
-                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#EFECE6] bg-[#FAF9F6]">
-                      <span className="text-[11px] font-medium text-[#72736E]">
+                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-black/10 bg-[#F5F5F3]">
+                      <span className="text-[11px] font-medium text-black/55">
                         {label}
                       </span>
                       {photo && (
@@ -82,14 +82,14 @@ export function PhotoComparisonGrid({
                               title: `${itemName ?? "Equipment"} · ${meta.label} (${label})`,
                             })
                           }
-                          className="text-[#72736E] hover:text-[#222321] cursor-pointer"
+                          className="text-black/55 hover:text-black cursor-pointer"
                           title="Inspect full size"
                         >
                           <Maximize2 className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
-                    <div className="aspect-[16/10] bg-[#F2F1ED] flex items-center justify-center overflow-hidden">
+                    <div className="aspect-[16/10] bg-[#F0F0F0] flex items-center justify-center overflow-hidden">
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -101,10 +101,10 @@ export function PhotoComparisonGrid({
                               title: `${itemName ?? "Equipment"} · ${meta.label} (${label})`,
                             })
                           }
-                          className="h-full w-full object-cover cursor-zoom-in hover:scale-[1.02] transition-transform"
+                          className="h-full w-full object-cover cursor-zoom-in"
                         />
                       ) : (
-                        <div className="flex flex-col items-center text-[#969791] text-xs gap-1">
+                        <div className="flex flex-col items-center text-black/40 text-xs gap-1">
                           <Camera className="h-5 w-5" />
                           <span>Not uploaded</span>
                         </div>
@@ -124,7 +124,7 @@ export function PhotoComparisonGrid({
             <DialogTitle>{zoomPhoto?.title}</DialogTitle>
           </DialogHeader>
           {zoomPhoto && (
-            <div className="overflow-hidden rounded-2xl border border-[#E6E5E0] bg-[#F2F1ED]">
+            <div className="overflow-hidden rounded-[20px] border border-black/12 bg-[#F0F0F0]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={zoomPhoto.url}

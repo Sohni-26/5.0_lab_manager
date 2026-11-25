@@ -64,14 +64,14 @@ export function RequestTimeline({ status }: { status: LabRequestStatus }) {
                 <div
                   className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
                     isFailed
-                      ? "border-[#D9534F] bg-[#FDEDEC] text-[#D9534F]"
+                      ? "border-black/15 bg-[#FA8E66] text-black"
                       : isWarning
-                        ? "border-[#D69A35] bg-[#FDF6E7] text-[#D69A35]"
+                        ? "border-black/15 bg-[#F3BD77] text-black"
                         : isCompleted
-                          ? "border-[#288568] bg-[#288568] text-white"
+                          ? "border-black bg-black text-[#C4F041]"
                           : isActive
-                            ? "border-[#F26943] bg-[#FFF0E9] text-[#F26943]"
-                            : "border-[#E6E5E0] bg-white text-[#969791]"
+                            ? "border-black bg-[#C4F041] text-black"
+                            : "border-black/15 bg-white text-black/35"
                   }`}
                 >
                   {isFailed ? (
@@ -87,10 +87,10 @@ export function RequestTimeline({ status }: { status: LabRequestStatus }) {
                 <span
                   className={`text-[11px] font-medium whitespace-nowrap ${
                     isFailed
-                      ? "text-[#D9534F]"
+                      ? "text-[#B33C17]"
                       : isCompleted || isActive
-                        ? "text-[#222321]"
-                        : "text-[#969791]"
+                        ? "text-black"
+                        : "text-black/40"
                   }`}
                 >
                   {stage.label}
@@ -100,10 +100,10 @@ export function RequestTimeline({ status }: { status: LabRequestStatus }) {
                 <div
                   className={`h-0.5 flex-1 -mt-5 mx-1 rounded-full ${
                     idx < currentIdx - 1
-                      ? "bg-[#288568]"
+                      ? "bg-black"
                       : idx === currentIdx - 1 && failedIdx === undefined
-                        ? "bg-[#F26943]/50"
-                        : "bg-[#E6E5E0]"
+                        ? "bg-black/40"
+                        : "bg-black/12"
                   }`}
                 />
               )}

@@ -62,14 +62,14 @@ export function PhotoUploaderGrid({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Camera className="h-4 w-4 text-[#F26943]" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-[#222321]">
+          <Camera className="h-4 w-4 text-black" />
+          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-black">
             {phase === "COLLECTION"
               ? "Mandatory 4-Angle Collection Evidence"
               : "Mandatory 4-Angle Return Evidence"}
           </span>
         </div>
-        <Badge variant={uploadedCount === 4 ? "success" : "warning"}>
+        <Badge variant={uploadedCount === 4 ? "accent" : "warning"}>
           {uploadedCount}/4 Uploaded
         </Badge>
       </div>
@@ -83,7 +83,7 @@ export function PhotoUploaderGrid({
           return (
             <div
               key={angle}
-              className="group relative overflow-hidden rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] flex flex-col"
+              className="group relative overflow-hidden rounded-[20px] border border-black/12 bg-[#F5F5F3] flex flex-col"
             >
               <input
                 ref={(el) => {
@@ -96,7 +96,7 @@ export function PhotoUploaderGrid({
                 onChange={(e) => handleFileChange(angle, e)}
               />
 
-              <div className="relative aspect-[4/3] w-full bg-[#EAE9E4]/60 flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-[4/3] w-full bg-[#EAEAE6]/70 flex items-center justify-center overflow-hidden">
                 {photo ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -105,28 +105,28 @@ export function PhotoUploaderGrid({
                       alt={`${meta.label} ${phase}`}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#288568] text-white shadow-xs">
+                    <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#C4F041] text-black shadow-xs">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </div>
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center p-4 text-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-[#E6E5E0] text-[#72736E] mb-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-black/12 text-black/60 mb-2">
                       {isUploading ? (
-                        <Loader2 className="h-4.5 w-4.5 animate-spin text-[#F26943]" />
+                        <Loader2 className="h-4.5 w-4.5 animate-spin text-black" />
                       ) : (
                         <Upload className="h-4.5 w-4.5" />
                       )}
                     </div>
-                    <p className="text-[11px] text-[#72736E] leading-snug">
+                    <p className="text-[11px] text-black/55 leading-snug">
                       {meta.hint}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-2.5 bg-white border-t border-[#EFECE6]">
-                <span className="text-xs font-semibold text-[#222321] truncate">
+              <div className="flex items-center justify-between gap-2 p-2.5 bg-white border-t border-black/10">
+                <span className="text-xs font-semibold text-black truncate">
                   {meta.shortLabel}
                 </span>
                 {!disabled && (
@@ -134,7 +134,7 @@ export function PhotoUploaderGrid({
                     type="button"
                     disabled={isUploading}
                     onClick={() => inputRefs.current[angle]?.click()}
-                    className="rounded-lg bg-[#FFF0E9] px-2.5 py-1 text-[11px] font-semibold text-[#DA5835] hover:bg-[#FFE3D5] transition-colors cursor-pointer disabled:opacity-50"
+                    className="rounded-full bg-[#C4F041] px-3 py-1 text-[11px] font-semibold text-black hover:bg-[#B8E635] transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isUploading ? "Saving..." : photo ? "Replace" : "Upload"}
                   </button>

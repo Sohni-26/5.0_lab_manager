@@ -186,10 +186,15 @@ export default function InstructorReturnVerificationPage() {
       <PageHeader
         title="Return Verification & 4-Angle Photo Audit"
         description="Compare original Collection photos side-by-side with student Return photos before restoring equipment to available stock or logging damage/missing disputes."
+        badge={
+          <span className="inline-flex items-center rounded-full border border-black/10 bg-[#C4F041] px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums">
+            {requests.length} Pending
+          </span>
+        }
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="rounded-[22px] border-black/12 bg-white p-8 text-center text-sm text-black/55">
           Loading pending return inspections...
         </Card>
       ) : requests.length === 0 ? (
@@ -201,25 +206,32 @@ export default function InstructorReturnVerificationPage() {
       ) : (
         <div className="space-y-6">
           {requests.map((req) => (
-            <Card key={req.id} className="overflow-hidden">
-              <CardHeader className="bg-[#FAF9F6] border-b border-[#EFECE6]">
+            <Card
+              key={req.id}
+              className="overflow-hidden rounded-[22px] border-black/12 bg-white"
+            >
+              <CardHeader className="border-b border-black/10 bg-[#F5F5F3]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="font-mono text-base">
+                      <CardTitle className="font-mono text-base font-semibold text-black tabular-nums">
                         {req.requestCode}
                       </CardTitle>
                       <RequestStatusBadge status={req.status} />
                     </div>
-                    <CardDescription className="mt-1">
-                      Student: <strong>{req.student.fullName}</strong> (
-                      {req.student.institutionalId}) · Updated{" "}
+                    <CardDescription className="mt-1 text-black/55 tabular-nums">
+                      Student:{" "}
+                      <strong className="font-semibold text-black">
+                        {req.student.fullName}
+                      </strong>{" "}
+                      ({req.student.institutionalId}) · Updated{" "}
                       {formatDateTime(req.updatedAt)}
                     </CardDescription>
                   </div>
                   <Button
                     onClick={() => handleVerifyRequest(req)}
                     disabled={submittingId === req.id}
+                    className="rounded-full bg-black text-white hover:bg-[#C4F041] hover:text-black"
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     {submittingId === req.id
@@ -242,20 +254,23 @@ export default function InstructorReturnVerificationPage() {
                   return (
                     <div
                       key={it.id}
-                      className="rounded-2xl border border-[#E6E5E0] bg-white p-4 sm:p-5 space-y-5"
+                      className="rounded-[22px] border border-black/12 bg-white p-4 sm:p-5 space-y-5"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#EFECE6]">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/10">
                         <div>
-                          <h3 className="text-base font-semibold text-[#222321]">
+                          <h3 className="text-base font-semibold tracking-[-0.01em] text-black">
                             {it.item.name}
                           </h3>
-                          <p className="font-mono text-xs text-[#72736E]">
+                          <p className="font-mono text-xs text-black/55 tabular-nums">
                             {it.item.code} · Issued: {it.issuedQuantity}{" "}
                             {it.item.unit}
                           </p>
                         </div>
                         {latestRv?.studentComments && (
-                          <Badge variant="outline" className="max-w-md truncate">
+                          <Badge
+                            variant="info"
+                            className="max-w-md truncate rounded-full border-black/10 bg-[#BCE6FA] text-black"
+                          >
                             Student note: &ldquo;{latestRv.studentComments}&rdquo;
                           </Badge>
                         )}
@@ -269,9 +284,9 @@ export default function InstructorReturnVerificationPage() {
 
                       {/* Condition Decision Controls */}
                       {f && (
-                        <div className="rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-4 space-y-4">
+                        <div className="rounded-[20px] border border-black/10 bg-[#F5F5F3] p-4 space-y-4">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wide text-[#72736E] mr-2">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-black/55 mr-2">
                               Inspection Outcome:
                             </span>
                             <Button
@@ -280,6 +295,7 @@ export default function InstructorReturnVerificationPage() {
                               variant={
                                 f.condition === "GOOD" ? "success" : "outline"
                               }
+                              className="rounded-full"
                               onClick={() => setConditionPreset(it, "GOOD")}
                             >
                               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -288,8 +304,11 @@ export default function InstructorReturnVerificationPage() {
                             <Button
                               type="button"
                               size="sm"
-                              variant={
-                                f.condition === "DAMAGED" ? "danger" : "outline"
+                              variant="outline"
+                              className={
+                                f.condition === "DAMAGED"
+                                  ? "rounded-full border-black/15 bg-[#F3BD77] text-black hover:bg-[#EBB064]"
+                                  : "rounded-full border-black/15 bg-white text-black hover:bg-[#F0F0F0]"
                               }
                               onClick={() => setConditionPreset(it, "DAMAGED")}
                             >
@@ -302,6 +321,7 @@ export default function InstructorReturnVerificationPage() {
                               variant={
                                 f.condition === "MISSING" ? "danger" : "outline"
                               }
+                              className="rounded-full"
                               onClick={() => setConditionPreset(it, "MISSING")}
                             >
                               <PackageX className="h-3.5 w-3.5" />
@@ -311,11 +331,14 @@ export default function InstructorReturnVerificationPage() {
 
                           <div className="grid sm:grid-cols-3 gap-3">
                             <div className="space-y-1">
-                              <Label>Good Returned Qty</Label>
+                              <Label className="text-black/55">
+                                Good Returned Qty
+                              </Label>
                               <Input
                                 type="number"
                                 min={0}
                                 max={it.issuedQuantity}
+                                className="tabular-nums border-black/15 bg-white text-black"
                                 value={f.returnedQuantity}
                                 onChange={(e) =>
                                   updateItemForm(it.id, {
@@ -328,11 +351,14 @@ export default function InstructorReturnVerificationPage() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label>Damaged Qty</Label>
+                              <Label className="text-black/55">
+                                Damaged Qty
+                              </Label>
                               <Input
                                 type="number"
                                 min={0}
                                 max={it.issuedQuantity}
+                                className="tabular-nums border-black/15 bg-white text-black"
                                 value={f.damagedQuantity}
                                 onChange={(e) =>
                                   updateItemForm(it.id, {
@@ -345,11 +371,14 @@ export default function InstructorReturnVerificationPage() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label>Missing Qty</Label>
+                              <Label className="text-black/55">
+                                Missing Qty
+                              </Label>
                               <Input
                                 type="number"
                                 min={0}
                                 max={it.issuedQuantity}
+                                className="tabular-nums border-black/15 bg-white text-black"
                                 value={f.missingQuantity}
                                 onChange={(e) =>
                                   updateItemForm(it.id, {
@@ -364,13 +393,17 @@ export default function InstructorReturnVerificationPage() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label>
+                            <Label className="text-black/55">
                               Instructor Verification Remarks{" "}
                               {(f.condition === "DAMAGED" ||
-                                f.condition === "MISSING") &&
-                                "(Required)"}
+                                f.condition === "MISSING") && (
+                                <span className="ml-1 inline-flex items-center rounded-full bg-[#FA8E66]/75 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-black">
+                                  Required
+                                </span>
+                              )}
                             </Label>
                             <Textarea
+                              className="border-black/15 bg-white text-black placeholder:text-black/40 focus-visible:border-black focus-visible:ring-[#C4F041]/50"
                               value={f.instructorRemarks}
                               onChange={(e) =>
                                 updateItemForm(it.id, {

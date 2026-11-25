@@ -229,3 +229,39 @@ h1, h2, h3, h4, .font-display {
 .lp-btn_arrow-icon {
   transition: transform 0.35s var(--lp-spring);
 }
+
+/* Smooth GPU-accelerated shimmer loader for WebP part images */
+@keyframes lp-shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.lp-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #e6e6e2;
+}
+
+.lp-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.62) 50%,
+    transparent 100%
+  );
+  animation: lp-shimmer-sweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+/* Offscreen layout/paint skipping for large parts grids */
+.part-card-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: 320px;
+}

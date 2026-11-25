@@ -144,10 +144,10 @@ export default function CentralCampusesPage() {
       />
 
       {/* Filter & View Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="flex flex-1 flex-wrap items-center gap-3 min-w-[240px]">
           <div className="relative flex-1 min-w-[220px] max-w-md">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -167,14 +167,14 @@ export default function CentralCampusesPage() {
           </Select>
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl bg-[#EAE9E4] p-1">
+        <div className="flex items-center gap-1 rounded-full border border-black/10 bg-[#F0F0F0] p-1">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
               viewMode === "grid"
-                ? "bg-white text-[#222321] shadow-xs"
-                : "text-[#72736E]"
+                ? "bg-[#000000] text-white"
+                : "text-black/55 hover:text-black"
             }`}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
@@ -183,10 +183,10 @@ export default function CentralCampusesPage() {
           <button
             type="button"
             onClick={() => setViewMode("table")}
-            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
               viewMode === "table"
-                ? "bg-white text-[#222321] shadow-xs"
-                : "text-[#72736E]"
+                ? "bg-[#000000] text-white"
+                : "text-black/55 hover:text-black"
             }`}
           >
             <List className="h-3.5 w-3.5" />
@@ -198,7 +198,7 @@ export default function CentralCampusesPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-44" />
+            <Skeleton key={i} className="h-44 rounded-[22px]" />
           ))}
         </div>
       ) : viewMode === "grid" ? (
@@ -206,57 +206,57 @@ export default function CentralCampusesPage() {
           {filtered.map((campus) => (
             <Card
               key={campus.id}
-              className="p-5 flex flex-col justify-between hover:border-[#F26943]/40 transition-colors"
+              className="p-5 flex flex-col justify-between hover:border-black/30 transition-colors"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs font-semibold text-[#F26943] bg-[#FFF0E9] px-2.5 py-0.5 rounded-md">
+                  <span className="font-mono text-xs font-semibold text-black bg-[#C4F041] border border-black/10 px-2.5 py-0.5 rounded-full">
                     {campus.code}
                   </span>
                   <CampusStatusBadge status={campus.status} />
                 </div>
 
-                <h3 className="mt-3 text-base font-semibold text-[#222321] leading-snug">
+                <h3 className="mt-3 text-base font-semibold text-black leading-snug">
                   {campus.name}
                 </h3>
-                <p className="mt-1 flex items-center gap-1 text-xs text-[#72736E]">
+                <p className="mt-1 flex items-center gap-1 text-xs text-black/55">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">
                     {[campus.city, campus.state].filter(Boolean).join(", ") || "—"}
                   </span>
                 </p>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-2.5 text-center">
+                <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-[#F5F5F3] border border-black/10 p-2.5 text-center">
                   <div>
-                    <p className="text-xs font-bold text-[#222321]">
+                    <p className="text-xs font-bold text-black tabular-nums">
                       {formatNumber(campus.stats?.availableUnits ?? 0)}
                     </p>
-                    <p className="text-[10px] text-[#72736E]">Available</p>
+                    <p className="text-[10px] text-black/55">Available</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#222321]">
+                    <p className="text-xs font-bold text-black tabular-nums">
                       {formatNumber(campus.stats?.borrowedUnits ?? 0)}
                     </p>
-                    <p className="text-[10px] text-[#72736E]">Borrowed</p>
+                    <p className="text-[10px] text-black/55">Borrowed</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#222321]">
+                    <p className="text-xs font-bold text-black tabular-nums">
                       {(campus.stats?.labManagerCount ?? 0) +
                         (campus.stats?.instructorCount ?? 0)}
                     </p>
-                    <p className="text-[10px] text-[#72736E]">Staff</p>
+                    <p className="text-[10px] text-black/55">Staff</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#EFECE6] flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-black/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={campus.status === "ACTIVE"}
                     onCheckedChange={() => handleToggleStatus(campus)}
                     aria-label={`Toggle ${campus.name} active`}
                   />
-                  <span className="text-[11px] text-[#72736E]">Active</span>
+                  <span className="text-[11px] text-black/55">Active</span>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/central/campuses/${campus.id}`}>
@@ -286,30 +286,32 @@ export default function CentralCampusesPage() {
               </thead>
               <tbody>
                 {filtered.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#FAF9F6]">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-[#F26943]">
-                      {c.code}
+                  <tr key={c.id} className="hover:bg-[#F5F5F3] transition-colors">
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-full bg-[#C4F041] border border-black/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
+                        {c.code}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 font-medium text-[#222321]">{c.name}</td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 font-medium text-black">{c.name}</td>
+                    <td className="px-4 py-3 text-xs text-black/55">
                       {[c.city, c.state].filter(Boolean).join(", ") || "—"}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs">
+                    <td className="px-4 py-3 text-right text-xs text-black tabular-nums">
                       <span className="inline-flex items-center gap-1">
-                        <Users className="h-3 w-3 text-[#72736E]" />
+                        <Users className="h-3 w-3 text-black/55" />
                         {c.stats?.labManagerCount ?? 0}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-xs">
+                    <td className="px-4 py-3 text-right text-xs text-black tabular-nums">
                       {c.stats?.instructorCount ?? 0}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-[#288568]">
-                      <span className="inline-flex items-center gap-1">
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#AAC2AA]/40 border border-black/10 px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums">
                         <Package className="h-3 w-3" />
                         {formatNumber(c.stats?.availableUnits ?? 0)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-[#222321]">
+                    <td className="px-4 py-3 text-right font-medium text-black tabular-nums">
                       {formatNumber(c.stats?.borrowedUnits ?? 0)}
                     </td>
                     <td className="px-4 py-3">
@@ -332,8 +334,10 @@ export default function CentralCampusesPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#F26943]" />
+            <DialogTitle className="flex items-center gap-2.5">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#C4F041] border border-black/10 text-black">
+                <Building2 className="h-4 w-4" />
+              </span>
               Register New Campus
             </DialogTitle>
             <DialogDescription>

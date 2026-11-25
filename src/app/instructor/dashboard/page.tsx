@@ -59,10 +59,10 @@ export default function InstructorDashboardPage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-72" />
+        <Skeleton className="h-12 w-72 rounded-2xl bg-[#EAEAE6]" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 rounded-[22px] bg-[#EAEAE6]" />
           ))}
         </div>
       </div>
@@ -147,23 +147,23 @@ export default function InstructorDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.pendingRequestsList.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 No pending requests right now.
               </p>
             ) : (
               data.pendingRequestsList.map((req) => (
                 <div
                   key={req.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold">
+                      <span className="font-mono text-xs font-semibold text-black">
                         {req.requestCode}
                       </span>
                       <RequestStatusBadge status={req.status} />
                     </div>
-                    <p className="mt-1 text-xs text-[#72736E] truncate">
+                    <p className="mt-1 text-xs text-black/55 truncate">
                       {req.student.fullName} · {req.purpose}
                     </p>
                   </div>
@@ -192,23 +192,23 @@ export default function InstructorDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.pendingReturnsList.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 No submitted returns awaiting physical inspection.
               </p>
             ) : (
               data.pendingReturnsList.map((req) => (
                 <div
                   key={req.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold">
+                      <span className="font-mono text-xs font-semibold text-black">
                         {req.requestCode}
                       </span>
                       <RequestStatusBadge status={req.status} />
                     </div>
-                    <p className="mt-1 text-xs text-[#72736E] truncate">
+                    <p className="mt-1 text-xs text-black/55 truncate tabular-nums">
                       {req.student.fullName} · Submitted {formatDateTime(req.updatedAt)}
                     </p>
                   </div>

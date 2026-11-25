@@ -65,9 +65,9 @@ export default function CentralAuditLogsPage() {
         description="Append-only governance trail recording every stock adjustment, allocation dispatch, approval decision, and return verification."
       />
 
-      <div className="flex items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex items-center justify-between gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -75,14 +75,16 @@ export default function CentralAuditLogsPage() {
             className="pl-10"
           />
         </div>
-        <Badge variant="outline">{filtered.length} records</Badge>
+        <Badge variant="accent" className="font-mono">
+          {filtered.length} records
+        </Badge>
       </div>
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="border-b border-black/10 text-left">
                 <th className="px-4 py-3">Timestamp</th>
                 <th className="px-4 py-3">Action</th>
                 <th className="px-4 py-3">Entity</th>
@@ -94,17 +96,20 @@ export default function CentralAuditLogsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={6} className="p-8 text-center text-black/55">
                     Loading audit trail...
                   </td>
                 </tr>
               ) : (
                 filtered.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#FAF9F6]">
-                    <td className="px-4 py-3 text-xs text-[#72736E] whitespace-nowrap">
+                  <tr
+                    key={log.id}
+                    className="border-b border-black/10 transition-colors hover:bg-[#F5F5F3]"
+                  >
+                    <td className="px-4 py-3 text-xs text-black/55 whitespace-nowrap">
                       {formatDateTime(log.createdAt)}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-[#222321]">
+                    <td className="px-4 py-3 font-mono text-xs font-semibold text-black">
                       {log.action}
                     </td>
                     <td className="px-4 py-3 text-xs">
@@ -112,14 +117,16 @@ export default function CentralAuditLogsPage() {
                     </td>
                     <td className="px-4 py-3 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-[#222321]">
+                        <span className="font-medium text-black">
                           {log.actor?.fullName ?? "System"}
                         </span>
                         {log.actorRole && <RoleBadge role={log.actorRole} />}
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#F26943]">
-                      {log.campus?.code ?? "GLOBAL"}
+                    <td className="px-4 py-3 text-xs">
+                      <span className="inline-flex items-center rounded-full border border-black/10 bg-[#BCE6FA] px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
+                        {log.campus?.code ?? "GLOBAL"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button
@@ -140,32 +147,33 @@ export default function CentralAuditLogsPage() {
       </Card>
 
       <Dialog open={Boolean(selected)} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-[22px] border-black/12 bg-white text-black">
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-mono text-base">
+                <DialogTitle className="font-mono text-base font-semibold text-black">
                   {selected.action}
                 </DialogTitle>
-                <DialogDescription>
-                  {selected.entityType} ({selected.entityId}) ·{" "}
-                  {formatDateTime(selected.createdAt)}
+                <DialogDescription className="text-black/55">
+                  {selected.entityType}{" "}
+                  <span className="font-mono text-black">({selected.entityId})</span>{" "}
+                  · {formatDateTime(selected.createdAt)}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-[#E6E5E0] bg-[#FAF9F6] p-3">
-                  <p className="text-[11px] font-semibold uppercase text-[#72736E] mb-2">
+                <div className="rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-black/55 mb-2">
                     Previous State
                   </p>
-                  <pre className="text-xs font-mono text-[#222321] overflow-x-auto whitespace-pre-wrap">
+                  <pre className="text-xs font-mono text-black overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify(selected.previousState ?? {}, null, 2)}
                   </pre>
                 </div>
-                <div className="rounded-xl border border-[#288568]/25 bg-[#EAF6F1]/40 p-3">
-                  <p className="text-[11px] font-semibold uppercase text-[#288568] mb-2">
+                <div className="rounded-2xl border border-black/10 bg-[#AAC2AA]/25 p-3.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-black mb-2">
                     New State
                   </p>
-                  <pre className="text-xs font-mono text-[#222321] overflow-x-auto whitespace-pre-wrap">
+                  <pre className="text-xs font-mono text-black overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify(selected.newState ?? {}, null, 2)}
                   </pre>
                 </div>

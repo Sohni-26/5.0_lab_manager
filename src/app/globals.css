@@ -19,6 +19,14 @@
   --info: #1D5570;
   --info-bg: #E2F3FC;
   --radius: 0.75rem;
+
+  /* Landing page kinetic button & motion tokens (shared across portal & landing) */
+  --lp-main: #c4f041;
+  --lp-sage: #aac2aa;
+  --lp-sky: #bce6fa;
+  --lp-apricot: #f3bd77;
+  --lp-smooth: cubic-bezier(0.76, 0, 0.24, 1);
+  --lp-spring: cubic-bezier(0.3, 1.3, 0.4, 1);
 }
 
 @theme inline {
@@ -105,4 +113,119 @@ h1, h2, h3, h4, .font-display {
 
 .sheet-table td {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Signature Landing split-pill multi-color diagonal sweep button (available across dashboards) */
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+  --lp-btn-bg: #000000;
+  --lp-btn-ink: #ffffff;
+}
+
+.lp-btn--inverse {
+  --lp-btn-bg: #ffffff;
+  --lp-btn-ink: #000000;
+}
+
+.lp-btn_arrow-parent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: var(--lp-btn-bg);
+  color: var(--lp-btn-ink);
+  margin-right: -2px;
+  flex-shrink: 0;
+  transition: transform 0.45s var(--lp-spring);
+}
+
+.lp-btn_text-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: var(--lp-btn-bg);
+  color: var(--lp-btn-ink);
+}
+
+.lp-btn_layer {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(-25% 0%, -25% 0%, -45% 100%, -45% 100%);
+  transition: clip-path 0.55s var(--lp-smooth);
+  pointer-events: none;
+}
+
+.lp-btn_layer--sage {
+  background: var(--lp-sage);
+  transition-delay: 0ms;
+}
+.lp-btn_layer--sky {
+  background: var(--lp-sky);
+  transition-delay: 45ms;
+}
+.lp-btn_layer--apricot {
+  background: var(--lp-apricot);
+  transition-delay: 90ms;
+}
+.lp-btn_layer--main {
+  background: var(--lp-main);
+  transition-delay: 135ms;
+}
+
+.lp-btn:hover .lp-btn_layer {
+  clip-path: polygon(0% 0%, 125% 0%, 105% 100%, -20% 100%);
+}
+
+.lp-btn:hover .lp-btn_layer--sage {
+  transition-delay: 0ms;
+}
+.lp-btn:hover .lp-btn_layer--sky {
+  transition-delay: 50ms;
+}
+.lp-btn:hover .lp-btn_layer--apricot {
+  transition-delay: 100ms;
+}
+.lp-btn:hover .lp-btn_layer--main {
+  transition-delay: 150ms;
+}
+
+.lp-btn:not(:hover) .lp-btn_layer--main {
+  transition-delay: 0ms;
+}
+.lp-btn:not(:hover) .lp-btn_layer--apricot {
+  transition-delay: 40ms;
+}
+.lp-btn:not(:hover) .lp-btn_layer--sky {
+  transition-delay: 80ms;
+}
+.lp-btn:not(:hover) .lp-btn_layer--sage {
+  transition-delay: 120ms;
+}
+
+.lp-btn_content {
+  position: relative;
+  z-index: 2;
+  transition: color 0.35s ease;
+}
+
+.lp-btn:hover .lp-btn_content {
+  color: #000000;
+}
+
+.lp-btn:hover .lp-btn_arrow-icon {
+  transform: translate(1px, -1px) scale(1.08);
+}
+
+.lp-btn_arrow-icon {
+  transition: transform 0.35s var(--lp-spring);
 }

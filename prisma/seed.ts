@@ -5,6 +5,7 @@ import {
   PROCUREMENT_CATEGORIES,
   PROCUREMENT_ITEMS,
 } from "../src/lib/procurement-catalog";
+import { getPartImageUrl } from "../src/lib/part-images";
 
 const prisma = new PrismaClient();
 
@@ -194,6 +195,7 @@ async function main() {
       remarks: it.remarks,
     };
 
+    const imageUrl = getPartImageUrl(it.code, it.categorySlug);
     const rec = await prisma.item.upsert({
       where: { code: it.code },
       update: {
@@ -202,6 +204,7 @@ async function main() {
         categoryId: catBySlug.get(it.categorySlug)!,
         brand: it.brand,
         unit: it.unit,
+        imageUrl,
         specifications,
         isActive: it.isActive,
       },
@@ -212,6 +215,7 @@ async function main() {
         categoryId: catBySlug.get(it.categorySlug)!,
         brand: it.brand,
         unit: it.unit,
+        imageUrl,
         specifications,
         isActive: it.isActive,
       },

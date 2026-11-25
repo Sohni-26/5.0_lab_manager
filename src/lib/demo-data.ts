@@ -20,6 +20,7 @@ import {
   PROCUREMENT_CATEGORIES,
   PROCUREMENT_ITEMS,
 } from "@/lib/procurement-catalog";
+import { getPartImageUrl } from "@/lib/part-images";
 
 function makeAngleSvg(title: string, angle: string, phase: string, bg: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
@@ -230,7 +231,7 @@ export const DEMO_MASTER_ITEMS: MasterItemDTO[] = PROCUREMENT_ITEMS.map((it, idx
       remarks: it.remarks,
     },
     unit: it.unit,
-    imageUrl: null,
+    imageUrl: getPartImageUrl(it.code, it.categorySlug),
     isActive: it.isActive,
     createdAt: "2026-07-01T09:00:00.000Z",
     updatedAt: "2026-11-22T11:20:00.000Z",

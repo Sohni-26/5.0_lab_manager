@@ -14,7 +14,6 @@ import {
   Package,
   Plus,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
@@ -257,12 +256,7 @@ export function StudentRequestFlow() {
                 <X className="h-4 w-4" />
               </button>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-black/12 bg-[#C4F041] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-black">
-                <Sparkles className="h-3.5 w-3.5" />
-                Equipment Request · Not a Ticket
-              </div>
-
-              <h2 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-black leading-tight">
+              <h2 className="pr-10 text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-black leading-tight">
                 Need lab components for your build?
               </h2>
               <p className="mt-2.5 text-sm text-black/60 leading-relaxed">

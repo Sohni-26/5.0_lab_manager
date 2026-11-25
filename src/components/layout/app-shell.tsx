@@ -209,14 +209,20 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
           collapsed ? "w-[76px]" : "w-[254px]"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-black/10 px-4">
-          <Link href={ROLE_DASHBOARD_ROUTES[user.role]}>
+        <div className="relative flex h-16 items-center justify-center border-b border-black/10 px-4">
+          <Link
+            href={ROLE_DASHBOARD_ROUTES[user.role]}
+            className="flex items-center justify-center"
+          >
             <BrandLogo compact={collapsed} />
           </Link>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="rounded-full p-1.5 text-black/55 hover:bg-black/[0.06] hover:text-black cursor-pointer"
+            className={cn(
+              "rounded-full p-1.5 text-black/55 hover:bg-black/[0.06] hover:text-black cursor-pointer",
+              collapsed ? "ml-1" : "absolute right-3"
+            )}
             aria-label="Toggle sidebar"
           >
             {collapsed ? (
@@ -274,12 +280,12 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
             onClick={() => setMobileOpen(false)}
           />
           <div className="relative z-10 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-black/10 px-4">
+            <div className="relative flex h-16 items-center justify-center border-b border-black/10 px-4">
               <BrandLogo />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-1.5 text-black/60 hover:bg-black/[0.06]"
+                className="absolute right-3 rounded-full p-1.5 text-black/60 hover:bg-black/[0.06]"
               >
                 <X className="h-5 w-5" />
               </button>

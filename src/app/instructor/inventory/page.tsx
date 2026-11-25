@@ -70,9 +70,9 @@ export default function InstructorInventoryReadOnlyPage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -81,13 +81,19 @@ export default function InstructorInventoryReadOnlyPage() {
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-52">
+          <SelectTrigger className="w-52 border-black/15 text-black focus:border-black focus:ring-[#C4F041]/50">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Categories</SelectItem>
+          <SelectContent className="border-black/12 bg-white text-black">
+            <SelectItem value="ALL" className="focus:bg-[#F5F5F3] focus:text-black">
+              All Categories
+            </SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
+              <SelectItem
+                key={c.id}
+                value={c.id}
+                className="focus:bg-[#F5F5F3] focus:text-black"
+              >
                 {c.name}
               </SelectItem>
             ))}
@@ -99,7 +105,7 @@ export default function InstructorInventoryReadOnlyPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="border-b border-black/10 text-left">
                 <th className="px-4 py-3">Item Code</th>
                 <th className="px-4 py-3">Equipment</th>
                 <th className="px-4 py-3">Category</th>
@@ -112,32 +118,38 @@ export default function InstructorInventoryReadOnlyPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={7} className="p-8 text-center text-black/55">
                     Loading verified campus inventory...
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => (
-                  <tr key={row.id} className="hover:bg-[#FAF9F6]">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-[#F26943]">
-                      {row.item.code}
+                  <tr key={row.id} className="transition-colors hover:bg-[#F5F5F3]">
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-black">
+                        {row.item.code}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-[#222321]">{row.item.name}</p>
+                      <p className="font-medium text-black">{row.item.name}</p>
                       {row.item.brand && (
-                        <p className="text-xs text-[#72736E]">{row.item.brand}</p>
+                        <p className="text-xs text-black/55">{row.item.brand}</p>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="secondary">{row.item.category.name}</Badge>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-[#288568]">
-                      {row.availableQuantity}
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/65 px-2.5 py-0.5 font-mono text-xs font-bold tabular-nums text-black">
+                        {row.availableQuantity}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-[#4D83B5]">
-                      {row.reservedQuantity}
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center rounded-full border border-black/10 bg-[#BCE6FA]/75 px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-black">
+                        {row.reservedQuantity}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono">
+                    <td className="px-4 py-3 text-right font-mono text-xs font-medium tabular-nums text-black">
                       {row.borrowedQuantity}
                     </td>
                     <td className="px-4 py-3">

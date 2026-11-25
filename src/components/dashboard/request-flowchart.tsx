@@ -111,7 +111,9 @@ function deriveFlowchartSteps(request: LabRequestDTO): FlowchartStep[] {
     {
       id: "raised",
       title: "Request Raised",
-      description: `${totalParts} part${totalParts === 1 ? "" : "s"} (${totalUnits} unit${totalUnits === 1 ? "" : "s"}) selected for ${request.purpose}`,
+      description: request.purpose
+        ? `${totalParts} part${totalParts === 1 ? "" : "s"} (${totalUnits} unit${totalUnits === 1 ? "" : "s"}) for ${request.purpose}`
+        : `${totalParts} part${totalParts === 1 ? "" : "s"} (${totalUnits} unit${totalUnits === 1 ? "" : "s"}) selected`,
       state: "completed",
       showPartsBranch: true,
     },
@@ -219,7 +221,7 @@ function SquigglyBranchConnector() {
       viewBox="0 0 56 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="hidden xl:block shrink-0 self-center -mx-1"
+      className="hidden 2xl:block shrink-0 self-center -mx-1"
       aria-hidden="true"
     >
       <circle cx="4" cy="16" r="3" fill="#FFFFFF" stroke="#000000" strokeWidth="1.8" />
@@ -409,7 +411,7 @@ export function RequestFlowchartCard({
                           {step.description}
                         </p>
                         {step.showPartsBranch && (
-                          <div className="mt-2.5 flex flex-wrap items-center gap-2 xl:hidden">
+                          <div className="mt-2.5 flex flex-wrap items-center gap-2 2xl:hidden">
                             {request.items.slice(0, 4).map((it) => (
                               <div
                                 key={it.id}
@@ -475,7 +477,7 @@ export function RequestFlowchartCard({
                   {step.showPartsBranch && !compactMode && (
                     <>
                       <SquigglyBranchConnector />
-                      <div className="hidden xl:flex flex-col justify-center w-[210px] shrink-0 rounded-[14px] border-2 border-dashed border-black/55 bg-white/92 p-3 shadow-[3px_3px_0px_rgba(0,0,0,0.08)]">
+                      <div className="hidden 2xl:flex flex-col justify-center w-[200px] shrink-0 rounded-[14px] border-2 border-dashed border-black/55 bg-white/92 p-3 shadow-[3px_3px_0px_rgba(0,0,0,0.08)]">
                         <p className="text-[13px] font-semibold text-black mb-2">
                           Parts ({totalUnits} units)
                         </p>

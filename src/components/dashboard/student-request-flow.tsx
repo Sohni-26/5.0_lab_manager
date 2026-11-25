@@ -457,12 +457,7 @@ export function StudentRequestFlow() {
       return;
     }
 
-    const cleanPurpose =
-      purpose.trim().length >= 5
-        ? purpose.trim()
-        : `Lab build (${selectedEntries.length} part${
-            selectedEntries.length === 1 ? "" : "s"
-          })`;
+    const cleanPurpose = purpose.trim();
 
     const chosenInstructor =
       instructors.find((i) => i.id === instructorId) ?? instructors[0];
@@ -528,7 +523,10 @@ export function StudentRequestFlow() {
       } else {
         const res = await apiClient.requests.create({
           instructorId,
-          purpose: cleanPurpose,
+          purpose:
+            cleanPurpose.length >= 5
+              ? cleanPurpose
+              : "Campus laboratory equipment borrowing request",
           items: selectedEntries.map((e) => ({
             itemId: e.itemId,
             requestedQuantity: e.qty,
@@ -714,7 +712,7 @@ export function StudentRequestFlow() {
 
       <DottedGridCanvas className="flex flex-col">
         <AnimatePresence mode="wait">
-          {/* MAIN STUDENT BOARD: PROMPT ON LEFT + DYNAMIC EXCALIDRAW FLOWCHART CLUSTER ON RIGHT */}
+          {/* MAIN STUDENT BOARD: EXACT 50/50 INVISIBLE SPLIT — CENTERED LEFT PROMPT + RIGHT FLOWCHARTS */}
           {stage === "board" && (
             <motion.div
               key="stage-board"
@@ -722,25 +720,25 @@ export function StudentRequestFlow() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
-              className={`flex-1 min-h-[calc(100vh-8.5rem)] p-6 sm:p-8 ${
+              className={`flex-1 min-h-[calc(100vh-8.5rem)] ${
                 hasRequests
-                  ? "grid gap-8 lg:grid-cols-12 items-start"
-                  : "flex items-center justify-center"
+                  ? "grid grid-cols-1 lg:grid-cols-2"
+                  : "flex items-center justify-center p-6 sm:p-8"
               }`}
             >
-              {/* Left Action Panel: Raise a Request */}
+              {/* Left 50%: Vertically & Horizontally Centered Prompt Card (no visible divider) */}
               <div
                 className={
                   hasRequests
-                    ? "lg:col-span-4 lg:sticky lg:top-24"
+                    ? "flex items-center justify-center p-6 sm:p-10 lg:sticky lg:top-0 lg:h-[calc(100vh-8.5rem)]"
                     : "w-full max-w-xl"
                 }
               >
-                <div className="rounded-[24px] border border-black/14 bg-white p-7 sm:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+                <div className="w-full max-w-md rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
                   <h2
                     className={`${
                       hasRequests
-                        ? "text-[26px] sm:text-[30px]"
+                        ? "text-[28px] sm:text-[32px]"
                         : "text-[32px] sm:text-[38px]"
                     } font-medium tracking-[-0.03em] text-black leading-[1.08]`}
                   >
@@ -752,12 +750,12 @@ export function StudentRequestFlow() {
                     flowchart on your board.
                   </p>
 
-                  <div className="mt-6">
+                  <div className="mt-7">
                     <LoopsiiButton
                       label={
                         hasRequests ? "Raise Another Request" : "Raise a Request"
                       }
-                      size={hasRequests ? "md" : "lg"}
+                      size="lg"
                       hideArrow
                       onClick={() => setStage("parts")}
                     />
@@ -765,9 +763,9 @@ export function StudentRequestFlow() {
                 </div>
               </div>
 
-              {/* Right Dynamic Excalidraw Flowchart Cluster */}
+              {/* Right 50%: Balanced Excalidraw Flowchart Canvas Area */}
               {hasRequests && (
-                <div className="lg:col-span-8 space-y-5">
+                <div className="flex flex-col justify-center p-6 sm:p-10 space-y-6">
                   <div className="flex flex-wrap items-baseline justify-between gap-2 px-2">
                     <div>
                       <h3 className="text-[22px] font-medium tracking-[-0.025em] text-black">
@@ -781,21 +779,14 @@ export function StudentRequestFlow() {
                     </div>
                   </div>
 
-                  {/* Dynamic cluster layout: single centered expressive flow, or clustered grid for 2+ */}
-                  <div
-                    className={
-                      isClustered
-                        ? "grid gap-8 2xl:grid-cols-2 items-start"
-                        : "flex flex-col gap-8"
-                    }
-                  >
+                  <div className="flex flex-col gap-8">
                     {savedRequests.map((req, idx) => (
                       <RequestFlowchartCard
                         key={req.id}
                         request={req}
                         index={savedRequests.length - 1 - idx}
                         compactMode={isClustered}
-                        defaultExpanded={idx === 0 || savedRequests.length <= 2}
+                        defaultExpanded={idx === 0}
                       />
                     ))}
                   </div>

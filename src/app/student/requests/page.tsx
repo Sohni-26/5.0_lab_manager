@@ -66,7 +66,7 @@ export default function StudentMyRequestsPage() {
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="p-8 text-center text-sm text-black/55">
           Loading your requests...
         </Card>
       ) : requests.length === 0 ? (
@@ -83,24 +83,33 @@ export default function StudentMyRequestsPage() {
       ) : (
         <div className="space-y-4">
           {requests.map((req) => (
-            <Card key={req.id}>
-              <CardHeader className="border-b border-[#EFECE6]">
+            <Card
+              key={req.id}
+              className="transition-colors duration-150 hover:border-black/25"
+            >
+              <CardHeader className="border-b border-black/10">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="font-mono text-base">
+                      <CardTitle className="font-mono text-base tabular-nums">
                         {req.requestCode}
                       </CardTitle>
                       <RequestStatusBadge status={req.status} />
                     </div>
                     <CardDescription className="mt-1">
-                      Instructor: <strong>{req.instructor.fullName}</strong> · Submitted{" "}
-                      {formatDateTime(req.createdAt)}
+                      Instructor:{" "}
+                      <strong className="font-semibold text-black">
+                        {req.instructor.fullName}
+                      </strong>{" "}
+                      · Submitted{" "}
+                      <span className="tabular-nums">
+                        {formatDateTime(req.createdAt)}
+                      </span>
                     </CardDescription>
                   </div>
 
                   {req.status === "APPROVED" && (
-                    <Button size="sm" asChild>
+                    <Button size="sm" variant="primary" asChild>
                       <Link href="/student/borrowed">
                         Upload 4 Collection Photos
                       </Link>
@@ -117,19 +126,23 @@ export default function StudentMyRequestsPage() {
               <CardContent className="pt-5 space-y-4">
                 <RequestTimeline status={req.status} />
 
-                <p className="text-sm text-[#222321] bg-[#FAF9F6] border border-[#EFECE6] rounded-xl p-3">
+                <p className="text-sm text-black bg-[#F5F5F3] border border-black/10 rounded-2xl p-3.5 leading-relaxed">
                   {req.purpose}
                 </p>
 
                 {req.rejectionReason && (
-                  <div className="rounded-xl border border-[#D9534F]/25 bg-[#FDEDEC] p-3 text-xs text-[#C23E3A]">
+                  <div className="rounded-2xl border border-[#FA8E66]/60 bg-[#FA8E66]/20 p-3.5 text-xs text-black">
                     <strong>Rejection Reason:</strong> {req.rejectionReason}
                   </div>
                 )}
 
                 <div className="flex flex-wrap gap-2">
                   {req.items.map((it) => (
-                    <Badge key={it.id} variant="secondary" className="py-1 px-3">
+                    <Badge
+                      key={it.id}
+                      variant="secondary"
+                      className="py-1 px-3 tabular-nums"
+                    >
                       {it.item.name} · ×{it.requestedQuantity}
                     </Badge>
                   ))}

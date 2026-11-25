@@ -65,10 +65,10 @@ export default function LabManagerDashboardPage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-72" />
+        <Skeleton className="h-12 w-72 rounded-2xl bg-[#EAEAE6]" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 rounded-[22px] bg-[#EAEAE6]" />
           ))}
         </div>
       </div>
@@ -174,23 +174,23 @@ export default function LabManagerDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.incomingAllocationsList.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 No pending deliveries to verify right now.
               </p>
             ) : (
               data.incomingAllocationsList.map((alloc) => (
                 <div
                   key={alloc.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-[#222321]">
+                      <span className="font-mono text-xs font-semibold text-black">
                         {alloc.referenceCode}
                       </span>
                       <AllocationStatusBadge status={alloc.status} />
                     </div>
-                    <p className="mt-1 text-xs text-[#72736E]">
+                    <p className="mt-1 text-xs text-black/55 tabular-nums">
                       {alloc.items.length} items · Dispatched{" "}
                       {formatDateTime(alloc.dispatchedAt ?? alloc.createdAt)}
                     </p>
@@ -220,23 +220,23 @@ export default function LabManagerDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {data.pendingRequests.length === 0 ? (
-              <p className="py-6 text-center text-sm text-[#72736E]">
+              <p className="py-6 text-center text-sm text-black/55">
                 No instructor-approved requests pending reservation.
               </p>
             ) : (
               data.pendingRequests.map((req) => (
                 <div
                   key={req.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors duration-150 hover:border-black/25"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-[#222321]">
+                      <span className="font-mono text-xs font-semibold text-black">
                         {req.requestCode}
                       </span>
                       <RequestStatusBadge status={req.status} />
                     </div>
-                    <p className="mt-1 text-xs text-[#72736E] truncate">
+                    <p className="mt-1 text-xs text-black/55 truncate tabular-nums">
                       {req.student.fullName} · {req.items.length} item(s) · Approved by{" "}
                       {req.instructor.fullName}
                     </p>
@@ -252,8 +252,8 @@ export default function LabManagerDashboardPage() {
       </div>
 
       {/* Recent Transactions */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-black/10">
           <div>
             <CardTitle>Recent Campus Inventory Ledger</CardTitle>
             <CardDescription>
@@ -269,7 +269,7 @@ export default function LabManagerDashboardPage() {
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="text-left border-b border-black/10">
                 <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Event Type</th>
                 <th className="px-4 py-3">Equipment</th>
@@ -278,26 +278,28 @@ export default function LabManagerDashboardPage() {
                 <th className="px-4 py-3">Actor</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-black/10">
               {data.recentTransactions.map((tx) => (
-                <tr key={tx.id} className="hover:bg-[#FAF9F6]">
-                  <td className="px-4 py-3 text-xs text-[#72736E]">
+                <tr key={tx.id} className="transition-colors duration-150 hover:bg-[#F5F5F3]">
+                  <td className="px-4 py-3 text-xs text-black/55 tabular-nums">
                     {formatDateTime(tx.createdAt)}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant="secondary" className="font-mono text-[10px]">
+                    <Badge variant="secondary" className="rounded-full font-mono text-[10px]">
                       {tx.type}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 font-medium text-[#222321]">
+                  <td className="px-4 py-3 font-medium text-black">
                     {tx.item?.name ?? tx.itemId}
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold">{tx.quantity}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-[#72736E]">
-                    {tx.previousQuantity} →{" "}
-                    <strong className="text-[#222321]">{tx.updatedQuantity}</strong>
+                  <td className="px-4 py-3 text-right font-semibold text-black tabular-nums">
+                    {tx.quantity}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#72736E]">
+                  <td className="px-4 py-3 text-right font-mono text-xs text-black/55 tabular-nums">
+                    {tx.previousQuantity} →{" "}
+                    <strong className="text-black">{tx.updatedQuantity}</strong>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-black/55">
                     {tx.performedBy?.fullName ?? "System"}
                   </td>
                 </tr>

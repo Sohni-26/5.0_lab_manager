@@ -3,9 +3,22 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Minus, Plus, Search, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Minus,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { DottedGridCanvas } from "@/components/dashboard/spatial-canvas";
-import { RequestFlowchartCard } from "@/components/dashboard/request-flowchart";
+import {
+  FLOW_PALETTES,
+  RequestFlowchartCard,
+} from "@/components/dashboard/request-flowchart";
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
 import { useAuth } from "@/hooks/use-auth";
@@ -205,6 +218,8 @@ export function StudentRequestFlow() {
   const [categories, setCategories] = useState<ItemCategoryDTO[]>([]);
   const [instructors, setInstructors] = useState<AuthUserDTO[]>([]);
   const [savedRequests, setSavedRequests] = useState<LabRequestDTO[]>([]);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [showMoreRequests, setShowMoreRequests] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Filters & progressive batching for silky 60fps rendering
@@ -540,6 +555,8 @@ export function StudentRequestFlow() {
         persistDemoRequests(next);
         return next;
       });
+      setSelectedRequestId(createdReq.id);
+      setShowMoreRequests(false);
 
       toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
@@ -554,6 +571,8 @@ export function StudentRequestFlow() {
         persistDemoRequests(next);
         return next;
       });
+      setSelectedRequestId(createdReq.id);
+      setShowMoreRequests(false);
       toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
       setPurpose("");
@@ -567,7 +586,30 @@ export function StudentRequestFlow() {
 
   const isHoverBarOpen = stage === "parts" && (navVisible || navFocused);
   const hasRequests = savedRequests.length > 0;
-  const isClustered = savedRequests.length >= 2;
+
+  // Keep active focused request synced (defaults to newest request)
+  const activeRequest = useMemo(() => {
+    if (savedRequests.length === 0) return null;
+    return (
+      savedRequests.find((r) => r.id === selectedRequestId) ?? savedRequests[0]
+    );
+  }, [savedRequests, selectedRequestId]);
+
+  const activeRequestNumber = useMemo(() => {
+    if (!activeRequest) return 0;
+    const idx = savedRequests.findIndex((r) => r.id === activeRequest.id);
+    return idx === -1 ? 0 : savedRequests.length - 1 - idx;
+  }, [savedRequests, activeRequest]);
+
+  // Top 3 clustered requests visible immediately; remaining accessible via clean "Show more" list
+  const topClusterRequests = useMemo(
+    () => savedRequests.slice(0, 3),
+    [savedRequests]
+  );
+  const overflowRequests = useMemo(
+    () => savedRequests.slice(3),
+    [savedRequests]
+  );
 
   return (
     <div
@@ -763,33 +805,191 @@ export function StudentRequestFlow() {
                 </div>
               </div>
 
-              {/* Right 50%: Balanced Excalidraw Flowchart Canvas Area */}
-              {hasRequests && (
-                <div className="flex flex-col justify-center p-6 sm:p-10 space-y-6">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2 px-2">
-                    <div>
+              {/* Right 50%: Zero-Scroll Focused Flowchart + 3-Request Cluster & Show More List */}
+              {hasRequests && activeRequest && (
+                <div className="flex flex-col justify-center p-6 sm:p-10 space-y-4">
+                  {/* Top Header + Compact 3-Request Cluster Switcher (only shown when 2+ requests) */}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2 px-1">
                       <h3 className="text-[22px] font-medium tracking-[-0.025em] text-black">
                         Your Request Flowcharts
                       </h3>
-                      <p className="text-[14px] text-black/55">
-                        {savedRequests.length} active request
-                        {savedRequests.length === 1 ? "" : "s"} saved on your
-                        dashboard
+                      <p className="text-[14px] text-black/55 tabular-nums">
+                        {savedRequests.length} saved
                       </p>
                     </div>
+
+                    {savedRequests.length >= 2 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {topClusterRequests.map((req, idx) => {
+                          const reqNumber = savedRequests.length - 1 - idx;
+                          const palette =
+                            FLOW_PALETTES[reqNumber % FLOW_PALETTES.length];
+                          const isCurrent = req.id === activeRequest.id;
+                          const units = req.items.reduce(
+                            (s, it) => s + it.requestedQuantity,
+                            0
+                          );
+                          const isDone = req.status === "CLOSED";
+
+                          return (
+                            <button
+                              key={req.id}
+                              type="button"
+                              onClick={() => setSelectedRequestId(req.id)}
+                              style={{
+                                backgroundColor: isCurrent
+                                  ? palette.banner
+                                  : "#FFFFFF",
+                              }}
+                              className={`flex items-center justify-between gap-2 rounded-[14px] border-2 px-3.5 py-2.5 text-left transition-all duration-200 cursor-pointer ${
+                                isCurrent
+                                  ? "border-black shadow-[3px_3px_0px_#000000] -translate-y-0.5"
+                                  : "border-black/20 hover:border-black/60"
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-[14px] font-semibold text-black truncate">
+                                  Request {reqNumber + 1}
+                                </p>
+                                <p className="text-[13px] text-black/65 truncate tabular-nums">
+                                  {req.items.length} parts · {units} qty
+                                </p>
+                              </div>
+                              <span
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-black/25 bg-white/85 text-black"
+                                title={isDone ? "Completed" : "Pending"}
+                              >
+                                {isDone ? (
+                                  <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                                ) : (
+                                  <Clock className="h-3.5 w-3.5 stroke-[2.2]" />
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex flex-col gap-8">
-                    {savedRequests.map((req, idx) => (
-                      <RequestFlowchartCard
-                        key={req.id}
-                        request={req}
-                        index={savedRequests.length - 1 - idx}
-                        compactMode={isClustered}
-                        defaultExpanded={idx === 0}
-                      />
-                    ))}
-                  </div>
+                  {/* Single Focused Excalidraw Flowchart (zero vertical page bloat) */}
+                  <AnimatePresence mode="wait">
+                    <RequestFlowchartCard
+                      key={activeRequest.id}
+                      request={activeRequest}
+                      index={activeRequestNumber}
+                      compactMode={false}
+                      defaultExpanded={false}
+                    />
+                  </AnimatePresence>
+
+                  {/* "Show more" Below for 4+ Requests — Compact Selectable List */}
+                  {overflowRequests.length > 0 && (
+                    <div className="flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={() => setShowMoreRequests((prev) => !prev)}
+                        className="inline-flex items-center gap-2 rounded-full border border-black/16 bg-white px-5 py-2 text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/30 cursor-pointer"
+                      >
+                        <span>
+                          {showMoreRequests
+                            ? "Hide earlier requests"
+                            : `Show more (${overflowRequests.length} more request${
+                                overflowRequests.length === 1 ? "" : "s"
+                              })`}
+                        </span>
+                        {showMoreRequests ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {showMoreRequests && (
+                          <motion.div
+                            key="overflow-request-list"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: LP_EASE }}
+                            className="w-full overflow-hidden"
+                          >
+                            <div
+                              data-lenis-prevent
+                              className="mt-3 max-h-56 overflow-y-auto rounded-[20px] border border-black/14 bg-white divide-y divide-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.06)]"
+                            >
+                              {overflowRequests.map((req, oIdx) => {
+                                const reqNumber =
+                                  savedRequests.length - 1 - (3 + oIdx);
+                                const palette =
+                                  FLOW_PALETTES[
+                                    reqNumber % FLOW_PALETTES.length
+                                  ];
+                                const isCurrent = req.id === activeRequest.id;
+                                const units = req.items.reduce(
+                                  (s, it) => s + it.requestedQuantity,
+                                  0
+                                );
+                                const isDone = req.status === "CLOSED";
+
+                                return (
+                                  <button
+                                    key={req.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedRequestId(req.id);
+                                      setShowMoreRequests(false);
+                                    }}
+                                    className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
+                                      isCurrent
+                                        ? "bg-[#F5F5F3]"
+                                        : "hover:bg-[#F7F7F5]"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span
+                                        style={{
+                                          backgroundColor: palette.banner,
+                                        }}
+                                        className="h-3.5 w-3.5 shrink-0 rounded-full border border-black"
+                                      />
+                                      <div className="min-w-0">
+                                        <p className="text-[14px] font-semibold text-black truncate">
+                                          Request {reqNumber + 1}
+                                          {req.purpose
+                                            ? ` · ${req.purpose}`
+                                            : ""}
+                                        </p>
+                                        <p className="text-[13px] text-black/55 tabular-nums">
+                                          {req.items.length} parts ({units}{" "}
+                                          units) · {req.instructor.fullName}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-black/70 shrink-0">
+                                      {isDone ? (
+                                        <>
+                                          <Check className="h-4 w-4 text-black" />
+                                          Done
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Clock className="h-4 w-4 text-black" />
+                                          Pending
+                                        </>
+                                      )}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>

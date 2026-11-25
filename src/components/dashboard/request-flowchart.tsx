@@ -180,8 +180,8 @@ function SquigglyConnector({
   // Smooth continuous S-curve with vertical entry/exit tangents (matching Excalidraw's spine)
   const curvePath =
     direction === "right"
-      ? "M 60 2 C 60 18, 96 18, 80 30 C 64 42, 34 40, 60 56"
-      : "M 60 2 C 60 18, 24 18, 40 30 C 56 42, 86 40, 60 56";
+      ? "M 50 2 C 50 13, 82 13, 68 22 C 54 31, 28 29, 50 40"
+      : "M 50 2 C 50 13, 18 13, 32 22 C 46 31, 72 29, 50 40";
 
   return (
     <div
@@ -189,9 +189,9 @@ function SquigglyConnector({
       aria-hidden="true"
     >
       <svg
-        width="120"
-        height="58"
-        viewBox="0 0 120 58"
+        width="100"
+        height="42"
+        viewBox="0 0 100 42"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -204,9 +204,9 @@ function SquigglyConnector({
           strokeDasharray={dashed ? "5 6" : undefined}
         />
         <circle
-          cx="60"
-          cy="55"
-          r="2.6"
+          cx="50"
+          cy="39.5"
+          r="2.4"
           fill={dashed ? "#FFFFFF" : "#000000"}
           stroke="#000000"
           strokeOpacity={dashed ? 0.45 : 0.88}
@@ -250,7 +250,7 @@ function SquigglyBranchConnector() {
 }
 
 /** 6 distinct Landing-Page palette combinations so multiple requests each get their own color */
-const FLOW_PALETTES = [
+export const FLOW_PALETTES = [
   {
     backdrop: "rgba(188, 230, 250, 0.40)", // Sky
     banner: "#F3BD77", // Apricot
@@ -485,11 +485,12 @@ export function RequestFlowchartCard({
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: LP_EASE }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.42, ease: LP_EASE }}
       style={{ backgroundColor: palette.backdrop }}
-      className="relative w-full overflow-hidden rounded-[36px] px-5 sm:px-8 py-7"
+      className="relative w-full overflow-hidden rounded-[32px] px-5 sm:px-7 py-6"
     >
       <div className="relative z-10 flex flex-col items-center">
         {/* Top Excalidraw Anchor Header Pill */}

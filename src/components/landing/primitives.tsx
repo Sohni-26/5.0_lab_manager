@@ -54,6 +54,7 @@ export function LoopsiiButton({
   size = "md",
   fullWidth = false,
   iconOnly = false,
+  hideArrow = false,
   className = "",
   onClick,
 }: {
@@ -63,6 +64,7 @@ export function LoopsiiButton({
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   iconOnly?: boolean;
+  hideArrow?: boolean;
   className?: string;
   onClick?: () => void;
 }) {
@@ -79,7 +81,7 @@ export function LoopsiiButton({
 
   const content = (
     <>
-      {!fullWidth && (
+      {!fullWidth && !hideArrow && (
         <span className={`lp-btn_arrow-parent ${arrowDim} ${iconOnly ? "!mr-0" : ""}`}>
           <span className="lp-btn_layer lp-btn_layer--sage" />
           <span className="lp-btn_layer lp-btn_layer--sky" />

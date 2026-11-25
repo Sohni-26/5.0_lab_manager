@@ -231,6 +231,7 @@ export function StudentRequestFlow() {
             <LoopsiiButton
               label="Request Lab Parts"
               size="lg"
+              hideArrow
               onClick={() => setStage("prompt")}
             />
           </motion.div>
@@ -273,6 +274,7 @@ export function StudentRequestFlow() {
                 <LoopsiiButton
                   label="Raise a Request"
                   size="lg"
+                  hideArrow
                   onClick={() => setStage("parts")}
                 />
                 <button
@@ -599,6 +601,7 @@ export function StudentRequestFlow() {
                             : `Submit Request (${totalSelectedUnits})`
                         }
                         size="md"
+                        hideArrow
                         onClick={handleSubmitRequest}
                       />
                     </div>
@@ -643,6 +646,7 @@ export function StudentRequestFlow() {
                 <LoopsiiButton
                   label="Raise Another Request"
                   size="md"
+                  hideArrow
                   onClick={() => setStage("parts")}
                 />
                 <Button variant="outline" asChild>

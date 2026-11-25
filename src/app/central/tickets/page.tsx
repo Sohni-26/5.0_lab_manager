@@ -76,9 +76,9 @@ export default function CentralTicketsMonitorPage() {
         description="Monitor equipment damage, malfunctions, discrepancies, and maintenance tickets raised across all 40 campuses."
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -118,25 +118,27 @@ export default function CentralTicketsMonitorPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={7} className="p-8 text-center text-black/55">
                     Loading tickets...
                   </td>
                 </tr>
               ) : (
                 filtered.map((t) => (
-                  <tr key={t.id} className="hover:bg-[#FAF9F6]">
+                  <tr key={t.id} className="hover:bg-[#F5F5F3] transition-colors">
                     <td className="px-4 py-3">
-                      <p className="font-mono text-xs font-semibold text-[#222321]">
+                      <p className="font-mono text-xs font-semibold text-black">
                         {t.ticketCode}
                       </p>
-                      <p className="text-xs text-[#72736E] truncate max-w-[260px]">
+                      <p className="text-xs text-black/55 truncate max-w-[260px]">
                         {t.title}
                       </p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[#F26943]">
-                      {t.campus.code}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-full bg-[#C4F041] border border-black/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
+                        {t.campus.code}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td className="px-4 py-3 text-xs text-black">
                       {ISSUE_CATEGORY_LABELS[t.category]}
                     </td>
                     <td className="px-4 py-3">
@@ -145,7 +147,7 @@ export default function CentralTicketsMonitorPage() {
                     <td className="px-4 py-3">
                       <TicketStatusBadge status={t.status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#72736E]">
+                    <td className="px-4 py-3 text-xs text-black/55">
                       {t.createdBy.fullName}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -182,38 +184,38 @@ export default function CentralTicketsMonitorPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 text-sm">
-                <h4 className="font-semibold text-[#222321]">{selected.title}</h4>
-                <p className="text-[#72736E] leading-relaxed">
+                <h4 className="font-semibold text-black">{selected.title}</h4>
+                <p className="text-black/55 leading-relaxed">
                   {selected.description}
                 </p>
                 {selected.resolutionNotes && (
-                  <div className="rounded-xl bg-[#EAF6F1] p-3 text-xs text-[#288568]">
+                  <div className="rounded-2xl bg-[#AAC2AA]/35 border border-black/10 p-3 text-xs text-black">
                     <strong>Resolution:</strong> {selected.resolutionNotes}
                   </div>
                 )}
-                <div className="space-y-2 pt-2 border-t border-[#EFECE6]">
-                  <p className="text-xs font-semibold uppercase text-[#72736E]">
-                    Activity Comments ({selected.comments?.length ?? 0})
+                <div className="space-y-2 pt-3 border-t border-black/10">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-black/55">
+                    Activity Comments (<span className="tabular-nums">{selected.comments?.length ?? 0}</span>)
                   </p>
                   {selected.comments && selected.comments.length > 0 ? (
                     selected.comments.map((c) => (
                       <div
                         key={c.id}
-                        className="rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-3 text-xs"
+                        className="rounded-2xl bg-[#F5F5F3] border border-black/10 p-3 text-xs"
                       >
                         <div className="flex justify-between mb-1">
-                          <span className="font-semibold text-[#222321]">
+                          <span className="font-semibold text-black">
                             {c.author.fullName}
                           </span>
-                          <span className="text-[#72736E]">
+                          <span className="text-black/55 tabular-nums">
                             {formatDateTime(c.createdAt)}
                           </span>
                         </div>
-                        <p className="text-[#585955]">{c.body}</p>
+                        <p className="text-black/80">{c.body}</p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#72736E]">No comments yet.</p>
+                    <p className="text-xs text-black/55">No comments yet.</p>
                   )}
                 </div>
               </div>

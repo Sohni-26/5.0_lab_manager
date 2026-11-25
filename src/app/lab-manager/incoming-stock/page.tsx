@@ -184,7 +184,7 @@ export default function LabManagerIncomingStockPage() {
       />
 
       {loading ? (
-        <Card className="p-8 text-center text-sm text-[#72736E]">
+        <Card className="rounded-[22px] border-black/12 bg-white p-8 text-center text-sm text-black/55">
           Loading incoming shipments...
         </Card>
       ) : pendingAllocations.length === 0 ? (
@@ -200,20 +200,30 @@ export default function LabManagerIncomingStockPage() {
               (it) => rowsState[it.id]?.decision !== "UNSET"
             ).length;
             return (
-              <Card key={alloc.id} className="overflow-hidden">
-                <CardHeader className="bg-[#FAF9F6] border-b border-[#EFECE6]">
+              <Card
+                key={alloc.id}
+                className="overflow-hidden rounded-[22px] border-black/12 bg-white"
+              >
+                <CardHeader className="border-b border-black/10 bg-[#F5F5F3]">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <CardTitle className="font-mono text-base">
+                        <CardTitle className="inline-flex items-center rounded-full border border-black/10 bg-[#C4F041] px-3 py-1 font-mono text-sm font-semibold text-black">
                           {alloc.referenceCode}
                         </CardTitle>
                         <AllocationStatusBadge status={alloc.status} />
-                        <Badge variant="outline">
+                        <Badge
+                          variant={
+                            verifiedRowsCount === alloc.items.length
+                              ? "success"
+                              : "outline"
+                          }
+                          className="rounded-full tabular-nums"
+                        >
                           {verifiedRowsCount}/{alloc.items.length} rows checked
                         </Badge>
                       </div>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-1.5 text-black/55">
                         From {alloc.source} · Dispatched{" "}
                         {formatDateTime(alloc.dispatchedAt ?? alloc.createdAt)}
                         {alloc.notes ? ` · ${alloc.notes}` : ""}
@@ -257,26 +267,30 @@ export default function LabManagerIncomingStockPage() {
                         return (
                           <tr
                             key={it.id}
-                            className={
+                            className={`transition-colors ${
                               hasDiscrepancy
-                                ? "bg-[#FDEDEC]/55"
+                                ? "bg-[#FA8E66]/20"
                                 : r.decision === "MATCHED"
-                                  ? "bg-[#EAF6F1]/45"
-                                  : "bg-white"
-                            }
+                                  ? "bg-[#AAC2AA]/25"
+                                  : "bg-white hover:bg-[#F5F5F3]"
+                            }`}
                           >
-                            <td className="px-4 py-3 font-medium text-[#222321] min-w-[200px]">
+                            <td className="px-4 py-3 font-medium text-black min-w-[200px]">
                               <div className="flex items-center gap-2">
                                 <span>{it.item.name}</span>
                                 {hasDiscrepancy && (
-                                  <AlertTriangle className="h-3.5 w-3.5 text-[#D9534F] shrink-0" />
+                                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#FA8E66] text-black">
+                                    <AlertTriangle className="h-3 w-3" />
+                                  </span>
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs text-[#72736E]">
-                              {it.item.code}
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-medium text-black/75">
+                                {it.item.code}
+                              </span>
                             </td>
-                            <td className="px-4 py-3 text-right font-mono font-semibold text-[#222321]">
+                            <td className="px-4 py-3 text-right font-mono font-semibold text-black tabular-nums">
                               {it.allocatedQuantity}
                             </td>
                             <td className="px-4 py-3">
@@ -287,10 +301,10 @@ export default function LabManagerIncomingStockPage() {
                                   onClick={() =>
                                     markExactMatch(it.id, it.allocatedQuantity)
                                   }
-                                  className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                                  className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors cursor-pointer ${
                                     r.decision === "MATCHED"
-                                      ? "border-[#288568] bg-[#288568] text-white shadow-xs"
-                                      : "border-[#E6E5E0] bg-white text-[#288568] hover:bg-[#EAF6F1]"
+                                      ? "border-black bg-[#AAC2AA] text-black"
+                                      : "border-black/15 bg-white text-black hover:bg-[#AAC2AA]/40"
                                   }`}
                                 >
                                   <Check className="h-4 w-4 stroke-[2.5]" />
@@ -301,10 +315,10 @@ export default function LabManagerIncomingStockPage() {
                                   onClick={() =>
                                     markDiscrepancy(it.id, it.allocatedQuantity)
                                   }
-                                  className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                                  className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors cursor-pointer ${
                                     r.decision === "DISCREPANCY"
-                                      ? "border-[#D9534F] bg-[#D9534F] text-white shadow-xs"
-                                      : "border-[#E6E5E0] bg-white text-[#D9534F] hover:bg-[#FDEDEC]"
+                                      ? "border-black bg-[#FA8E66] text-black"
+                                      : "border-black/15 bg-white text-black/70 hover:bg-[#FA8E66]/35 hover:text-black"
                                   }`}
                                 >
                                   <X className="h-4 w-4 stroke-[2.5]" />
@@ -335,7 +349,7 @@ export default function LabManagerIncomingStockPage() {
                                         : "DISCREPANCY",
                                   });
                                 }}
-                                className="w-20 ml-auto h-8 text-right font-mono"
+                                className="w-20 ml-auto h-8 text-right font-mono tabular-nums"
                               />
                             </td>
                             <td className="px-4 py-3 text-right">
@@ -351,7 +365,7 @@ export default function LabManagerIncomingStockPage() {
                                     decision: val > 0 ? "DISCREPANCY" : r.decision,
                                   });
                                 }}
-                                className="w-20 ml-auto h-8 text-right font-mono"
+                                className="w-20 ml-auto h-8 text-right font-mono tabular-nums"
                               />
                             </td>
                             <td className="px-4 py-3 text-right">
@@ -367,7 +381,7 @@ export default function LabManagerIncomingStockPage() {
                                     decision: val > 0 ? "DISCREPANCY" : r.decision,
                                   });
                                 }}
-                                className="w-20 ml-auto h-8 text-right font-mono"
+                                className="w-20 ml-auto h-8 text-right font-mono tabular-nums"
                               />
                             </td>
                             <td className="px-4 py-3 min-w-[200px]">
@@ -400,21 +414,21 @@ export default function LabManagerIncomingStockPage() {
 
       {/* Recently Verified Shipments */}
       {completedAllocations.length > 0 && (
-        <Card>
-          <CardHeader>
+        <Card className="rounded-[22px] border-black/12 bg-white">
+          <CardHeader className="border-b border-black/10">
             <CardTitle>Recently Verified Receipts</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2.5">
+          <CardContent className="space-y-2.5 pt-5">
             {completedAllocations.map((a) => (
               <div
                 key={a.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5 text-xs"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 text-xs transition-colors hover:border-black/25"
               >
-                <div>
-                  <span className="font-mono font-semibold text-[#222321] mr-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-full border border-black/10 bg-white px-2.5 py-0.5 font-mono font-semibold text-black">
                     {a.referenceCode}
                   </span>
-                  <span className="text-[#72736E]">
+                  <span className="text-black/55 tabular-nums">
                     Verified {formatDateTime(a.verifiedAt)} · {a.items.length} SKU(s)
                   </span>
                 </div>

@@ -77,13 +77,13 @@ export default function CampusDetailPage() {
   if (loading || !campus) {
     return (
       <div className="space-y-5">
-        <Skeleton className="h-12 w-72" />
+        <Skeleton className="h-12 w-72 rounded-2xl bg-[#E7E7E4]" />
         <div className="grid gap-4 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 rounded-[22px] bg-[#E7E7E4]" />
           ))}
         </div>
-        <Skeleton className="h-80" />
+        <Skeleton className="h-80 rounded-[22px] bg-[#E7E7E4]" />
       </div>
     );
   }
@@ -146,13 +146,13 @@ export default function CampusDetailPage() {
 
       {/* Campus Inventory Snapshot */}
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b border-black/10">
           <CardTitle>Campus Inventory Breakdown</CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm sheet-table">
             <thead>
-              <tr className="text-left">
+              <tr className="text-left border-b border-black/10">
                 <th className="px-4 py-3">Item</th>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3 text-right">Allocated</th>
@@ -166,25 +166,29 @@ export default function CampusDetailPage() {
             </thead>
             <tbody>
               {inventory.map((row) => (
-                <tr key={row.id} className="hover:bg-[#FAF9F6]">
-                  <td className="px-4 py-3 font-medium text-[#222321]">
+                <tr key={row.id} className="transition-colors hover:bg-[#F5F5F3]">
+                  <td className="px-4 py-3 font-medium text-black">
                     {row.item.name}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-[#72736E]">
+                  <td className="px-4 py-3 font-mono text-xs text-black/55">
                     {row.item.code}
                   </td>
-                  <td className="px-4 py-3 text-right">{row.allocatedQuantity}</td>
-                  <td className="px-4 py-3 text-right">{row.receivedQuantity}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-[#288568]">
+                  <td className="px-4 py-3 text-right tabular-nums text-black">
+                    {row.allocatedQuantity}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-black">
+                    {row.receivedQuantity}
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-[var(--success)]">
                     {row.availableQuantity}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#4D83B5]">
+                  <td className="px-4 py-3 text-right tabular-nums text-[var(--info)]">
                     {row.reservedQuantity}
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">
+                  <td className="px-4 py-3 text-right font-medium tabular-nums text-black">
                     {row.borrowedQuantity}
                   </td>
-                  <td className="px-4 py-3 text-right text-[#D9534F]">
+                  <td className="px-4 py-3 text-right tabular-nums text-[var(--danger)]">
                     {row.damagedQuantity}
                   </td>
                   <td className="px-4 py-3">
@@ -201,23 +205,23 @@ export default function CampusDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b border-black/10">
             <CardTitle>Recent Stock Allocations</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 pt-5">
             {allocations.length === 0 ? (
-              <p className="text-sm text-[#72736E]">No allocations dispatched yet.</p>
+              <p className="text-sm text-black/55">No allocations dispatched yet.</p>
             ) : (
               allocations.map((a) => (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3.5 transition-colors hover:border-black/20"
                 >
                   <div>
-                    <p className="font-mono text-xs font-semibold text-[#222321]">
+                    <p className="font-mono text-xs font-semibold text-black">
                       {a.referenceCode}
                     </p>
-                    <p className="text-xs text-[#72736E] mt-0.5">
+                    <p className="text-xs text-black/55 mt-0.5 tabular-nums">
                       {a.items.length} items · {formatDate(a.createdAt)}
                     </p>
                   </div>
@@ -229,26 +233,28 @@ export default function CampusDetailPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-[#F26943]" />
+          <CardHeader className="border-b border-black/10">
+            <CardTitle className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#C4F041] text-black border border-black/10">
+                <MapPin className="h-3.5 w-3.5" />
+              </span>
               Assigned Campus Personnel
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 pt-5">
             {users.length === 0 ? (
-              <p className="text-sm text-[#72736E]">No users assigned yet.</p>
+              <p className="text-sm text-black/55">No users assigned yet.</p>
             ) : (
               users.slice(0, 8).map((u) => (
                 <div
                   key={u.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#EFECE6] bg-[#FAF9F6] p-3"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-3 transition-colors hover:border-black/20"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#222321] truncate">
+                    <p className="text-sm font-medium text-black truncate">
                       {u.fullName}
                     </p>
-                    <p className="text-xs text-[#72736E] truncate">{u.email}</p>
+                    <p className="text-xs text-black/55 truncate">{u.email}</p>
                   </div>
                   <RoleBadge role={u.role} />
                 </div>

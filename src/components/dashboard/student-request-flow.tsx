@@ -9,8 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  Minus,
-  Plus,
   Search,
   X,
 } from "lucide-react";
@@ -24,6 +22,7 @@ import {
 } from "@/components/dashboard/request-flowchart";
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
+import { PartPickerCard } from "@/components/student/part-picker-card";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -31,11 +30,15 @@ import {
   DEMO_CATEGORIES,
   DEMO_USERS,
 } from "@/lib/demo-data";
-import { getPartImageUrl } from "@/lib/part-images";
 import {
   extractItemProcurementMeta,
   PROCUREMENT_LAB_BLOCKS,
 } from "@/lib/procurement-catalog";
+import {
+  buildLocalLabRequestDTO,
+  readLocalStudentRequests,
+  saveLocalStudentRequests,
+} from "@/lib/student-requests-store";
 import type {
   AuthUserDTO,
   CampusInventoryDTO,
@@ -47,7 +50,6 @@ type FlowStage = "board" | "parts";
 
 const LP_EASE: [number, number, number, number] = [0.76, 0, 0.24, 1];
 const BATCH_SIZE = 24;
-const STORAGE_KEY = "campuslab_student_flowcharts_v1";
 
 /** Freehand draggable canvas item bounded inside the finite DottedGridCanvas */
 function CanvasDraggableItem({
@@ -75,170 +77,6 @@ function CanvasDraggableItem({
     </motion.div>
   );
 }
-
-/** Smooth WebP image with GPU-accelerated shimmer loader and fade-in */
-const ShimmerPartImage = React.memo(function ShimmerPartImage({
-  src,
-  alt,
-}: {
-  src: string;
-  alt: string;
-}) {
-  const imgRef = useRef<HTMLImageElement | null>(null);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (
-      imgRef.current &&
-      imgRef.current.complete &&
-      imgRef.current.naturalWidth > 0
-    ) {
-      setLoaded(true);
-    }
-  }, [src]);
-
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-[#E6E6E2]">
-      {!loaded && (
-        <div className="lp-shimmer absolute inset-0" aria-hidden="true" />
-      )}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        onLoad={() => setLoaded(true)}
-        onError={() => setLoaded(true)}
-        className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-[1.04] ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
-      />
-    </div>
-  );
-});
-
-/** Clean editorial part item — zero tiny tags or micro-badges, landing-page DM Sans typography */
-const PartTile = React.memo(function PartTile({
-  row,
-  qty,
-  onToggle,
-  onUpdateQty,
-}: {
-  row: CampusInventoryDTO;
-  qty: number;
-  onToggle: (row: CampusInventoryDTO) => void;
-  onUpdateQty: (row: CampusInventoryDTO, nextVal: number) => void;
-}) {
-  const isSelected = qty > 0;
-  const outOfStock = row.availableQuantity <= 0;
-  const meta = extractItemProcurementMeta(row.item.specifications);
-  const imgSrc =
-    row.item.imageUrl || getPartImageUrl(row.item.code, row.item.category.slug);
-
-  return (
-    <article
-      className={`part-card-perf group flex flex-col justify-between overflow-hidden rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-200 ${
-        isSelected
-          ? "border-black ring-2 ring-[#C4F041] shadow-[0_10px_28px_rgba(0,0,0,0.08)]"
-          : "border-black/14 hover:border-black/35"
-      } ${outOfStock ? "opacity-55" : ""}`}
-    >
-      {/* Clickable Photo + Clean Editorial Copy */}
-      <div
-        role="button"
-        tabIndex={outOfStock ? -1 : 0}
-        onClick={() => onToggle(row)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle(row);
-          }
-        }}
-        className={outOfStock ? "cursor-not-allowed" : "cursor-pointer"}
-      >
-        <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-black/10">
-          <ShimmerPartImage src={imgSrc} alt={row.item.name} />
-          {isSelected && (
-            <span className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-[#C4F041] text-black">
-              <Check className="h-4 w-4 stroke-[2.5]" />
-            </span>
-          )}
-        </div>
-
-        <div className="px-4 pt-4 pb-3 space-y-1.5">
-          <p className="text-[13px] font-medium text-black/50">
-            {row.item.category.name}
-            {meta.labBlock ? ` · ${meta.labBlock}` : ""}
-          </p>
-
-          <h3 className="text-[16px] font-medium tracking-[-0.02em] text-black leading-snug line-clamp-2 min-h-[2.75rem]">
-            {row.item.name}
-          </h3>
-
-          <p className="text-[14px] text-black/60 tabular-nums">
-            {outOfStock
-              ? "Currently out of stock"
-              : `${row.availableQuantity} ${row.item.unit} available`}
-          </p>
-        </div>
-      </div>
-
-      {/* Quantity Selection Row */}
-      <div className="px-4 pb-4 pt-1">
-        {outOfStock ? (
-          <p className="py-2 text-center text-[14px] font-medium text-black/40">
-            Unavailable
-          </p>
-        ) : !isSelected ? (
-          <button
-            type="button"
-            onClick={() => onUpdateQty(row, 1)}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/16 bg-[#F0F0F0] text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/25 cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            Select
-          </button>
-        ) : (
-          <div className="flex h-11 items-center justify-between rounded-full border border-black bg-black px-1.5 text-white">
-            <button
-              type="button"
-              onClick={() => onUpdateQty(row, qty - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
-              aria-label="Decrease quantity"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center gap-1.5 text-[14px] tabular-nums">
-              <input
-                type="number"
-                min={1}
-                max={row.availableQuantity}
-                value={qty}
-                onChange={(e) => onUpdateQty(row, Number(e.target.value) || 1)}
-                aria-label={`Quantity for ${row.item.name}`}
-                className="w-12 bg-transparent text-center font-semibold text-[#C4F041] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-white/60">of {row.availableQuantity}</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onUpdateQty(row, qty + 1)}
-              disabled={qty >= row.availableQuantity}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C4F041] text-black transition-opacity hover:opacity-90 disabled:opacity-35 cursor-pointer"
-              aria-label="Increase quantity"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
-    </article>
-  );
-});
 
 export function StudentRequestFlow() {
   const { user, isDemoMode } = useAuth();
@@ -282,15 +120,7 @@ export function StudentRequestFlow() {
       setInstructors(demoInsts);
       if (demoInsts.length > 0) setInstructorId(demoInsts[0].id);
 
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as LabRequestDTO[];
-          if (Array.isArray(parsed)) setSavedRequests(parsed);
-        }
-      } catch {
-        // ignore storage errors
-      }
+      setSavedRequests(readLocalStudentRequests());
       setLoading(false);
       return;
     }
@@ -329,11 +159,7 @@ export function StudentRequestFlow() {
   const persistDemoRequests = useCallback(
     (next: LabRequestDTO[]) => {
       if (!isDemoMode) return;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore quota errors
-      }
+      saveLocalStudentRequests(next);
     },
     [isDemoMode]
   );
@@ -506,59 +332,15 @@ export function StudentRequestFlow() {
 
     const chosenInstructor =
       instructors.find((i) => i.id === instructorId) ?? instructors[0];
-    const nowIso = new Date().toISOString();
 
-    const buildLocalRequestDTO = (): LabRequestDTO => ({
-      id: `req-local-${Date.now()}`,
-      requestCode: `REQ-${Date.now().toString(36).toUpperCase()}`,
-      campusId: user?.campusId ?? "demo-campus-01",
-      studentId: user?.id ?? "demo-user-stu-01",
-      instructorId: chosenInstructor?.id ?? instructorId,
-      purpose: cleanPurpose,
-      status: "PENDING_INSTRUCTOR",
-      rejectionReason: null,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-      campus: {
-        id: user?.campusId ?? "demo-campus-01",
-        code: user?.campus?.code ?? "CMP-01",
-        name: user?.campus?.name ?? "Bengaluru North Campus",
-      },
-      student: {
-        id: user?.id ?? "demo-user-stu-01",
-        fullName: user?.fullName ?? "Aarav Nair",
-        email: user?.email ?? "student1.cmp01@campuslab.edu",
-        institutionalId: user?.institutionalId ?? "STU-0101",
-      },
-      instructor: {
-        id: chosenInstructor?.id ?? "demo-user-inst-01",
-        fullName: chosenInstructor?.fullName ?? "Prof. Ananya Deshmukh",
-        email: chosenInstructor?.email ?? "instructor1.cmp01@campuslab.edu",
-        institutionalId: chosenInstructor?.institutionalId ?? "INS-0101",
-      },
-      items: selectedEntries.map(({ itemId, qty, row }, idx) => ({
-        id: `req-item-${Date.now()}-${idx}`,
-        requestId: `req-local-${Date.now()}`,
-        itemId,
-        requestedQuantity: qty,
-        approvedQuantity: 0,
-        issuedQuantity: 0,
-        returnedQuantity: 0,
-        damagedQuantity: 0,
-        missingQuantity: 0,
-        item: {
-          id: row.item.id,
-          code: row.item.code,
-          name: row.item.name,
-          unit: row.item.unit,
-          imageUrl:
-            row.item.imageUrl ||
-            getPartImageUrl(row.item.code, row.item.category.slug),
-        },
-        photos: [],
-      })),
-      approvals: [],
-    });
+    const buildLocalRequestDTO = (): LabRequestDTO =>
+      buildLocalLabRequestDTO({
+        user,
+        instructor: chosenInstructor,
+        instructorId,
+        purpose: cleanPurpose,
+        entries: selectedEntries,
+      });
 
     setSubmitting(true);
     try {
@@ -1146,7 +928,7 @@ export function StudentRequestFlow() {
                   <>
                     <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                       {visibleParts.map((row) => (
-                        <PartTile
+                        <PartPickerCard
                           key={row.id}
                           row={row}
                           qty={selectedQty[row.itemId] ?? 0}

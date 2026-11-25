@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_REQUESTS } from "@/lib/demo-data";
+import { readLocalStudentRequests } from "@/lib/student-requests-store";
 import { formatDateTime } from "@/lib/utils";
 import type { LabRequestDTO } from "@/types/contracts";
 
@@ -29,15 +30,29 @@ export default function StudentMyRequestsPage() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (isDemoMode) {
+      const local = readLocalStudentRequests();
+      const merged = [
+        ...local,
+        ...DEMO_REQUESTS.filter((d) => !local.some((l) => l.id === d.id)),
+      ];
+      setRequests(merged);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await apiClient.requests.list({ pageSize: 60 });
       setRequests(res.data);
     } catch {
-      setRequests(DEMO_REQUESTS);
+      const local = readLocalStudentRequests();
+      setRequests([
+        ...local,
+        ...DEMO_REQUESTS.filter((d) => !local.some((l) => l.id === d.id)),
+      ]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => {
     load();
@@ -57,9 +72,9 @@ export default function StudentMyRequestsPage() {
         description="Track every request stage live — from submission through Instructor review, Lab Manager reservation, collection, and return closure."
         actions={
           <Button asChild>
-            <Link href="/student/new-request">
+            <Link href="/student/inventory">
               <PlusCircle className="h-4 w-4" />
-              New Request
+              Browse Inventory
             </Link>
           </Button>
         }

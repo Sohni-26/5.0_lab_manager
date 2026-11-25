@@ -22,7 +22,6 @@ import {
   Menu,
   Package,
   PackageCheck,
-  PlusCircle,
   RotateCcw,
   Send,
   Settings,
@@ -100,7 +99,6 @@ const ROLE_NAV_ITEMS: Record<UserRole, NavItem[]> = {
   STUDENT: [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
     { label: "Browse Inventory", href: "/student/inventory", icon: Package },
-    { label: "New Request", href: "/student/new-request", icon: PlusCircle },
     { label: "My Requests", href: "/student/requests", icon: ClipboardList },
     { label: "Borrowed Items", href: "/student/borrowed", icon: Camera },
     { label: "Returns", href: "/student/returns", icon: RotateCcw },

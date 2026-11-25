@@ -158,12 +158,12 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
 
   if (loading || !user || user.role !== allowedRole) {
     return (
-      <div className="min-h-screen bg-[#F2F1ED] flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-4 rounded-3xl border border-[#E6E5E0] bg-white p-8 shadow-card">
+      <div className="min-h-screen bg-[#F0F0F0] flex items-center justify-center p-6">
+        <div className="w-full max-w-md space-y-4 rounded-[24px] border border-black/12 bg-white p-8 shadow-card">
           <BrandLogo />
           <Skeleton className="h-5 w-48" />
           <Skeleton className="h-24 w-full" />
-          <p className="text-xs text-[#72736E]">Loading your CampusLab workspace...</p>
+          <p className="text-xs text-black/55">Loading your CampusLab workspace...</p>
         </div>
       </div>
     );
@@ -186,20 +186,17 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
             href={item.href}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+              "group relative flex items-center gap-3 rounded-full px-3.5 py-2.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-[#FFF0E9] text-[#DA5835]"
-                : "text-[#585955] hover:bg-[#EAE9E4]/75 hover:text-[#222321]",
+                ? "bg-[#C4F041] text-black font-semibold"
+                : "text-black/65 hover:bg-black/[0.05] hover:text-black",
               isCompact && "justify-center px-2"
             )}
           >
-            {isActive && (
-              <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#F26943]" />
-            )}
             <Icon
               className={cn(
-                "h-4.5 w-4.5 shrink-0 transition-colors",
-                isActive ? "text-[#F26943]" : "text-[#72736E] group-hover:text-[#222321]"
+                "h-4 w-4 shrink-0 transition-colors",
+                isActive ? "text-black" : "text-black/50 group-hover:text-black"
               )}
             />
             {!isCompact && <span className="truncate">{item.label}</span>}
@@ -210,22 +207,22 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
   );
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED] text-[#222321] flex">
+    <div className="min-h-screen bg-[#F0F0F0] text-black flex">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col shrink-0 border-r border-[#E6E5E0] bg-white transition-all duration-200 sticky top-0 h-screen",
+          "hidden lg:flex flex-col shrink-0 border-r border-black/12 bg-white transition-all duration-200 sticky top-0 h-screen",
           collapsed ? "w-[76px]" : "w-[254px]"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-[#EFECE6] px-4">
+        <div className="flex h-16 items-center justify-between border-b border-black/10 px-4">
           <Link href={ROLE_DASHBOARD_ROUTES[user.role]}>
             <BrandLogo compact={collapsed} />
           </Link>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="rounded-lg p-1.5 text-[#72736E] hover:bg-[#EAE9E4] hover:text-[#222321] cursor-pointer"
+            className="rounded-full p-1.5 text-black/55 hover:bg-black/[0.06] hover:text-black cursor-pointer"
             aria-label="Toggle sidebar"
           >
             {collapsed ? (
@@ -239,22 +236,24 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
         {renderNavLinks(collapsed)}
 
         {/* Sidebar Profile Card */}
-        <div className="border-t border-[#EFECE6] p-3">
+        <div className="border-t border-black/10 p-3">
           <div
             className={cn(
-              "flex items-center gap-2.5 rounded-xl bg-[#FAF9F6] border border-[#EFECE6] p-2.5",
+              "flex items-center gap-2.5 rounded-2xl bg-[#F5F5F3] border border-black/10 p-2.5",
               collapsed && "justify-center p-2"
             )}
           >
             <Avatar className="h-8 w-8">
-              <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+              <AvatarFallback className="bg-[#AAC2AA] text-black font-semibold text-xs">
+                {getInitials(user.fullName)}
+              </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-[#222321] truncate">
+                <p className="text-xs font-semibold text-black truncate">
                   {user.fullName}
                 </p>
-                <p className="text-[11px] text-[#72736E] truncate">
+                <p className="text-[11px] text-black/55 truncate">
                   {ROLE_LABELS[user.role]}
                 </p>
               </div>
@@ -264,7 +263,7 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                 type="button"
                 onClick={logout}
                 title="Sign out"
-                className="rounded-lg p-1.5 text-[#72736E] hover:bg-[#EAE9E4] hover:text-[#D9534F] cursor-pointer"
+                className="rounded-full p-1.5 text-black/55 hover:bg-[#FA8E66]/30 hover:text-black cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -277,22 +276,22 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-[#222321]/45 backdrop-blur-[2px]"
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
             onClick={() => setMobileOpen(false)}
           />
           <div className="relative z-10 flex w-72 max-w-[85vw] flex-col bg-white shadow-2xl">
-            <div className="flex h-16 items-center justify-between border-b border-[#EFECE6] px-4">
+            <div className="flex h-16 items-center justify-between border-b border-black/10 px-4">
               <BrandLogo />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg p-1.5 text-[#72736E] hover:bg-[#EAE9E4]"
+                className="rounded-full p-1.5 text-black/60 hover:bg-black/[0.06]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             {renderNavLinks(false)}
-            <div className="border-t border-[#EFECE6] p-4">
+            <div className="border-t border-black/10 p-4">
               <Button variant="outline" size="sm" className="w-full" onClick={logout}>
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -304,11 +303,11 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* Demo Mode Banner (ONLY shown when PostgreSQL / backend DB is unreachable) */}
+        {/* Demo Mode Banner */}
         {isDemoMode && (
-          <div className="bg-[#FFF0E9] border-b border-[#F26943]/25 px-4 py-2 text-xs text-[#9E3C1F] flex flex-wrap items-center justify-between gap-2">
+          <div className="bg-[#C4F041]/35 border-b border-black/12 px-4 py-2 text-xs text-black flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Database className="h-3.5 w-3.5 text-[#F26943] shrink-0" />
+              <Database className="h-3.5 w-3.5 text-black shrink-0" />
               <span>
                 <strong>Demo Preview Mode</strong> — Connect PostgreSQL (
                 <code className="font-mono text-[11px]">docker compose up -d</code> +{" "}
@@ -324,10 +323,10 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                     type="button"
                     onClick={() => switchDemoRole(r)}
                     className={cn(
-                      "rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors cursor-pointer",
+                      "rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer",
                       user.role === r
-                        ? "bg-[#F26943] text-white"
-                        : "bg-white/80 text-[#9E3C1F] hover:bg-white"
+                        ? "bg-black text-[#C4F041]"
+                        : "bg-white/85 text-black hover:bg-white border border-black/10"
                     )}
                   >
                     {r === "CENTRAL_LAB_MANAGER"
@@ -345,37 +344,37 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
         )}
 
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-[#E6E5E0] bg-white/90 backdrop-blur-md px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-black/12 bg-[#F0F0F0]/90 backdrop-blur-md px-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden rounded-xl border border-[#E6E5E0] bg-white p-2 text-[#222321] hover:bg-[#F2F1ED]"
+              className="lg:hidden rounded-full border border-black/15 bg-white p-2 text-black hover:bg-[#EAEAE6]"
               aria-label="Open menu"
             >
               <Menu className="h-4.5 w-4.5" />
             </button>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#72736E]">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-black/50">
                 <span>{ROLE_LABELS[user.role]}</span>
                 <span>/</span>
-                <span className="text-[#222321] truncate">{activeNav?.label}</span>
+                <span className="text-black truncate">{activeNav?.label}</span>
               </div>
-              <p className="text-sm font-semibold text-[#222321] truncate font-display">
+              <p className="text-sm font-semibold text-black truncate font-display">
                 {activeNav?.label}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Scope Selector for Central Lab Manager OR Campus Badge for Campus Roles */}
+            {/* Scope Selector for Central Lab Manager OR Campus Badge */}
             {user.role === "CENTRAL_LAB_MANAGER" ? (
               <div className="hidden sm:block w-52">
                 <Select
                   value={selectedCampusId || "ALL"}
                   onValueChange={(v) => setSelectedCampusId(v === "ALL" ? "" : v)}
                 >
-                  <SelectTrigger className="h-9 rounded-xl text-xs bg-[#FAF9F6]">
+                  <SelectTrigger className="h-9 rounded-full text-xs bg-white border-black/15">
                     <SelectValue placeholder="All 40 Campuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -390,9 +389,9 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
               </div>
             ) : (
               user.campus && (
-                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E6E5E0] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#222321]">
-                  <Building2 className="h-3.5 w-3.5 text-[#F26943]" />
-                  <span className="font-mono text-[11px] text-[#72736E]">
+                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-black/15 bg-white px-3 py-1.5 text-xs font-medium text-black">
+                  <Building2 className="h-3.5 w-3.5 text-black" />
+                  <span className="font-mono text-[11px] text-black/55">
                     {user.campus.code}
                   </span>
                   <span className="max-w-[150px] truncate">{user.campus.name}</span>
@@ -403,12 +402,12 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
             {/* Realtime SSE Indicator */}
             <div
               className={cn(
-                "hidden md:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                "hidden md:inline-flex items-center gap-1.5 rounded-full border border-black/12 px-3 py-1 text-[11px] font-semibold text-black",
                 realtimeStatus === "connected"
-                  ? "border-[#288568]/25 bg-[#EAF6F1] text-[#288568]"
+                  ? "bg-[#C4F041]"
                   : realtimeStatus === "demo"
-                    ? "border-[#F26943]/25 bg-[#FFF0E9] text-[#DA5835]"
-                    : "border-[#D69A35]/30 bg-[#FDF6E7] text-[#A8741C]"
+                    ? "bg-[#BCE6FA]"
+                    : "bg-[#F3BD77]"
               )}
             >
               <Radio
@@ -427,32 +426,32 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
             {/* Live Events / Notifications Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative h-9 w-9 rounded-xl">
-                  <Bell className="h-4 w-4 text-[#222321]" />
+                <Button variant="outline" size="icon" className="relative h-9 w-9 rounded-full">
+                  <Bell className="h-4 w-4 text-black" />
                   {events.length > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#F26943] ring-2 ring-white" />
+                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#FA8E66] ring-2 ring-white" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span>Live Campus Activity</span>
-                  <Badge variant="outline" className="text-[10px]">
+                  <Badge variant="accent" className="text-[10px]">
                     SSE Stream
                   </Badge>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {events.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-xs text-[#72736E]">
-                    <Activity className="mx-auto h-5 w-5 text-[#B8B7AF] mb-1.5" />
+                  <div className="px-3 py-6 text-center text-xs text-black/55">
+                    <Activity className="mx-auto h-5 w-5 text-black/30 mb-1.5" />
                     No new live events yet. Mutations appear here instantly.
                   </div>
                 ) : (
-                  <div className="max-h-72 overflow-y-auto divide-y divide-[#EFECE6]">
+                  <div className="max-h-72 overflow-y-auto divide-y divide-black/10">
                     {events.map((ev) => (
                       <div key={ev.id} className="px-3 py-2.5 text-xs">
-                        <p className="font-medium text-[#222321]">{ev.summary}</p>
-                        <p className="mt-0.5 text-[11px] text-[#72736E]">
+                        <p className="font-medium text-black">{ev.summary}</p>
+                        <p className="mt-0.5 text-[11px] text-black/55">
                           {ev.type} · {formatRelativeTime(ev.timestamp)}
                         </p>
                       </div>
@@ -467,20 +466,22 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-xl border border-[#E6E5E0] bg-white p-1 pr-2.5 hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                  className="flex items-center gap-2 rounded-full border border-black/15 bg-white p-1 pr-3 hover:border-black/35 transition-colors cursor-pointer"
                 >
                   <Avatar className="h-7 w-7">
-                    <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+                    <AvatarFallback className="bg-[#C4F041] text-black text-xs font-semibold">
+                      {getInitials(user.fullName)}
+                    </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-xs font-semibold text-[#222321] max-w-[110px] truncate">
+                  <span className="hidden sm:inline text-xs font-semibold text-black max-w-[110px] truncate">
                     {user.fullName}
                   </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
                 <DropdownMenuLabel className="space-y-1">
-                  <p className="text-sm font-semibold text-[#222321]">{user.fullName}</p>
-                  <p className="text-xs font-normal text-[#72736E] truncate">
+                  <p className="text-sm font-semibold text-black">{user.fullName}</p>
+                  <p className="text-xs font-normal text-black/55 truncate">
                     {user.email}
                   </p>
                   <div className="pt-1">
@@ -489,12 +490,12 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/login")}>
-                  <AlertCircle className="h-4 w-4 text-[#72736E]" />
+                  <AlertCircle className="h-4 w-4 text-black/55" />
                   Switch Role / Account
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={logout}
-                  className="text-[#D9534F] focus:text-[#D9534F]"
+                  className="text-[#B33C17] focus:text-[#B33C17]"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out

@@ -16,12 +16,12 @@ const TONE_STYLES: Record<
   NonNullable<StatCardProps["tone"]>,
   { iconBg: string; iconColor: string }
 > = {
-  default: { iconBg: "bg-[#EAE9E4]", iconColor: "text-[#222321]" },
-  accent: { iconBg: "bg-[#FFF0E9]", iconColor: "text-[#F26943]" },
-  success: { iconBg: "bg-[#EAF6F1]", iconColor: "text-[#288568]" },
-  warning: { iconBg: "bg-[#FDF6E7]", iconColor: "text-[#D69A35]" },
-  danger: { iconBg: "bg-[#FDEDEC]", iconColor: "text-[#D9534F]" },
-  info: { iconBg: "bg-[#EDF4FA]", iconColor: "text-[#4D83B5]" },
+  default: { iconBg: "bg-[#EAEAE6]", iconColor: "text-black" },
+  accent: { iconBg: "bg-[#C4F041]", iconColor: "text-black" },
+  success: { iconBg: "bg-[#AAC2AA]", iconColor: "text-black" },
+  warning: { iconBg: "bg-[#F3BD77]", iconColor: "text-black" },
+  danger: { iconBg: "bg-[#FA8E66]", iconColor: "text-black" },
+  info: { iconBg: "bg-[#BCE6FA]", iconColor: "text-black" },
 };
 
 export function StatCard({
@@ -39,14 +39,16 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-[#E6E5E0] bg-white p-5 shadow-card transition-all duration-150 hover:border-[#D6D4CC]",
+        "rounded-[22px] border border-black/12 bg-white p-5 shadow-card transition-colors duration-150 hover:border-black/30",
         className
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 min-w-0">
-          <p className="text-xs font-medium text-[#72736E] truncate">{title}</p>
-          <p className="text-2xl sm:text-[1.75rem] font-semibold tracking-tight text-[#222321] font-display">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-black/50 truncate">
+            {title}
+          </p>
+          <p className="text-2xl sm:text-[1.85rem] font-semibold tracking-[-0.03em] text-black font-display tabular-nums">
             {displayValue}
           </p>
         </div>
@@ -61,10 +63,10 @@ export function StatCard({
         </div>
       </div>
       {(subtitle || trend) && (
-        <div className="mt-3 flex items-center justify-between gap-2 text-xs text-[#72736E]">
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/8 pt-2.5 text-xs text-black/55">
           {subtitle && <span className="truncate">{subtitle}</span>}
           {trend && (
-            <span className="shrink-0 font-medium text-[#288568]">{trend}</span>
+            <span className="shrink-0 font-semibold text-black">{trend}</span>
           )}
         </div>
       )}

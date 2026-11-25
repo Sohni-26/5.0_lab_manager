@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #F2F1ED;
+  --bg-primary: #F0F0F0;
   --bg-card: #FFFFFF;
-  --bg-secondary: #EAE9E4;
-  --text-primary: #222321;
-  --text-secondary: #72736E;
-  --accent: #F26943;
-  --accent-hover: #DA5835;
-  --accent-bg: #FFF0E9;
-  --border: #E6E5E0;
-  --success: #288568;
-  --success-bg: #EAF6F1;
-  --warning: #D69A35;
-  --warning-bg: #FDF6E7;
-  --danger: #D9534F;
-  --danger-bg: #FDEDEC;
-  --info: #4D83B5;
-  --info-bg: #EDF4FA;
+  --bg-secondary: #E7E7E4;
+  --text-primary: #000000;
+  --text-secondary: #5E5E5A;
+  --accent: #C4F041;
+  --accent-hover: #B6E331;
+  --accent-bg: #F3FBD4;
+  --border: rgba(0, 0, 0, 0.12);
+  --success: #3E6B48;
+  --success-bg: #E2EFE3;
+  --warning: #8C5811;
+  --warning-bg: #FBF0DC;
+  --danger: #B33C17;
+  --danger-bg: #FDE5DC;
+  --info: #1D5570;
+  --info-bg: #E2F3FC;
   --radius: 0.75rem;
 }
 
@@ -38,8 +38,8 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-info: var(--info);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-saans), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
@@ -62,7 +62,7 @@ body {
 
 h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 /* Custom subtle scrollbars */
@@ -76,69 +76,33 @@ h1, h2, h3, h4, .font-display {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D6D5CE;
+  background: rgba(0, 0, 0, 0.16);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B8B7AF;
+  background: rgba(0, 0, 0, 0.28);
 }
 
-/* Warm SaaS elevation utilities */
+/* Editorial light elevation utilities */
 .shadow-card {
-  box-shadow: 0 1px 2px rgba(34, 35, 33, 0.04), 0 4px 12px rgba(34, 35, 33, 0.03);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .shadow-card-hover {
-  box-shadow: 0 2px 6px rgba(34, 35, 33, 0.06), 0 12px 28px rgba(34, 35, 33, 0.06);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
 }
 
-.glass-warm {
-  background: rgba(242, 241, 237, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* Loopsii-inspired editorial textures & tactile surfaces */
-.bg-dot-warm {
-  background-image: radial-gradient(rgba(34, 35, 33, 0.09) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-.bg-dot-dark {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-.shadow-stage {
-  box-shadow:
-    0 1px 2px rgba(34, 35, 33, 0.05),
-    0 14px 40px -12px rgba(34, 35, 33, 0.12),
-    0 32px 80px -24px rgba(34, 35, 33, 0.1);
-}
-
-.btn-tactile-accent {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 4px 14px rgba(242, 105, 67, 0.28);
-}
-
-.btn-tactile-accent:hover {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 6px 20px rgba(218, 88, 53, 0.36);
-}
-
-/* Sheet table zebra & crisp cell grid */
+/* Sheet table zebra & crisp architectural cell grid */
 .sheet-table th {
-  background-color: #F8F7F4;
-  font-size: 0.72rem;
+  background-color: #F7F7F5;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--text-secondary);
 }
 
 .sheet-table td {
-  border-bottom: 1px solid #EFECE6;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }

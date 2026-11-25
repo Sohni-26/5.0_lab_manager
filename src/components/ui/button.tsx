@@ -6,32 +6,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F26943]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F2F1ED] disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F0F0F0] disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none",
   {
     variants: {
       variant: {
-        default:
-          "bg-[#F26943] text-white shadow-xs hover:bg-[#DA5835] active:scale-[0.99]",
-        primary:
-          "bg-[#222321] text-white shadow-xs hover:bg-[#343632] active:scale-[0.99]",
+        default: "bg-black text-white hover:bg-[#C4F041] hover:text-black",
+        primary: "bg-[#C4F041] text-black border border-black/15 hover:bg-[#B8E635]",
         secondary:
-          "bg-[#EAE9E4] text-[#222321] hover:bg-[#DFDDD6] border border-[#E6E5E0]",
+          "bg-[#E7E7E4] text-black hover:bg-[#DCDBD6] border border-black/10",
         outline:
-          "bg-white text-[#222321] border border-[#E6E5E0] hover:bg-[#F7F6F2] hover:border-[#D6D4CC]",
-        ghost: "text-[#222321] hover:bg-[#EAE9E4]/80",
-        danger:
-          "bg-[#D9534F] text-white hover:bg-[#C3423E] shadow-xs",
-        success:
-          "bg-[#288568] text-white hover:bg-[#217057] shadow-xs",
-        soft: "bg-[#FFF0E9] text-[#DA5835] hover:bg-[#FFE3D5] border border-[#F26943]/20",
-        link: "text-[#F26943] underline-offset-4 hover:underline p-0 h-auto",
+          "bg-white text-black border border-black/15 hover:border-black/40 hover:bg-[#F7F7F5]",
+        ghost: "text-black/75 hover:bg-black/[0.06] hover:text-black",
+        danger: "bg-[#FA8E66] text-black border border-black/10 hover:bg-[#F57B4E]",
+        success: "bg-[#AAC2AA] text-black border border-black/10 hover:bg-[#99B599]",
+        soft: "bg-[#F3FBD4] text-black hover:bg-[#E7F7B0] border border-black/12",
+        link: "text-black underline underline-offset-4 hover:opacity-70 p-0 h-auto rounded-none",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8.5 rounded-lg px-3 text-xs",
-        lg: "h-11 rounded-xl px-6 text-sm font-semibold",
-        xl: "h-12 rounded-2xl px-7 text-base font-semibold",
-        icon: "h-9 w-9 rounded-lg",
+        default: "h-10 px-5 py-2",
+        sm: "h-8.5 px-3.5 text-xs",
+        lg: "h-11 px-6 text-sm font-semibold",
+        xl: "h-12 px-7 text-base font-semibold",
+        icon: "h-9 w-9 rounded-full",
       },
     },
     defaultVariants: {

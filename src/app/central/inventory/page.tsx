@@ -192,7 +192,7 @@ export default function CentralMasterInventoryPage() {
         accessorKey: "code",
         header: "Item Code",
         cell: ({ row }) => (
-          <span className="font-mono text-xs font-semibold text-[#F26943]">
+          <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 font-mono text-xs font-semibold text-black">
             {row.original.code}
           </span>
         ),
@@ -203,7 +203,7 @@ export default function CentralMasterInventoryPage() {
           <button
             type="button"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="inline-flex items-center gap-1 cursor-pointer hover:text-[#222321]"
+            className="inline-flex items-center gap-1 cursor-pointer transition-colors duration-150 hover:text-black"
           >
             Equipment Name
             <ArrowUpDown className="h-3 w-3" />
@@ -211,9 +211,9 @@ export default function CentralMasterInventoryPage() {
         ),
         cell: ({ row }) => (
           <div>
-            <p className="font-medium text-[#222321]">{row.original.name}</p>
+            <p className="font-medium text-black">{row.original.name}</p>
             {row.original.brand && (
-              <p className="text-xs text-[#72736E]">{row.original.brand}</p>
+              <p className="text-xs text-black/55">{row.original.brand}</p>
             )}
           </div>
         ),
@@ -231,7 +231,7 @@ export default function CentralMasterInventoryPage() {
         header: () => <div className="text-right">Allocated</div>,
         accessorFn: (row) => row.summary?.totalAllocated ?? 0,
         cell: ({ getValue }) => (
-          <div className="text-right font-medium">
+          <div className="text-right font-medium tabular-nums text-black">
             {formatNumber(Number(getValue()))}
           </div>
         ),
@@ -241,8 +241,10 @@ export default function CentralMasterInventoryPage() {
         header: () => <div className="text-right">Available</div>,
         accessorFn: (row) => row.summary?.totalAvailable ?? 0,
         cell: ({ getValue }) => (
-          <div className="text-right font-semibold text-[#288568]">
-            {formatNumber(Number(getValue()))}
+          <div className="text-right">
+            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/55 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-black">
+              {formatNumber(Number(getValue()))}
+            </span>
           </div>
         ),
       },
@@ -251,7 +253,7 @@ export default function CentralMasterInventoryPage() {
         header: () => <div className="text-right">Borrowed</div>,
         accessorFn: (row) => row.summary?.totalBorrowed ?? 0,
         cell: ({ getValue }) => (
-          <div className="text-right text-[#222321]">
+          <div className="text-right tabular-nums text-black">
             {formatNumber(Number(getValue()))}
           </div>
         ),
@@ -282,7 +284,7 @@ export default function CentralMasterInventoryPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8.5 w-8.5 text-[#D9534F] hover:bg-[#FDEDEC]"
+                className="h-8.5 w-8.5 rounded-full text-black/65 hover:bg-[#FA8E66]/35 hover:text-black"
                 title="Deactivate item"
                 onClick={() => handleDeactivate(row.original)}
               >
@@ -321,9 +323,9 @@ export default function CentralMasterInventoryPage() {
       />
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#E6E5E0] bg-white p-3.5 shadow-card">
+      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
         <div className="relative flex-1 min-w-[220px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#72736E]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -364,7 +366,7 @@ export default function CentralMasterInventoryPage() {
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
                   {hg.headers.map((header) => (
-                    <th key={header.id} className="px-4 py-3 text-left">
+                    <th key={header.id} className="border-b border-black/10 px-4 py-3 text-left">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -379,19 +381,19 @@ export default function CentralMasterInventoryPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={columns.length} className="p-8 text-center text-[#72736E]">
+                  <td colSpan={columns.length} className="p-8 text-center text-black/55">
                     Loading master inventory...
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="p-10 text-center text-[#72736E]">
+                  <td colSpan={columns.length} className="p-10 text-center text-black/55">
                     No items match your filters.
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-[#FAF9F6] transition-colors">
+                  <tr key={row.id} className="transition-colors duration-150 hover:bg-[#F5F5F3]">
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-3">
                         {flexRender(
@@ -408,9 +410,17 @@ export default function CentralMasterInventoryPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-[#EFECE6] px-4 py-3 text-xs text-[#72736E]">
+        <div className="flex items-center justify-between border-t border-black/10 px-4 py-3 text-xs text-black/55">
           <span>
-            Showing {table.getRowModel().rows.length} of {filteredData.length} items
+            Showing{" "}
+            <span className="font-medium tabular-nums text-black">
+              {table.getRowModel().rows.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium tabular-nums text-black">
+              {filteredData.length}
+            </span>{" "}
+            items
           </span>
           <div className="flex items-center gap-2">
             <Button
@@ -422,8 +432,14 @@ export default function CentralMasterInventoryPage() {
               Previous
             </Button>
             <span>
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {Math.max(1, table.getPageCount())}
+              Page{" "}
+              <span className="font-medium tabular-nums text-black">
+                {table.getState().pagination.pageIndex + 1}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium tabular-nums text-black">
+                {Math.max(1, table.getPageCount())}
+              </span>
             </span>
             <Button
               variant="outline"
@@ -441,8 +457,10 @@ export default function CentralMasterInventoryPage() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-[#F26943]" />
+            <DialogTitle className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-[#C4F041] text-black">
+                <Package className="h-4 w-4" />
+              </span>
               {editingItem ? "Edit Master Item" : "Add Master Inventory Item"}
             </DialogTitle>
             <DialogDescription>

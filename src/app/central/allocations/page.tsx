@@ -208,8 +208,8 @@ export default function CentralAllocationsPage() {
 
         {/* Step-based Allocation Builder */}
         <TabsContent value="builder">
-          <Card>
-            <CardHeader className="border-b border-[#EFECE6]">
+          <Card className="rounded-[22px] border-black/12 bg-white">
+            <CardHeader className="border-b border-black/10">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <CardTitle>Dispatch New Stock Batch</CardTitle>
@@ -226,12 +226,12 @@ export default function CentralAllocationsPage() {
                   ].map((s) => (
                     <div
                       key={s.num}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold ${
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-semibold tabular-nums ${
                         step === s.num
-                          ? "bg-[#F26943] text-white"
+                          ? "border-black/12 bg-[#C4F041] text-black"
                           : step > s.num
-                            ? "bg-[#EAF6F1] text-[#288568]"
-                            : "bg-[#EAE9E4] text-[#72736E]"
+                            ? "border-black/10 bg-[#AAC2AA]/50 text-black"
+                            : "border-black/10 bg-[#F5F5F3] text-black/55"
                       }`}
                     >
                       <span>{s.num}.</span>
@@ -251,7 +251,7 @@ export default function CentralAllocationsPage() {
                       value={destinationCampusId}
                       onValueChange={setDestinationCampusId}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-black/15">
                         <SelectValue placeholder="Choose destination campus..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -300,11 +300,11 @@ export default function CentralAllocationsPage() {
 
               {step === 2 && (
                 <div className="space-y-5">
-                  <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-4">
+                  <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-4">
                     <div className="flex-1 min-w-[240px] space-y-1.5">
                       <Label>Master Equipment Item</Label>
                       <Select value={pickItemId} onValueChange={setPickItemId}>
-                        <SelectTrigger>
+                        <SelectTrigger className="border-black/15 bg-white text-black focus:border-black focus:ring-black/15">
                           <SelectValue placeholder="Select equipment from master catalog..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -326,6 +326,7 @@ export default function CentralAllocationsPage() {
                         onChange={(e) =>
                           setPickQty(Math.max(1, Number(e.target.value) || 1))
                         }
+                        className="tabular-nums"
                       />
                     </div>
                     <Button type="button" onClick={addLine}>
@@ -335,11 +336,11 @@ export default function CentralAllocationsPage() {
                   </div>
 
                   {lines.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-[#DAD8D0] p-8 text-center text-sm text-[#72736E]">
+                    <div className="rounded-2xl border border-dashed border-black/15 bg-[#F5F5F3]/60 p-8 text-center text-sm text-black/55">
                       Add one or more master items above to build this allocation manifest.
                     </div>
                   ) : (
-                    <div className="overflow-hidden rounded-2xl border border-[#E6E5E0]">
+                    <div className="overflow-hidden rounded-2xl border border-black/12 bg-white">
                       <table className="w-full text-sm sheet-table">
                         <thead>
                           <tr className="text-left">
@@ -353,11 +354,11 @@ export default function CentralAllocationsPage() {
                           {lines.map((line) => {
                             const item = itemMap.get(line.itemId);
                             return (
-                              <tr key={line.itemId}>
-                                <td className="px-4 py-2.5 font-mono text-xs text-[#F26943]">
+                              <tr key={line.itemId} className="hover:bg-[#F5F5F3] transition-colors">
+                                <td className="px-4 py-2.5 font-mono text-xs font-semibold text-black/75">
                                   {item?.code}
                                 </td>
-                                <td className="px-4 py-2.5 font-medium text-[#222321]">
+                                <td className="px-4 py-2.5 font-medium text-black">
                                   {item?.name}
                                 </td>
                                 <td className="px-4 py-2.5 text-right">
@@ -378,14 +379,14 @@ export default function CentralAllocationsPage() {
                                         )
                                       );
                                     }}
-                                    className="w-24 ml-auto h-8 text-right"
+                                    className="w-24 ml-auto h-8 text-right tabular-nums"
                                   />
                                 </td>
                                 <td className="px-4 py-2.5 text-right">
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-[#D9534F]"
+                                    className="h-8 w-8 text-[#B33C17] hover:bg-[#FA8E66]/25 hover:text-black"
                                     onClick={() => removeLine(line.itemId)}
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -417,27 +418,27 @@ export default function CentralAllocationsPage() {
 
               {step === 3 && (
                 <div className="space-y-5">
-                  <div className="grid gap-4 sm:grid-cols-3 rounded-2xl border border-[#E6E5E0] bg-[#FAF9F6] p-4">
+                  <div className="grid gap-4 sm:grid-cols-3 rounded-2xl border border-black/10 bg-[#F5F5F3] p-4">
                     <div>
-                      <p className="text-xs text-[#72736E]">Destination Campus</p>
-                      <p className="mt-1 font-semibold text-[#222321] flex items-center gap-1.5">
-                        <Building2 className="h-4 w-4 text-[#F26943]" />
+                      <p className="text-xs text-black/55">Destination Campus</p>
+                      <p className="mt-1 font-semibold text-black flex items-center gap-1.5">
+                        <Building2 className="h-4 w-4 text-black/70" />
                         {selectedCampus?.code} · {selectedCampus?.name}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#72736E]">Origin Source</p>
-                      <p className="mt-1 font-semibold text-[#222321]">{source}</p>
+                      <p className="text-xs text-black/55">Origin Source</p>
+                      <p className="mt-1 font-semibold text-black">{source}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#72736E]">Manifest Total</p>
-                      <p className="mt-1 font-semibold text-[#288568]">
+                      <p className="text-xs text-black/55">Manifest Total</p>
+                      <p className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/45 px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums">
                         {lines.length} SKUs · {formatNumber(totalUnitsDraft)} total units
                       </p>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-[#E6E5E0] divide-y divide-[#EFECE6]">
+                  <div className="rounded-2xl border border-black/12 bg-white divide-y divide-black/10">
                     {lines.map((line) => {
                       const item = itemMap.get(line.itemId);
                       return (
@@ -446,12 +447,12 @@ export default function CentralAllocationsPage() {
                           className="flex items-center justify-between px-4 py-3 text-sm"
                         >
                           <div>
-                            <p className="font-medium text-[#222321]">{item?.name}</p>
-                            <p className="font-mono text-xs text-[#72736E]">
+                            <p className="font-medium text-black">{item?.name}</p>
+                            <p className="font-mono text-xs text-black/55">
                               {item?.code}
                             </p>
                           </div>
-                          <Badge variant="accent">
+                          <Badge variant="accent" className="tabular-nums">
                             {line.allocatedQuantity} {item?.unit ?? "units"}
                           </Badge>
                         </div>
@@ -460,12 +461,12 @@ export default function CentralAllocationsPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                    <label className="flex items-center gap-2 text-sm text-[#222321] cursor-pointer">
+                    <label className="flex items-center gap-2 text-sm text-black cursor-pointer">
                       <input
                         type="checkbox"
                         checked={dispatchImmediately}
                         onChange={(e) => setDispatchImmediately(e.target.checked)}
-                        className="rounded accent-[#F26943]"
+                        className="h-4 w-4 rounded border-black/25 accent-black"
                       />
                       <span>Dispatch immediately to campus Incoming Stock queue</span>
                     </label>
@@ -494,7 +495,7 @@ export default function CentralAllocationsPage() {
         <TabsContent value="history" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-52 bg-white">
+              <SelectTrigger className="w-52 rounded-full border-black/15 bg-white text-black focus:border-black focus:ring-black/15">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -508,7 +509,7 @@ export default function CentralAllocationsPage() {
             </Select>
           </div>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden rounded-[22px] border-black/12 bg-white">
             <div className="overflow-x-auto">
               <table className="w-full text-sm sheet-table">
                 <thead>
@@ -526,7 +527,7 @@ export default function CentralAllocationsPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-[#72736E]">
+                      <td colSpan={8} className="p-8 text-center text-black/55">
                         Loading allocations...
                       </td>
                     </tr>
@@ -544,26 +545,28 @@ export default function CentralAllocationsPage() {
                         (i) => i.missingQuantity > 0 || i.damagedQuantity > 0
                       );
                       return (
-                        <tr key={alloc.id} className="hover:bg-[#FAF9F6]">
-                          <td className="px-4 py-3 font-mono text-xs font-semibold text-[#222321]">
+                        <tr key={alloc.id} className="hover:bg-[#F5F5F3] transition-colors">
+                          <td className="px-4 py-3 font-mono text-xs font-semibold text-black">
                             {alloc.referenceCode}
                           </td>
                           <td className="px-4 py-3">
-                            <span className="font-mono text-xs text-[#F26943] mr-1.5">
+                            <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F5F5F3] px-2 py-0.5 font-mono text-[11px] font-semibold text-black mr-2">
                               {alloc.destinationCampus.code}
                             </span>
-                            <span>{alloc.destinationCampus.name}</span>
+                            <span className="text-black">{alloc.destinationCampus.name}</span>
                           </td>
-                          <td className="px-4 py-3 text-right">{alloc.items.length}</td>
-                          <td className="px-4 py-3 text-right font-medium">
+                          <td className="px-4 py-3 text-right tabular-nums text-black/75">
+                            {alloc.items.length}
+                          </td>
+                          <td className="px-4 py-3 text-right font-medium tabular-nums text-black">
                             {formatNumber(totalAlloc)}
                           </td>
                           <td className="px-4 py-3 text-right">
                             <span
                               className={
                                 hasDiscrepancy
-                                  ? "font-semibold text-[#D9534F]"
-                                  : "font-semibold text-[#288568]"
+                                  ? "inline-flex items-center rounded-full border border-black/10 bg-[#FA8E66]/45 px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums"
+                                  : "inline-flex items-center rounded-full border border-black/10 bg-[#AAC2AA]/45 px-2.5 py-0.5 text-xs font-semibold text-black tabular-nums"
                               }
                             >
                               {formatNumber(totalRecv)}
@@ -572,7 +575,7 @@ export default function CentralAllocationsPage() {
                           <td className="px-4 py-3">
                             <AllocationStatusBadge status={alloc.status} />
                           </td>
-                          <td className="px-4 py-3 text-xs text-[#72736E]">
+                          <td className="px-4 py-3 text-xs text-black/55 tabular-nums">
                             {formatDateTime(alloc.createdAt)}
                           </td>
                           <td className="px-4 py-3 text-right space-x-1.5">
@@ -609,7 +612,7 @@ export default function CentralAllocationsPage() {
         open={Boolean(selectedAllocation)}
         onOpenChange={(o) => !o && setSelectedAllocation(null)}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl rounded-[22px] border-black/12 bg-white text-black">
           {selectedAllocation && (
             <>
               <DialogHeader>
@@ -623,7 +626,7 @@ export default function CentralAllocationsPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="overflow-hidden rounded-xl border border-[#E6E5E0]">
+              <div className="overflow-hidden rounded-2xl border border-black/12 bg-white">
                 <table className="w-full text-xs sheet-table">
                   <thead>
                     <tr className="text-left">
@@ -636,25 +639,43 @@ export default function CentralAllocationsPage() {
                   </thead>
                   <tbody>
                     {selectedAllocation.items.map((it) => (
-                      <tr key={it.id}>
+                      <tr key={it.id} className="hover:bg-[#F5F5F3] transition-colors">
                         <td className="px-3 py-2.5">
-                          <p className="font-medium text-[#222321]">{it.item.name}</p>
+                          <p className="font-medium text-black">{it.item.name}</p>
                           {it.verificationNotes && (
-                            <p className="text-[11px] text-[#D9534F] mt-0.5 flex items-center gap-1">
+                            <p className="text-[11px] text-[#B33C17] mt-0.5 flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3 shrink-0" />
                               {it.verificationNotes}
                             </p>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-right">{it.allocatedQuantity}</td>
-                        <td className="px-3 py-2.5 text-right font-semibold text-[#288568]">
+                        <td className="px-3 py-2.5 text-right tabular-nums text-black">
+                          {it.allocatedQuantity}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-semibold text-[#3E6B48] tabular-nums">
                           {it.receivedQuantity}
                         </td>
-                        <td className="px-3 py-2.5 text-right text-[#D9534F]">
-                          {it.missingQuantity}
+                        <td className="px-3 py-2.5 text-right">
+                          <span
+                            className={
+                              it.missingQuantity > 0
+                                ? "inline-flex items-center rounded-full border border-black/10 bg-[#FA8E66]/45 px-2 py-0.5 font-semibold text-black tabular-nums"
+                                : "text-black/45 tabular-nums"
+                            }
+                          >
+                            {it.missingQuantity}
+                          </span>
                         </td>
-                        <td className="px-3 py-2.5 text-right text-[#D69A35]">
-                          {it.damagedQuantity}
+                        <td className="px-3 py-2.5 text-right">
+                          <span
+                            className={
+                              it.damagedQuantity > 0
+                                ? "inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/55 px-2 py-0.5 font-semibold text-black tabular-nums"
+                                : "text-black/45 tabular-nums"
+                            }
+                          >
+                            {it.damagedQuantity}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -663,7 +684,7 @@ export default function CentralAllocationsPage() {
               </div>
 
               {selectedAllocation.verifiedBy && (
-                <div className="flex items-center gap-2 rounded-xl bg-[#EAF6F1] px-3.5 py-2.5 text-xs text-[#288568]">
+                <div className="flex items-center gap-2 rounded-2xl border border-black/10 bg-[#AAC2AA]/40 px-3.5 py-2.5 text-xs text-black">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   <span>
                     Verified by <strong>{selectedAllocation.verifiedBy.fullName}</strong> on{" "}

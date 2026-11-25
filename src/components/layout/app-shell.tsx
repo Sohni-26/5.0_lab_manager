@@ -14,7 +14,6 @@ import {
   ChevronRight,
   ClipboardCheck,
   ClipboardList,
-  Database,
   FileClock,
   FileSpreadsheet,
   History,
@@ -126,7 +125,6 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
     selectedCampusId,
     setSelectedCampusId,
     logout,
-    switchDemoRole,
   } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -303,46 +301,6 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* Demo Mode Banner */}
-        {isDemoMode && (
-          <div className="bg-[#C4F041]/35 border-b border-black/12 px-4 py-2 text-xs text-black flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Database className="h-3.5 w-3.5 text-black shrink-0" />
-              <span>
-                <strong>Demo Preview Mode</strong> — Connect PostgreSQL (
-                <code className="font-mono text-[11px]">docker compose up -d</code> +{" "}
-                <code className="font-mono text-[11px]">npm run db:seed</code>) for live
-                persistence.
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {(["CENTRAL_LAB_MANAGER", "LAB_MANAGER", "INSTRUCTOR", "STUDENT"] as UserRole[]).map(
-                (r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => switchDemoRole(r)}
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer",
-                      user.role === r
-                        ? "bg-black text-[#C4F041]"
-                        : "bg-white/85 text-black hover:bg-white border border-black/10"
-                    )}
-                  >
-                    {r === "CENTRAL_LAB_MANAGER"
-                      ? "Central"
-                      : r === "LAB_MANAGER"
-                        ? "Lab Mgr"
-                        : r === "INSTRUCTOR"
-                          ? "Instructor"
-                          : "Student"}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Top Bar */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-black/12 bg-[#F0F0F0]/90 backdrop-blur-md px-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">

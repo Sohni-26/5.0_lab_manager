@@ -82,7 +82,7 @@ export default function CentralAllocationsPage() {
       const [allocRes, campRes, itemRes] = await Promise.all([
         apiClient.allocations.list({ pageSize: 50 }),
         apiClient.campuses.list({ pageSize: 50 }),
-        apiClient.items.list({ pageSize: 100, isActive: true }),
+        apiClient.items.list({ pageSize: 250, isActive: true }),
       ]);
       setAllocations(allocRes.data);
       setCampuses(campRes.data);

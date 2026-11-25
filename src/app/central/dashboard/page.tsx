@@ -42,6 +42,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_CENTRAL_DASHBOARD } from "@/lib/demo-data";
+import {
+  formatInr,
+  PROCUREMENT_LAB_BLOCKS,
+  PROCUREMENT_TOTAL_VALUE_INR,
+} from "@/lib/procurement-catalog";
 import { formatDateTime, formatNumber } from "@/lib/utils";
 import type { CentralDashboardDTO } from "@/types/contracts";
 
@@ -129,7 +134,7 @@ export default function CentralDashboardPage() {
         <StatCard
           title="Master Catalog Items"
           value={data.kpis.totalMasterItems}
-          subtitle="Standardised global SKUs"
+          subtitle={`${formatInr(PROCUREMENT_TOTAL_VALUE_INR)} catalog · ${PROCUREMENT_LAB_BLOCKS.length} lab blocks`}
           icon={Layers}
           tone="default"
         />

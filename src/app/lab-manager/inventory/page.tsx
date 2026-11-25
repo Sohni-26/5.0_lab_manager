@@ -18,6 +18,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  MapPin,
   Radio,
   Search,
   SlidersHorizontal,
@@ -58,6 +59,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_CAMPUS_INVENTORY, DEMO_CATEGORIES } from "@/lib/demo-data";
+import {
+  extractItemProcurementMeta,
+  formatInr,
+  PROCUREMENT_LAB_BLOCKS,
+  PROCUREMENT_STATUS_META,
+} from "@/lib/procurement-catalog";
 import { exportToCsv, formatDateTime } from "@/lib/utils";
 import type { CampusInventoryDTO, ItemCategoryDTO } from "@/types/contracts";
 
@@ -70,6 +77,7 @@ export default function LabManagerInventorySheetPage() {
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [labBlockFilter, setLabBlockFilter] = useState("ALL");
   const [visibilityFilter, setVisibilityFilter] = useState("ALL");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -87,7 +95,7 @@ export default function LabManagerInventorySheetPage() {
   const loadInventory = useCallback(async () => {
     try {
       const [invRes, catRes] = await Promise.all([
-        apiClient.inventory.list({ pageSize: 100 }),
+        apiClient.inventory.list({ pageSize: 250 }),
         apiClient.categories.list(),
       ]);
       setRows(invRes.data);
@@ -158,7 +166,11 @@ export default function LabManagerInventorySheetPage() {
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
+      const meta = extractItemProcurementMeta(r.item.specifications);
       if (categoryFilter !== "ALL" && r.item.category.id !== categoryFilter) {
+        return false;
+      }
+      if (labBlockFilter !== "ALL" && meta.labBlock !== labBlockFilter) {
         return false;
       }
       if (visibilityFilter === "VISIBLE" && !r.isVisible) return false;
@@ -167,10 +179,12 @@ export default function LabManagerInventorySheetPage() {
       return (
         r.item.name.toLowerCase().includes(q) ||
         r.item.code.toLowerCase().includes(q) ||
-        r.item.category.name.toLowerCase().includes(q)
+        r.item.category.name.toLowerCase().includes(q) ||
+        (meta.labBlock?.toLowerCase().includes(q) ?? false) ||
+        (meta.vendorActual?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [rows, search, categoryFilter, visibilityFilter]);
+  }, [rows, search, categoryFilter, labBlockFilter, visibilityFilter]);
 
   const columns = useMemo<ColumnDef<CampusInventoryDTO>[]>(
     () => [
@@ -207,16 +221,34 @@ export default function LabManagerInventorySheetPage() {
             Item Name <ArrowUpDown className="h-3 w-3" />
           </button>
         ),
-        cell: ({ row }) => (
-          <div className="min-w-[180px]">
-            <p className="font-medium text-black">{row.original.item.name}</p>
-            {!row.original.isVerified && (
-              <span className="mt-1 inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/75 px-2 py-0.5 text-[10px] font-semibold text-black">
-                Unverified stock
-              </span>
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const meta = extractItemProcurementMeta(row.original.item.specifications);
+          return (
+            <div className="min-w-[190px]">
+              <p className="font-medium text-black">{row.original.item.name}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {meta.unitPriceInr !== null && (
+                  <span className="text-[11px] text-black/55 tabular-nums">
+                    {formatInr(meta.unitPriceInr)}/unit
+                  </span>
+                )}
+                {meta.procurementStatus && meta.procurementStatus !== "RECEIVED" && (
+                  <Badge
+                    variant={PROCUREMENT_STATUS_META[meta.procurementStatus].badgeVariant}
+                    className="px-2 py-0 text-[10px]"
+                  >
+                    {PROCUREMENT_STATUS_META[meta.procurementStatus].label}
+                  </Badge>
+                )}
+                {!row.original.isVerified && (
+                  <span className="inline-flex items-center rounded-full border border-black/10 bg-[#F3BD77]/75 px-2 py-0.5 text-[10px] font-semibold text-black">
+                    Unverified stock
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        },
       },
       {
         id: "itemCode",
@@ -237,6 +269,23 @@ export default function LabManagerInventorySheetPage() {
             {String(getValue())}
           </Badge>
         ),
+      },
+      {
+        id: "labBlock",
+        accessorFn: (row) =>
+          extractItemProcurementMeta(row.item.specifications).labBlock ?? "—",
+        header: "Lab Block",
+        cell: ({ getValue }) => {
+          const val = String(getValue());
+          return val !== "—" ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-[#F5F5F3] px-2.5 py-0.5 text-[11px] text-black/75 whitespace-nowrap">
+              <MapPin className="h-3 w-3 text-black/45" />
+              {val}
+            </span>
+          ) : (
+            <span className="text-xs text-black/40">—</span>
+          );
+        },
       },
       {
         accessorKey: "allocatedQuantity",
@@ -392,20 +441,27 @@ export default function LabManagerInventorySheetPage() {
   const handleExportCsv = () => {
     exportToCsv(
       `campus-inventory-${new Date().toISOString().slice(0, 10)}.csv`,
-      filteredData.map((r) => ({
-        ItemCode: r.item.code,
-        ItemName: r.item.name,
-        Category: r.item.category.name,
-        Allocated: r.allocatedQuantity,
-        Received: r.receivedQuantity,
-        Available: r.availableQuantity,
-        Reserved: r.reservedQuantity,
-        Borrowed: r.borrowedQuantity,
-        Damaged: r.damagedQuantity,
-        Missing: r.missingQuantity,
-        Visible: r.isVisible ? "Yes" : "No",
-        LastUpdated: r.updatedAt,
-      }))
+      filteredData.map((r) => {
+        const meta = extractItemProcurementMeta(r.item.specifications);
+        return {
+          ItemCode: r.item.code,
+          ItemName: r.item.name,
+          Category: r.item.category.name,
+          LabBlock: meta.labBlock ?? "",
+          Vendor: meta.vendorActual ?? r.item.brand ?? "",
+          UnitPriceINR: meta.unitPriceInr ?? "",
+          ProcurementStatus: meta.procurementStatus ?? "",
+          Allocated: r.allocatedQuantity,
+          Received: r.receivedQuantity,
+          Available: r.availableQuantity,
+          Reserved: r.reservedQuantity,
+          Borrowed: r.borrowedQuantity,
+          Damaged: r.damagedQuantity,
+          Missing: r.missingQuantity,
+          Visible: r.isVisible ? "Yes" : "No",
+          LastUpdated: r.updatedAt,
+        };
+      })
     );
     toast.success("Exported campus inventory CSV");
   };
@@ -484,6 +540,20 @@ export default function LabManagerInventorySheetPage() {
               {categories.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={labBlockFilter} onValueChange={setLabBlockFilter}>
+            <SelectTrigger className="w-48 h-9 text-xs">
+              <SelectValue placeholder="All Lab Blocks" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Lab Blocks</SelectItem>
+              {PROCUREMENT_LAB_BLOCKS.map((block) => (
+                <SelectItem key={block} value={block}>
+                  {block}
                 </SelectItem>
               ))}
             </SelectContent>

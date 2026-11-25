@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import {
   ArrowUpDown,
   Edit3,
+  ExternalLink,
+  MapPin,
   Package,
   Plus,
   PowerOff,
@@ -43,6 +45,14 @@ import {
 } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_CATEGORIES, DEMO_MASTER_ITEMS } from "@/lib/demo-data";
+import {
+  extractItemProcurementMeta,
+  formatInr,
+  PROCUREMENT_LAB_BLOCKS,
+  PROCUREMENT_STATUS_META,
+  type AllocationScope,
+  type ProcurementStatus,
+} from "@/lib/procurement-catalog";
 import { formatNumber } from "@/lib/utils";
 import type { ItemCategoryDTO, MasterItemDTO } from "@/types/contracts";
 
@@ -52,6 +62,9 @@ export default function CentralMasterInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [labBlockFilter, setLabBlockFilter] = useState("ALL");
+  const [procurementFilter, setProcurementFilter] = useState("ALL");
+  const [scopeFilter, setScopeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -63,14 +76,21 @@ export default function CentralMasterInventoryPage() {
     name: "",
     categoryId: "",
     brand: "",
-    unit: "unit",
+    unit: "pcs",
     description: "",
+    labBlock: PROCUREMENT_LAB_BLOCKS[0] as string,
+    procurementStatus: "PENDING" as ProcurementStatus,
+    allocationScope: "PER_CAMPUS" as AllocationScope,
+    vendorActual: "",
+    unitPriceInr: "",
+    procurementQty: "",
+    productUrl: "",
   });
 
   const loadData = useCallback(async () => {
     try {
       const [itemRes, catRes] = await Promise.all([
-        apiClient.items.list({ pageSize: 100 }),
+        apiClient.items.list({ pageSize: 250 }),
         apiClient.categories.list(),
       ]);
       setItems(itemRes.data);
@@ -87,10 +107,65 @@ export default function CentralMasterInventoryPage() {
     loadData();
   }, [loadData]);
 
+  const summary = useMemo(() => {
+    let activeCount = 0;
+    let draftCount = 0;
+    let totalProcurementInr = 0;
+    let prPipelineCount = 0;
+    let receivedCount = 0;
+    let unavailableCount = 0;
+
+    for (const item of items) {
+      if (item.isActive) activeCount += 1;
+      else draftCount += 1;
+
+      const meta = extractItemProcurementMeta(item.specifications);
+      if (meta.totalPriceInr && meta.totalPriceInr > 0) {
+        totalProcurementInr += meta.totalPriceInr;
+      } else if (meta.unitPriceInr && meta.procurementQty) {
+        totalProcurementInr += meta.unitPriceInr * meta.procurementQty;
+      }
+
+      if (meta.procurementStatus === "RECEIVED") receivedCount += 1;
+      else if (
+        meta.procurementStatus === "PR_RAISED" ||
+        meta.procurementStatus === "PAYMENT_DONE" ||
+        meta.procurementStatus === "QUOTATION_RECEIVED"
+      ) {
+        prPipelineCount += 1;
+      } else if (meta.procurementStatus === "UNAVAILABLE") {
+        unavailableCount += 1;
+      }
+    }
+
+    return {
+      activeCount,
+      draftCount,
+      totalProcurementInr,
+      prPipelineCount,
+      receivedCount,
+      unavailableCount,
+    };
+  }, [items]);
+
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((item) => {
+      const meta = extractItemProcurementMeta(item.specifications);
+
       if (categoryFilter !== "ALL" && item.categoryId !== categoryFilter) {
+        return false;
+      }
+      if (labBlockFilter !== "ALL" && meta.labBlock !== labBlockFilter) {
+        return false;
+      }
+      if (
+        procurementFilter !== "ALL" &&
+        meta.procurementStatus !== procurementFilter
+      ) {
+        return false;
+      }
+      if (scopeFilter !== "ALL" && meta.allocationScope !== scopeFilter) {
         return false;
       }
       if (statusFilter === "ACTIVE" && !item.isActive) return false;
@@ -99,10 +174,22 @@ export default function CentralMasterInventoryPage() {
       return (
         item.name.toLowerCase().includes(q) ||
         item.code.toLowerCase().includes(q) ||
-        (item.brand?.toLowerCase().includes(q) ?? false)
+        (item.brand?.toLowerCase().includes(q) ?? false) ||
+        (meta.labBlock?.toLowerCase().includes(q) ?? false) ||
+        (meta.vendorActual?.toLowerCase().includes(q) ?? false) ||
+        (meta.vendorResearch?.toLowerCase().includes(q) ?? false) ||
+        (meta.remarks?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [items, search, categoryFilter, statusFilter]);
+  }, [
+    items,
+    search,
+    categoryFilter,
+    labBlockFilter,
+    procurementFilter,
+    scopeFilter,
+    statusFilter,
+  ]);
 
   const openAddModal = () => {
     setEditingItem(null);
@@ -111,13 +198,21 @@ export default function CentralMasterInventoryPage() {
       name: "",
       categoryId: categories[0]?.id ?? "",
       brand: "",
-      unit: "unit",
+      unit: "pcs",
       description: "",
+      labBlock: "IoT Component Organiser",
+      procurementStatus: "PENDING",
+      allocationScope: "PER_CAMPUS",
+      vendorActual: "",
+      unitPriceInr: "",
+      procurementQty: "",
+      productUrl: "",
     });
     setModalOpen(true);
   };
 
   const openEditModal = (item: MasterItemDTO) => {
+    const meta = extractItemProcurementMeta(item.specifications);
     setEditingItem(item);
     setForm({
       code: item.code,
@@ -126,6 +221,15 @@ export default function CentralMasterInventoryPage() {
       brand: item.brand ?? "",
       unit: item.unit,
       description: item.description ?? "",
+      labBlock: meta.labBlock ?? "IoT Component Organiser",
+      procurementStatus: meta.procurementStatus ?? "PENDING",
+      allocationScope: meta.allocationScope ?? "PER_CAMPUS",
+      vendorActual: meta.vendorActual ?? item.brand ?? "",
+      unitPriceInr:
+        meta.unitPriceInr !== null ? String(meta.unitPriceInr) : "",
+      procurementQty:
+        meta.procurementQty !== null ? String(meta.procurementQty) : "",
+      productUrl: meta.productUrl ?? "",
     });
     setModalOpen(true);
   };
@@ -136,6 +240,37 @@ export default function CentralMasterInventoryPage() {
       toast.error("Code, item name, and category are required");
       return;
     }
+
+    const parsedUnitPrice = form.unitPriceInr.trim()
+      ? Number(form.unitPriceInr)
+      : undefined;
+    const parsedProcQty = form.procurementQty.trim()
+      ? Number(form.procurementQty)
+      : undefined;
+
+    const mergedSpecs: Record<string, unknown> = {
+      ...(editingItem?.specifications ?? {}),
+      labBlock: form.labBlock,
+      procurementStatus: form.procurementStatus,
+      allocationScope: form.allocationScope,
+      ...(form.vendorActual.trim()
+        ? { vendorActual: form.vendorActual.trim() }
+        : {}),
+      ...(form.productUrl.trim() ? { productUrl: form.productUrl.trim() } : {}),
+      ...(parsedUnitPrice !== undefined && !Number.isNaN(parsedUnitPrice)
+        ? { unitPriceInr: parsedUnitPrice }
+        : {}),
+      ...(parsedProcQty !== undefined && !Number.isNaN(parsedProcQty)
+        ? { procurementQty: parsedProcQty }
+        : {}),
+      ...(parsedUnitPrice !== undefined &&
+      parsedProcQty !== undefined &&
+      !Number.isNaN(parsedUnitPrice) &&
+      !Number.isNaN(parsedProcQty)
+        ? { totalPriceInr: Number((parsedUnitPrice * parsedProcQty).toFixed(2)) }
+        : {}),
+    };
+
     setSaving(true);
     try {
       if (editingItem) {
@@ -143,9 +278,10 @@ export default function CentralMasterInventoryPage() {
           code: form.code.trim().toUpperCase(),
           name: form.name.trim(),
           categoryId: form.categoryId,
-          brand: form.brand.trim() || undefined,
-          unit: form.unit.trim() || "unit",
+          brand: form.brand.trim() || form.vendorActual.trim() || undefined,
+          unit: form.unit.trim() || "pcs",
           description: form.description.trim() || undefined,
+          specifications: mergedSpecs,
         });
         setItems((prev) =>
           prev.map((it) => (it.id === editingItem.id ? res.data : it))
@@ -156,9 +292,10 @@ export default function CentralMasterInventoryPage() {
           code: form.code.trim().toUpperCase(),
           name: form.name.trim(),
           categoryId: form.categoryId,
-          brand: form.brand.trim() || undefined,
-          unit: form.unit.trim() || "unit",
+          brand: form.brand.trim() || form.vendorActual.trim() || undefined,
+          unit: form.unit.trim() || "pcs",
           description: form.description.trim() || undefined,
+          specifications: mergedSpecs,
         });
         setItems((prev) => [res.data, ...prev]);
         toast.success(`Added ${res.data.name} to master catalog`);
@@ -205,26 +342,120 @@ export default function CentralMasterInventoryPage() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="inline-flex items-center gap-1 cursor-pointer transition-colors duration-150 hover:text-black"
           >
-            Equipment Name
+            Equipment &amp; Vendor
             <ArrowUpDown className="h-3 w-3" />
           </button>
         ),
-        cell: ({ row }) => (
-          <div>
-            <p className="font-medium text-black">{row.original.name}</p>
-            {row.original.brand && (
-              <p className="text-xs text-black/55">{row.original.brand}</p>
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const meta = extractItemProcurementMeta(row.original.specifications);
+          const vendorLabel = meta.vendorActual || row.original.brand;
+          return (
+            <div className="min-w-[210px] max-w-[300px]">
+              <div className="flex items-center gap-1.5">
+                <p className="font-medium text-black truncate">
+                  {row.original.name}
+                </p>
+                {meta.productUrl && (
+                  <a
+                    href={meta.productUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open vendor product link"
+                    className="shrink-0 text-black/45 hover:text-black transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                {vendorLabel && (
+                  <span className="text-xs text-black/55">{vendorLabel}</span>
+                )}
+                {meta.allocationScope === "ALL_40_LABS" && (
+                  <span className="inline-flex items-center rounded-full border border-black/10 bg-[#C4F041]/55 px-2 py-0.5 text-[10px] font-semibold text-black">
+                    40-Lab Kit Pool
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        },
       },
       {
         id: "category",
-        header: "Category",
+        header: "Category & Lab Block",
         accessorFn: (row) => row.category?.name ?? "—",
-        cell: ({ getValue }) => (
-          <Badge variant="secondary">{String(getValue())}</Badge>
-        ),
+        cell: ({ row }) => {
+          const meta = extractItemProcurementMeta(row.original.specifications);
+          return (
+            <div className="flex flex-col items-start gap-1">
+              <Badge variant="secondary">
+                {row.original.category?.name ?? "—"}
+              </Badge>
+              {meta.labBlock && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-black/60">
+                  <MapPin className="h-3 w-3 shrink-0 text-black/45" />
+                  {meta.labBlock}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        id: "procurementStatus",
+        header: "Procurement",
+        accessorFn: (row) =>
+          extractItemProcurementMeta(row.specifications).procurementStatus ??
+          "PENDING",
+        cell: ({ row }) => {
+          const meta = extractItemProcurementMeta(row.original.specifications);
+          const statusKey = meta.procurementStatus ?? "PENDING";
+          const statusInfo = PROCUREMENT_STATUS_META[statusKey];
+          return (
+            <div className="flex flex-col items-start gap-1">
+              <Badge variant={statusInfo.badgeVariant}>
+                {statusInfo.label}
+              </Badge>
+              {meta.remarks && (
+                <span className="max-w-[170px] truncate text-[11px] text-black/55" title={meta.remarks}>
+                  {meta.remarks}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        id: "cost",
+        header: () => <div className="text-right">Unit / Total (INR)</div>,
+        accessorFn: (row) =>
+          extractItemProcurementMeta(row.specifications).totalPriceInr ?? 0,
+        cell: ({ row }) => {
+          const meta = extractItemProcurementMeta(row.original.specifications);
+          if (!meta.unitPriceInr && !meta.totalPriceInr) {
+            return (
+              <div className="text-right text-xs text-black/45 tabular-nums">
+                Unpriced
+              </div>
+            );
+          }
+          return (
+            <div className="text-right tabular-nums whitespace-nowrap">
+              <p className="text-xs font-semibold text-black">
+                {meta.totalPriceInr !== null
+                  ? formatInr(meta.totalPriceInr)
+                  : "—"}
+              </p>
+              <p className="text-[11px] text-black/55">
+                {meta.unitPriceInr !== null
+                  ? formatInr(meta.unitPriceInr)
+                  : "—"}{" "}
+                × {formatNumber(meta.procurementQty ?? 0)}
+              </p>
+            </div>
+          );
+        },
       },
       {
         id: "allocated",
@@ -249,21 +480,11 @@ export default function CentralMasterInventoryPage() {
         ),
       },
       {
-        id: "borrowed",
-        header: () => <div className="text-right">Borrowed</div>,
-        accessorFn: (row) => row.summary?.totalBorrowed ?? 0,
-        cell: ({ getValue }) => (
-          <div className="text-right tabular-nums text-black">
-            {formatNumber(Number(getValue()))}
-          </div>
-        ),
-      },
-      {
         accessorKey: "isActive",
-        header: "Status",
+        header: "Catalog",
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? "success" : "outline"}>
-            {row.original.isActive ? "Active" : "Inactive"}
+            {row.original.isActive ? "Active" : "Draft / Inactive"}
           </Badge>
         ),
       },
@@ -306,14 +527,14 @@ export default function CentralMasterInventoryPage() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 12 } },
+    initialState: { pagination: { pageSize: 15 } },
   });
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Master Inventory Catalog"
-        description="Global equipment registry managed exclusively by the Central Lab Manager and distributed to all 40 campuses."
+        title="Master Inventory & Procurement Catalog"
+        description="Real 5.0 Lab equipment registry (166 SKUs across 12 categories and 6 physical lab blocks) managed centrally for all 40 campuses."
         actions={
           <Button onClick={openAddModal}>
             <Plus className="h-4 w-4" />
@@ -322,23 +543,72 @@ export default function CentralMasterInventoryPage() {
         }
       />
 
+      {/* Procurement & Catalog Telemetry Strip */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="rounded-[22px] border border-black/12 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium text-black/55">Active Catalog SKUs</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-black">
+            {formatNumber(summary.activeCount)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-black/50 tabular-nums">
+            {summary.draftCount} draft / needs specs
+          </p>
+        </div>
+        <div className="rounded-[22px] border border-black/12 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium text-black/55">Procurement Value</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-black">
+            {formatInr(summary.totalProcurementInr)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-black/50">
+            Recomputed from unit × qty
+          </p>
+        </div>
+        <div className="rounded-[22px] border border-black/12 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium text-black/55">PR / Payment Pipeline</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-black">
+            {formatNumber(summary.prPipelineCount)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-black/50">
+            PR Raised, Quoted &amp; Paid
+          </p>
+        </div>
+        <div className="rounded-[22px] border border-black/12 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium text-black/55">Stock Received</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-black">
+            {formatNumber(summary.receivedCount)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-black/50">
+            Ready for campus dispatch
+          </p>
+        </div>
+        <div className="rounded-[22px] border border-black/12 bg-white p-4 shadow-card">
+          <p className="text-xs font-medium text-black/55">Vendor Unavailable</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-black">
+            {formatNumber(summary.unavailableCount)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-black/50">
+            Requires alternate sourcing
+          </p>
+        </div>
+      </div>
+
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
-        <div className="relative flex-1 min-w-[220px] max-w-md">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-[22px] border border-black/12 bg-white p-3.5 shadow-card">
+        <div className="relative flex-1 min-w-[220px] max-w-sm">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-black/55" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by SKU code, name, or brand..."
+            placeholder="Search SKU, name, vendor, or lab block..."
             className="pl-10"
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-52">
+          <SelectTrigger className="w-48">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Categories</SelectItem>
+            <SelectItem value="ALL">All Categories ({categories.length})</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
@@ -346,14 +616,52 @@ export default function CentralMasterInventoryPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Status" />
+        <Select value={labBlockFilter} onValueChange={setLabBlockFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All Lab Blocks" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Statuses</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="INACTIVE">Inactive</SelectItem>
+            <SelectItem value="ALL">All Lab Blocks</SelectItem>
+            {PROCUREMENT_LAB_BLOCKS.map((block) => (
+              <SelectItem key={block} value={block}>
+                {block}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={procurementFilter} onValueChange={setProcurementFilter}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Procurement" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Procurement</SelectItem>
+            {(Object.keys(PROCUREMENT_STATUS_META) as ProcurementStatus[]).map(
+              (st) => (
+                <SelectItem key={st} value={st}>
+                  {PROCUREMENT_STATUS_META[st].label}
+                </SelectItem>
+              )
+            )}
+          </SelectContent>
+        </Select>
+        <Select value={scopeFilter} onValueChange={setScopeFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Scope" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Scopes</SelectItem>
+            <SelectItem value="PER_CAMPUS">Per Campus</SelectItem>
+            <SelectItem value="ALL_40_LABS">40-Lab Kit Pool</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Catalog" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Catalog</SelectItem>
+            <SelectItem value="ACTIVE">Active Only</SelectItem>
+            <SelectItem value="INACTIVE">Draft / Inactive</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -455,7 +763,7 @@ export default function CentralMasterInventoryPage() {
 
       {/* Add / Edit Item Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 bg-[#C4F041] text-black">
@@ -473,7 +781,7 @@ export default function CentralMasterInventoryPage() {
                 <Label htmlFor="item-code">Item Code</Label>
                 <Input
                   id="item-code"
-                  placeholder="INS-OSC-200"
+                  placeholder="DEV-069"
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value })}
                   required
@@ -483,7 +791,7 @@ export default function CentralMasterInventoryPage() {
                 <Label htmlFor="item-unit">Unit</Label>
                 <Input
                   id="item-unit"
-                  placeholder="unit / kit"
+                  placeholder="pcs / kit / set"
                   value={form.unit}
                   onChange={(e) => setForm({ ...form, unit: e.target.value })}
                 />
@@ -493,7 +801,7 @@ export default function CentralMasterInventoryPage() {
               <Label htmlFor="item-name">Item Name</Label>
               <Input
                 id="item-name"
-                placeholder="Keysight Digital Storage Oscilloscope"
+                placeholder="ESP32-S3 DevKit / Bambu Lab P1S"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
@@ -519,20 +827,131 @@ export default function CentralMasterInventoryPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
+                <Label>Lab Block / Arena</Label>
+                <Select
+                  value={form.labBlock}
+                  onValueChange={(v) => setForm({ ...form, labBlock: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select lab block" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROCUREMENT_LAB_BLOCKS.map((block) => (
+                      <SelectItem key={block} value={block}>
+                        {block}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Procurement Status</Label>
+                <Select
+                  value={form.procurementStatus}
+                  onValueChange={(v) =>
+                    setForm({ ...form, procurementStatus: v as ProcurementStatus })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(PROCUREMENT_STATUS_META) as ProcurementStatus[]).map(
+                      (st) => (
+                        <SelectItem key={st} value={st}>
+                          {PROCUREMENT_STATUS_META[st].label}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Allocation Scope</Label>
+                <Select
+                  value={form.allocationScope}
+                  onValueChange={(v) =>
+                    setForm({ ...form, allocationScope: v as AllocationScope })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select scope" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PER_CAMPUS">Per Campus Standard</SelectItem>
+                    <SelectItem value="ALL_40_LABS">40-Lab Innovators Kit Pool</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="item-vendor">Actual Vendor</Label>
+                <Input
+                  id="item-vendor"
+                  placeholder="RoboCraze / Robu / Wol 3D"
+                  value={form.vendorActual}
+                  onChange={(e) =>
+                    setForm({ ...form, vendorActual: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="item-brand">Brand</Label>
                 <Input
                   id="item-brand"
-                  placeholder="Rigol / Fluke / NVIDIA"
+                  placeholder="Arduino / NVIDIA / Soldron"
                   value={form.brand}
                   onChange={(e) => setForm({ ...form, brand: e.target.value })}
                 />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="item-price">Unit Price (INR)</Label>
+                <Input
+                  id="item-price"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="450"
+                  value={form.unitPriceInr}
+                  onChange={(e) =>
+                    setForm({ ...form, unitPriceInr: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="item-proc-qty">Procurement Qty</Label>
+                <Input
+                  id="item-proc-qty"
+                  type="number"
+                  min={0}
+                  placeholder="20"
+                  value={form.procurementQty}
+                  onChange={(e) =>
+                    setForm({ ...form, procurementQty: e.target.value })
+                  }
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label htmlFor="item-desc">Description</Label>
+              <Label htmlFor="item-url">Vendor Product URL</Label>
+              <Input
+                id="item-url"
+                type="url"
+                placeholder="https://robocraze.com/products/..."
+                value={form.productUrl}
+                onChange={(e) => setForm({ ...form, productUrl: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="item-desc">Description &amp; Notes</Label>
               <Textarea
                 id="item-desc"
-                placeholder="Specifications, accessories included, calibration notes..."
+                placeholder="Specifications, accessories included, remarks..."
                 value={form.description}
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })

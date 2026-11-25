@@ -47,7 +47,7 @@ function NewRequestBuilderInner() {
   useEffect(() => {
     Promise.all([
       apiClient.inventory
-        .list({ pageSize: 100 })
+        .list({ pageSize: 250 })
         .then((r) => r.data.filter((i) => i.isVerified && i.isVisible))
         .catch(() =>
           DEMO_CAMPUS_INVENTORY.filter((i) => i.isVerified && i.isVisible)

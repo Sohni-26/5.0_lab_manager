@@ -16,6 +16,10 @@ import type {
   StockAllocationDTO,
   StudentDashboardDTO,
 } from "@/types/contracts";
+import {
+  PROCUREMENT_CATEGORIES,
+  PROCUREMENT_ITEMS,
+} from "@/lib/procurement-catalog";
 
 function makeAngleSvg(title: string, angle: string, phase: string, bg: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
@@ -174,159 +178,117 @@ export const DEMO_USERS: AuthUserDTO[] = [
   },
 ];
 
-export const DEMO_CATEGORIES: ItemCategoryDTO[] = [
-  { id: "cat-elec", name: "Electronics & Microcontrollers", slug: "electronics", description: "Boards, sensors & embedded dev kits", itemCount: 5 },
-  { id: "cat-inst", name: "Measurement Instruments", slug: "instruments", description: "Oscilloscopes, multimeters & power supplies", itemCount: 4 },
-  { id: "cat-robo", name: "Robotics & Mechatronics", slug: "robotics", description: "Actuators, LiDAR & autonomous chassis", itemCount: 3 },
-  { id: "cat-comp", name: "AI & Edge Compute", slug: "edge-compute", description: "Jetson kits, GPUs & camera modules", itemCount: 3 },
-];
+export const DEMO_CATEGORIES: ItemCategoryDTO[] = PROCUREMENT_CATEGORIES.map((c) => ({
+  id: c.id,
+  name: c.name,
+  slug: c.slug,
+  description: c.description,
+  itemCount: c.itemCount,
+}));
 
-export const DEMO_MASTER_ITEMS: MasterItemDTO[] = [
-  {
-    id: "item-osc-01",
-    code: "INS-OSC-100",
-    name: "Rigol DS1054Z Digital Oscilloscope",
-    description: "4-channel 50MHz digital storage oscilloscope with 12Mpts memory depth.",
-    categoryId: "cat-inst",
-    category: { id: "cat-inst", name: "Measurement Instruments", slug: "instruments" },
-    brand: "Rigol",
-    specifications: { channels: 4, bandwidth: "50 MHz", sampleRate: "1 GSa/s" },
-    unit: "unit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-01T09:00:00.000Z",
-    updatedAt: "2026-11-18T11:20:00.000Z",
-    summary: { totalAllocated: 480, totalReceived: 472, totalAvailable: 318, totalBorrowed: 112, campusCount: 40 },
-  },
-  {
-    id: "item-rpi-02",
-    code: "ELC-RPI-508",
-    name: "Raspberry Pi 5 (8GB) Lab Kit",
-    description: "Complete SBC kit with active cooler, 27W USB-C PSU, and micro-HDMI cable.",
-    categoryId: "cat-elec",
-    category: { id: "cat-elec", name: "Electronics & Microcontrollers", slug: "electronics" },
-    brand: "Raspberry Pi",
-    specifications: { ram: "8GB LPDDR4X", cpu: "Quad-core Cortex-A76 2.4GHz" },
-    unit: "kit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-01T09:00:00.000Z",
-    updatedAt: "2026-11-19T14:15:00.000Z",
-    summary: { totalAllocated: 1200, totalReceived: 1185, totalAvailable: 790, totalBorrowed: 310, campusCount: 40 },
-  },
-  {
-    id: "item-jet-03",
-    code: "CMP-JET-ORIN",
-    name: "NVIDIA Jetson Orin Nano Developer Kit",
-    description: "Edge AI developer kit delivering up to 40 TOPS for robotics and computer vision.",
-    categoryId: "cat-comp",
-    category: { id: "cat-comp", name: "AI & Edge Compute", slug: "edge-compute" },
-    brand: "NVIDIA",
-    specifications: { aiPerf: "40 TOPS", memory: "8GB 128-bit LPDDR5" },
-    unit: "kit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-04T09:00:00.000Z",
-    updatedAt: "2026-11-21T08:00:00.000Z",
-    summary: { totalAllocated: 320, totalReceived: 316, totalAvailable: 204, totalBorrowed: 88, campusCount: 38 },
-  },
-  {
-    id: "item-flk-04",
-    code: "INS-FLK-117",
-    name: "Fluke 117 True-RMS Digital Multimeter",
-    description: "Precision multimeter with VoltAlert non-contact voltage detection.",
-    categoryId: "cat-inst",
-    category: { id: "cat-inst", name: "Measurement Instruments", slug: "instruments" },
-    brand: "Fluke",
-    specifications: { rating: "CAT III 600V", trueRms: true },
-    unit: "unit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-04T09:00:00.000Z",
-    updatedAt: "2026-11-15T16:40:00.000Z",
-    summary: { totalAllocated: 960, totalReceived: 954, totalAvailable: 710, totalBorrowed: 198, campusCount: 40 },
-  },
-  {
-    id: "item-ldr-05",
-    code: "ROB-LDR-A2M",
-    name: "RPLIDAR A2M12 360° Laser Scanner",
-    description: "12m range 2D LiDAR scanner for SLAM and autonomous navigation labs.",
-    categoryId: "cat-robo",
-    category: { id: "cat-robo", name: "Robotics & Mechatronics", slug: "robotics" },
-    brand: "Slamtec",
-    specifications: { range: "12m", sampleRate: "16000 Hz" },
-    unit: "unit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-08T09:00:00.000Z",
-    updatedAt: "2026-11-20T09:10:00.000Z",
-    summary: { totalAllocated: 240, totalReceived: 236, totalAvailable: 162, totalBorrowed: 56, campusCount: 34 },
-  },
-  {
-    id: "item-ard-06",
-    code: "ELC-ARD-GIGA",
-    name: "Arduino GIGA R1 WiFi Board",
-    description: "Dual-core STM32H747XI microcontroller with WiFi/BLE and audio jack.",
-    categoryId: "cat-elec",
-    category: { id: "cat-elec", name: "Electronics & Microcontrollers", slug: "electronics" },
-    brand: "Arduino",
-    specifications: { mcu: "STM32H747XI", connectivity: "WiFi + BLE 5.0" },
-    unit: "unit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-10T09:00:00.000Z",
-    updatedAt: "2026-11-22T12:00:00.000Z",
-    summary: { totalAllocated: 1100, totalReceived: 1090, totalAvailable: 825, totalBorrowed: 215, campusCount: 40 },
-  },
-  {
-    id: "item-psu-07",
-    code: "INS-PSU-305",
-    name: "Korad KA3005D Programmable DC Power Supply",
-    description: "0-30V 5A precision linear bench power supply with OCP/OVP protection.",
-    categoryId: "cat-inst",
-    category: { id: "cat-inst", name: "Measurement Instruments", slug: "instruments" },
-    brand: "Korad",
-    specifications: { voltage: "0–30V", current: "0–5A" },
-    unit: "unit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-12T09:00:00.000Z",
-    updatedAt: "2026-11-17T10:05:00.000Z",
-    summary: { totalAllocated: 520, totalReceived: 515, totalAvailable: 390, totalBorrowed: 92, campusCount: 40 },
-  },
-  {
-    id: "item-arm-08",
-    code: "ROB-ARM-6DOF",
-    name: "6-DOF Programmable Desktop Robotic Arm",
-    description: "Aluminum servo robotic manipulator with ROS2 kinematic controller.",
-    categoryId: "cat-robo",
-    category: { id: "cat-robo", name: "Robotics & Mechatronics", slug: "robotics" },
-    brand: "Hiwonder",
-    specifications: { dof: 6, interface: "ROS2 / Python / USB" },
-    unit: "kit",
-    imageUrl: null,
-    isActive: true,
-    createdAt: "2025-09-14T09:00:00.000Z",
-    updatedAt: "2026-11-22T07:45:00.000Z",
-    summary: { totalAllocated: 160, totalReceived: 158, totalAvailable: 104, totalBorrowed: 44, campusCount: 32 },
-  },
-];
+const CATEGORY_MAP = new Map(DEMO_CATEGORIES.map((c) => [c.slug, c]));
 
-export const DEMO_CAMPUS_INVENTORY: CampusInventoryDTO[] = DEMO_MASTER_ITEMS.map(
-  (item, idx) => ({
-    id: `inv-cmp01-${idx + 1}`,
+export const DEMO_MASTER_ITEMS: MasterItemDTO[] = PROCUREMENT_ITEMS.map((it, idx) => {
+  const cat = CATEGORY_MAP.get(it.categorySlug) ?? DEMO_CATEGORIES[0];
+  const activeCampuses = it.allocationScope === "ALL_40_LABS" ? 40 : 23;
+  const totalAllocated =
+    it.allocationScope === "ALL_40_LABS"
+      ? it.procurementQty
+      : it.procurementQty * activeCampuses;
+  const isReceived =
+    it.procurementStatus === "RECEIVED" ||
+    it.procurementStatus === "PAYMENT_DONE" ||
+    it.procurementStatus === "PR_RAISED";
+  const totalReceived = isReceived
+    ? Math.max(0, totalAllocated - (idx % 11 === 0 ? 2 : 0))
+    : 0;
+  const totalBorrowed =
+    totalReceived > 4 ? Math.min(Math.floor(totalReceived * 0.22), 8 + (idx % 15)) : 0;
+  const totalAvailable = Math.max(0, totalReceived - totalBorrowed);
+
+  return {
+    id: `item-${it.code.toLowerCase()}`,
+    code: it.code,
+    name: it.name,
+    description: it.description,
+    categoryId: cat.id,
+    category: { id: cat.id, name: cat.name, slug: cat.slug },
+    brand: it.brand,
+    specifications: {
+      srNo: it.srNo,
+      labBlock: it.labBlock,
+      vendorResearch: it.vendorResearch,
+      vendorActual: it.vendorActual,
+      productUrl: it.productUrl,
+      unitPriceInr: it.unitPriceInr,
+      procurementQty: it.procurementQty,
+      perCampusQty: it.perCampusQty,
+      totalPriceInr: it.totalPriceInr,
+      addedOn: it.addedOn,
+      procurementStatus: it.procurementStatus,
+      allocationScope: it.allocationScope,
+      remarks: it.remarks,
+    },
+    unit: it.unit,
+    imageUrl: null,
+    isActive: it.isActive,
+    createdAt: "2026-07-01T09:00:00.000Z",
+    updatedAt: "2026-11-22T11:20:00.000Z",
+    summary: {
+      totalAllocated,
+      totalReceived,
+      totalAvailable,
+      totalBorrowed,
+      campusCount: totalAllocated > 0 ? activeCampuses : 0,
+    },
+  };
+});
+
+const MASTER_BY_CODE = new Map(DEMO_MASTER_ITEMS.map((i) => [i.code, i]));
+const REAL_JETSON = MASTER_BY_CODE.get("DEV-068") ?? DEMO_MASTER_ITEMS[0];
+const REAL_ROSORIN = MASTER_BY_CODE.get("ROB-120") ?? DEMO_MASTER_ITEMS[1];
+const REAL_RPI = MASTER_BY_CODE.get("DEV-067") ?? DEMO_MASTER_ITEMS[2];
+const REAL_DMM = MASTER_BY_CODE.get("TME-084") ?? DEMO_MASTER_ITEMS[3];
+const REAL_ESP32 = MASTER_BY_CODE.get("DEV-065") ?? DEMO_MASTER_ITEMS[4];
+const REAL_SOLDER = MASTER_BY_CODE.get("TME-086") ?? DEMO_MASTER_ITEMS[5];
+const REAL_BAMBU = MASTER_BY_CODE.get("PRO-111") ?? DEMO_MASTER_ITEMS[6];
+
+export const DEMO_CAMPUS_INVENTORY: CampusInventoryDTO[] = DEMO_MASTER_ITEMS.filter(
+  (it) => it.isActive
+).map((item, idx) => {
+  const specs = item.specifications ?? {};
+  const perCampus =
+    typeof specs.perCampusQty === "number" && specs.perCampusQty > 0
+      ? specs.perCampusQty
+      : 5;
+  const status = typeof specs.procurementStatus === "string" ? specs.procurementStatus : "PR_RAISED";
+  const isVerified = status !== "UNAVAILABLE" && status !== "DRAFT";
+  const allocatedQuantity = perCampus;
+  const damagedQuantity = idx === 1 || idx === 6 ? 1 : 0;
+  const missingQuantity = idx === 6 ? 1 : 0;
+  const receivedQuantity = isVerified ? Math.max(0, allocatedQuantity - missingQuantity) : 0;
+  const borrowedQuantity =
+    receivedQuantity >= 3 ? Math.min(2, Math.floor(receivedQuantity * 0.25)) : 0;
+  const reservedQuantity = receivedQuantity >= 4 && idx % 5 === 0 ? 1 : 0;
+  const availableQuantity = Math.max(
+    0,
+    receivedQuantity - borrowedQuantity - reservedQuantity - damagedQuantity
+  );
+
+  return {
+    id: `inv-cmp01-${item.code.toLowerCase()}`,
     campusId: "demo-campus-01",
     itemId: item.id,
-    allocatedQuantity: 24 + idx * 6,
-    receivedQuantity: 24 + idx * 6 - (idx === 4 ? 2 : 0),
-    availableQuantity: 14 + idx * 4,
-    reservedQuantity: idx % 3 === 0 ? 3 : 1,
-    borrowedQuantity: 4 + (idx % 4) * 2,
-    damagedQuantity: idx === 1 || idx === 4 ? 1 : 0,
-    missingQuantity: idx === 4 ? 1 : 0,
-    isVisible: idx !== 7,
-    isVerified: true,
-    lastVerifiedAt: "2026-11-21T09:30:00.000Z",
+    allocatedQuantity,
+    receivedQuantity,
+    availableQuantity,
+    reservedQuantity,
+    borrowedQuantity,
+    damagedQuantity,
+    missingQuantity,
+    isVisible: status !== "UNAVAILABLE" && item.code !== "PRO-111",
+    isVerified,
+    lastVerifiedAt: isVerified ? "2026-11-21T09:30:00.000Z" : null,
     updatedAt: "2026-11-23T08:15:00.000Z",
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
     item: {
@@ -341,8 +303,8 @@ export const DEMO_CAMPUS_INVENTORY: CampusInventoryDTO[] = DEMO_MASTER_ITEMS.map
       isActive: item.isActive,
       category: item.category!,
     },
-  })
-);
+  };
+});
 
 export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
   {
@@ -365,41 +327,41 @@ export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
       {
         id: "alloc-item-01",
         allocationId: "alloc-demo-01",
-        itemId: "item-jet-03",
-        allocatedQuantity: 10,
+        itemId: REAL_JETSON.id,
+        allocatedQuantity: 2,
         receivedQuantity: 0,
         missingQuantity: 0,
         damagedQuantity: 0,
         isVerified: false,
         verificationNotes: null,
         verifiedAt: null,
-        item: { id: "item-jet-03", code: "CMP-JET-ORIN", name: "NVIDIA Jetson Orin Nano Developer Kit", unit: "kit", category: { id: "cat-comp", name: "AI & Edge Compute" } },
+        item: { id: REAL_JETSON.id, code: REAL_JETSON.code, name: REAL_JETSON.name, unit: REAL_JETSON.unit, category: { id: REAL_JETSON.categoryId, name: REAL_JETSON.category!.name } },
       },
       {
         id: "alloc-item-02",
         allocationId: "alloc-demo-01",
-        itemId: "item-ldr-05",
-        allocatedQuantity: 6,
+        itemId: REAL_ROSORIN.id,
+        allocatedQuantity: 1,
         receivedQuantity: 0,
         missingQuantity: 0,
         damagedQuantity: 0,
         isVerified: false,
         verificationNotes: null,
         verifiedAt: null,
-        item: { id: "item-ldr-05", code: "ROB-LDR-A2M", name: "RPLIDAR A2M12 360° Laser Scanner", unit: "unit", category: { id: "cat-robo", name: "Robotics & Mechatronics" } },
+        item: { id: REAL_ROSORIN.id, code: REAL_ROSORIN.code, name: REAL_ROSORIN.name, unit: REAL_ROSORIN.unit, category: { id: REAL_ROSORIN.categoryId, name: REAL_ROSORIN.category!.name } },
       },
       {
         id: "alloc-item-03",
         allocationId: "alloc-demo-01",
-        itemId: "item-osc-01",
-        allocatedQuantity: 4,
+        itemId: REAL_BAMBU.id,
+        allocatedQuantity: 1,
         receivedQuantity: 0,
         missingQuantity: 0,
         damagedQuantity: 0,
         isVerified: false,
         verificationNotes: null,
         verifiedAt: null,
-        item: { id: "item-osc-01", code: "INS-OSC-100", name: "Rigol DS1054Z Digital Oscilloscope", unit: "unit", category: { id: "cat-inst", name: "Measurement Instruments" } },
+        item: { id: REAL_BAMBU.id, code: REAL_BAMBU.code, name: REAL_BAMBU.name, unit: REAL_BAMBU.unit, category: { id: REAL_BAMBU.categoryId, name: REAL_BAMBU.category!.name } },
       },
     ],
   },
@@ -410,7 +372,7 @@ export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
     destinationCampusId: "demo-campus-02",
     createdById: "demo-user-clm",
     status: "DISCREPANCY_REPORTED",
-    notes: "Hyderabad Semester Equipment Restock",
+    notes: "Hyderabad 5.0 Lab Equipment Batch (RoboCraze / Robu)",
     dispatchedAt: "2026-11-16T08:00:00.000Z",
     verifiedAt: "2026-11-18T15:20:00.000Z",
     verifiedById: "demo-user-lm-02",
@@ -423,15 +385,15 @@ export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
       {
         id: "alloc-item-04",
         allocationId: "alloc-demo-02",
-        itemId: "item-rpi-02",
-        allocatedQuantity: 20,
-        receivedQuantity: 18,
+        itemId: REAL_RPI.id,
+        allocatedQuantity: 4,
+        receivedQuantity: 2,
         missingQuantity: 1,
         damagedQuantity: 1,
         isVerified: true,
-        verificationNotes: "Outer carton crushed on corner; 1 board cracked, 1 unit missing.",
+        verificationNotes: "Outer carton crushed on corner; 1 Raspberry Pi 4B 8GB kit damaged, 1 missing.",
         verifiedAt: "2026-11-18T15:20:00.000Z",
-        item: { id: "item-rpi-02", code: "ELC-RPI-508", name: "Raspberry Pi 5 (8GB) Lab Kit", unit: "kit" },
+        item: { id: REAL_RPI.id, code: REAL_RPI.code, name: REAL_RPI.name, unit: REAL_RPI.unit },
       },
     ],
   },
@@ -442,7 +404,7 @@ export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
     destinationCampusId: "demo-campus-01",
     createdById: "demo-user-clm",
     status: "RECEIVED",
-    notes: "Standard Multimeter Replenishment",
+    notes: "Assembly Arena Multimeter & Soldering Station Dispatch",
     dispatchedAt: "2026-11-10T09:00:00.000Z",
     verifiedAt: "2026-11-12T11:45:00.000Z",
     verifiedById: "demo-user-lm-01",
@@ -455,15 +417,15 @@ export const DEMO_ALLOCATIONS: StockAllocationDTO[] = [
       {
         id: "alloc-item-05",
         allocationId: "alloc-demo-03",
-        itemId: "item-flk-04",
-        allocatedQuantity: 15,
-        receivedQuantity: 15,
+        itemId: REAL_DMM.id,
+        allocatedQuantity: 2,
+        receivedQuantity: 2,
         missingQuantity: 0,
         damagedQuantity: 0,
         isVerified: true,
-        verificationNotes: "All 15 units verified & sealed.",
+        verificationNotes: "Both Digital Multimeter (MAS830) units verified & sealed.",
         verifiedAt: "2026-11-12T11:45:00.000Z",
-        item: { id: "item-flk-04", code: "INS-FLK-117", name: "Fluke 117 True-RMS Digital Multimeter", unit: "unit" },
+        item: { id: REAL_DMM.id, code: REAL_DMM.code, name: REAL_DMM.name, unit: REAL_DMM.unit },
       },
     ],
   },
@@ -511,27 +473,27 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
       {
         id: "req-item-01a",
         requestId: "req-demo-01",
-        itemId: "item-jet-03",
+        itemId: REAL_JETSON.id,
         requestedQuantity: 1,
         approvedQuantity: 0,
         issuedQuantity: 0,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-jet-03", code: "CMP-JET-ORIN", name: "NVIDIA Jetson Orin Nano Developer Kit", unit: "kit", imageUrl: null },
+        item: { id: REAL_JETSON.id, code: REAL_JETSON.code, name: REAL_JETSON.name, unit: REAL_JETSON.unit, imageUrl: null },
         photos: [],
       },
       {
         id: "req-item-01b",
         requestId: "req-demo-01",
-        itemId: "item-ldr-05",
+        itemId: REAL_ROSORIN.id,
         requestedQuantity: 1,
         approvedQuantity: 0,
         issuedQuantity: 0,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-ldr-05", code: "ROB-LDR-A2M", name: "RPLIDAR A2M12 360° Laser Scanner", unit: "unit", imageUrl: null },
+        item: { id: REAL_ROSORIN.id, code: REAL_ROSORIN.code, name: REAL_ROSORIN.name, unit: REAL_ROSORIN.unit, imageUrl: null },
         photos: [],
       },
     ],
@@ -555,14 +517,14 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
       {
         id: "req-item-02a",
         requestId: "req-demo-02",
-        itemId: "item-osc-01",
-        requestedQuantity: 2,
-        approvedQuantity: 2,
+        itemId: REAL_SOLDER.id,
+        requestedQuantity: 1,
+        approvedQuantity: 1,
         issuedQuantity: 0,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-osc-01", code: "INS-OSC-100", name: "Rigol DS1054Z Digital Oscilloscope", unit: "unit", imageUrl: null },
+        item: { id: REAL_SOLDER.id, code: REAL_SOLDER.code, name: REAL_SOLDER.name, unit: REAL_SOLDER.unit, imageUrl: null },
         photos: [],
       },
     ],
@@ -597,15 +559,15 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
       {
         id: "req-item-03a",
         requestId: "req-demo-03",
-        itemId: "item-rpi-02",
+        itemId: REAL_RPI.id,
         requestedQuantity: 2,
         approvedQuantity: 2,
         issuedQuantity: 0,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-rpi-02", code: "ELC-RPI-508", name: "Raspberry Pi 5 (8GB) Lab Kit", unit: "kit", imageUrl: null },
-        photos: buildFourPhotos("req-demo-03", "req-item-03a", null, "COLLECTION", "Raspberry Pi 5 Lab Kit").slice(0, 2),
+        item: { id: REAL_RPI.id, code: REAL_RPI.code, name: REAL_RPI.name, unit: REAL_RPI.unit, imageUrl: null },
+        photos: buildFourPhotos("req-demo-03", "req-item-03a", null, "COLLECTION", REAL_RPI.name).slice(0, 2),
       },
     ],
     approvals: [
@@ -649,17 +611,17 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
       {
         id: "req-item-04a",
         requestId: "req-demo-04",
-        itemId: "item-flk-04",
+        itemId: REAL_DMM.id,
         requestedQuantity: 1,
         approvedQuantity: 1,
         issuedQuantity: 1,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-flk-04", code: "INS-FLK-117", name: "Fluke 117 True-RMS Digital Multimeter", unit: "unit", imageUrl: null },
+        item: { id: REAL_DMM.id, code: REAL_DMM.code, name: REAL_DMM.name, unit: REAL_DMM.unit, imageUrl: null },
         photos: [
-          ...buildFourPhotos("req-demo-04", "req-item-04a", "borrow-demo-04a", "COLLECTION", "Fluke 117 Multimeter"),
-          ...buildFourPhotos("req-demo-04", "req-item-04a", "borrow-demo-04a", "RETURN", "Fluke 117 Multimeter"),
+          ...buildFourPhotos("req-demo-04", "req-item-04a", "borrow-demo-04a", "COLLECTION", REAL_DMM.name),
+          ...buildFourPhotos("req-demo-04", "req-item-04a", "borrow-demo-04a", "RETURN", REAL_DMM.name),
         ],
         borrowingRecords: [
           {
@@ -667,7 +629,7 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
             requestId: "req-demo-04",
             requestItemId: "req-item-04a",
             campusId: "demo-campus-01",
-            itemId: "item-flk-04",
+            itemId: REAL_DMM.id,
             studentId: "demo-user-stu-01",
             issuedByInstructorId: "demo-user-inst-01",
             issuedQuantity: 1,
@@ -677,7 +639,7 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
             issuedAt: "2026-11-18T10:30:00.000Z",
             dueAt: "2026-11-25T17:00:00.000Z",
             closedAt: null,
-            item: { id: "item-flk-04", code: "INS-FLK-117", name: "Fluke 117 True-RMS Digital Multimeter", unit: "unit" },
+            item: { id: REAL_DMM.id, code: REAL_DMM.code, name: REAL_DMM.name, unit: REAL_DMM.unit },
             returnVerifications: [
               {
                 id: "rv-demo-04a",
@@ -740,22 +702,22 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
       {
         id: "req-item-05a",
         requestId: "req-demo-05",
-        itemId: "item-ard-06",
+        itemId: REAL_ESP32.id,
         requestedQuantity: 2,
         approvedQuantity: 2,
         issuedQuantity: 2,
         returnedQuantity: 0,
         damagedQuantity: 0,
         missingQuantity: 0,
-        item: { id: "item-ard-06", code: "ELC-ARD-GIGA", name: "Arduino GIGA R1 WiFi Board", unit: "unit", imageUrl: null },
-        photos: buildFourPhotos("req-demo-05", "req-item-05a", "borrow-demo-05a", "COLLECTION", "Arduino GIGA R1 WiFi"),
+        item: { id: REAL_ESP32.id, code: REAL_ESP32.code, name: REAL_ESP32.name, unit: REAL_ESP32.unit, imageUrl: null },
+        photos: buildFourPhotos("req-demo-05", "req-item-05a", "borrow-demo-05a", "COLLECTION", REAL_ESP32.name),
         borrowingRecords: [
           {
             id: "borrow-demo-05a",
             requestId: "req-demo-05",
             requestItemId: "req-item-05a",
             campusId: "demo-campus-01",
-            itemId: "item-ard-06",
+            itemId: REAL_ESP32.id,
             studentId: "demo-user-stu-01",
             issuedByInstructorId: "demo-user-inst-01",
             issuedQuantity: 2,
@@ -765,7 +727,7 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
             issuedAt: "2026-11-19T11:00:00.000Z",
             dueAt: "2026-11-28T17:00:00.000Z",
             closedAt: null,
-            item: { id: "item-ard-06", code: "ELC-ARD-GIGA", name: "Arduino GIGA R1 WiFi Board", unit: "unit" },
+            item: { id: REAL_ESP32.id, code: REAL_ESP32.code, name: REAL_ESP32.name, unit: REAL_ESP32.unit },
             returnVerifications: [],
           },
         ],
@@ -782,12 +744,12 @@ export const DEMO_TICKETS: IssueTicketDTO[] = [
     campusId: "demo-campus-01",
     createdById: "demo-user-inst-01",
     assignedToId: "demo-user-lm-01",
-    itemId: "item-osc-01",
+    itemId: REAL_SOLDER.id,
     category: "MALFUNCTIONING_EQUIPMENT",
     priority: "HIGH",
     status: "IN_PROGRESS",
-    title: "Channel 3 BNC probe connector loose on Rigol #04",
-    description: "Signal drops intermittently when probe cable moves slightly. Needs calibration & BNC barrel inspection.",
+    title: "Hot-air nozzle thermal drift on Soldron-878d station",
+    description: "Temperature fluctuates ±15°C in Soldering Station Arena. Needs thermocouple inspection & tip calibration.",
     attachmentUrls: [],
     resolutionNotes: null,
     createdAt: "2026-11-21T13:15:00.000Z",
@@ -796,13 +758,13 @@ export const DEMO_TICKETS: IssueTicketDTO[] = [
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
     createdBy: { id: "demo-user-inst-01", fullName: "Prof. Ananya Deshmukh", email: "instructor1.cmp01@campuslab.edu", role: "INSTRUCTOR" },
     assignedTo: { id: "demo-user-lm-01", fullName: "Rajesh Kulkarni", email: "labmanager.cmp01@campuslab.edu" },
-    item: { id: "item-osc-01", code: "INS-OSC-100", name: "Rigol DS1054Z Digital Oscilloscope" },
+    item: { id: REAL_SOLDER.id, code: REAL_SOLDER.code, name: REAL_SOLDER.name },
     comments: [
       {
         id: "cmt-01",
         ticketId: "tkt-demo-01",
         authorId: "demo-user-lm-01",
-        body: "Tagged unit out of active circulation and ordered replacement BNC socket assembly.",
+        body: "Tagged unit out of active circulation and ordered replacement heater core via RoboCraze.",
         attachmentUrls: [],
         createdAt: "2026-11-22T09:40:00.000Z",
         author: { id: "demo-user-lm-01", fullName: "Rajesh Kulkarni", role: "LAB_MANAGER" },
@@ -815,12 +777,12 @@ export const DEMO_TICKETS: IssueTicketDTO[] = [
     campusId: "demo-campus-01",
     createdById: "demo-user-inst-01",
     assignedToId: null,
-    itemId: "item-ldr-05",
+    itemId: REAL_ROSORIN.id,
     category: "INVENTORY_DISCREPANCY",
     priority: "MEDIUM",
     status: "OPEN",
-    title: "Missing USB-UART adapter cable in RPLIDAR shelf bin",
-    description: "One RPLIDAR unit in rack C-2 is missing its silicon UART bridge board.",
+    title: "Missing LiDAR power jumper in ROSOrin Pro Display Rack kit",
+    description: "ROSOrin Pro Smart Car in Display Rack is missing its spare USB-C telemetry harness.",
     attachmentUrls: [],
     resolutionNotes: null,
     createdAt: "2026-11-22T15:00:00.000Z",
@@ -829,7 +791,7 @@ export const DEMO_TICKETS: IssueTicketDTO[] = [
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
     createdBy: { id: "demo-user-inst-01", fullName: "Prof. Ananya Deshmukh", email: "instructor1.cmp01@campuslab.edu", role: "INSTRUCTOR" },
     assignedTo: null,
-    item: { id: "item-ldr-05", code: "ROB-LDR-A2M", name: "RPLIDAR A2M12 360° Laser Scanner" },
+    item: { id: REAL_ROSORIN.id, code: REAL_ROSORIN.code, name: REAL_ROSORIN.name },
     comments: [],
   },
 ];
@@ -838,49 +800,49 @@ export const DEMO_TRANSACTIONS: InventoryTransactionDTO[] = [
   {
     id: "txn-01",
     campusId: "demo-campus-01",
-    itemId: "item-rpi-02",
+    itemId: REAL_RPI.id,
     type: "STOCK_RESERVED",
     quantity: 2,
-    previousQuantity: 20,
-    updatedQuantity: 18,
+    previousQuantity: 2,
+    updatedQuantity: 0,
     referenceType: "LabRequest",
     referenceId: "req-demo-03",
     remarks: "Approved request REQ-CMP01-0404",
     createdAt: "2026-11-21T10:30:00.000Z",
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
-    item: { id: "item-rpi-02", code: "ELC-RPI-508", name: "Raspberry Pi 5 (8GB) Lab Kit" },
+    item: { id: REAL_RPI.id, code: REAL_RPI.code, name: REAL_RPI.name },
     performedBy: { id: "demo-user-lm-01", fullName: "Rajesh Kulkarni", role: "LAB_MANAGER" },
   },
   {
     id: "txn-02",
     campusId: "demo-campus-01",
-    itemId: "item-ard-06",
+    itemId: REAL_ESP32.id,
     type: "ITEM_ISSUED",
     quantity: 2,
-    previousQuantity: 2,
-    updatedQuantity: 0,
+    previousQuantity: 5,
+    updatedQuantity: 3,
     referenceType: "LabRequest",
     referenceId: "req-demo-05",
     remarks: "Confirmed collection after 4-angle photo verification",
     createdAt: "2026-11-19T11:00:00.000Z",
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
-    item: { id: "item-ard-06", code: "ELC-ARD-GIGA", name: "Arduino GIGA R1 WiFi Board" },
+    item: { id: REAL_ESP32.id, code: REAL_ESP32.code, name: REAL_ESP32.name },
     performedBy: { id: "demo-user-inst-01", fullName: "Prof. Ananya Deshmukh", role: "INSTRUCTOR" },
   },
   {
     id: "txn-03",
     campusId: "demo-campus-01",
-    itemId: "item-flk-04",
+    itemId: REAL_DMM.id,
     type: "STOCK_RECEIVED",
-    quantity: 15,
-    previousQuantity: 11,
-    updatedQuantity: 26,
+    quantity: 2,
+    previousQuantity: 0,
+    updatedQuantity: 2,
     referenceType: "StockAllocation",
     referenceId: "alloc-demo-03",
     remarks: "Verified incoming allocation ALLOC-2026-0131",
     createdAt: "2026-11-12T11:45:00.000Z",
     campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
-    item: { id: "item-flk-04", code: "INS-FLK-117", name: "Fluke 117 True-RMS Digital Multimeter" },
+    item: { id: REAL_DMM.id, code: REAL_DMM.code, name: REAL_DMM.name },
     performedBy: { id: "demo-user-lm-01", fullName: "Rajesh Kulkarni", role: "LAB_MANAGER" },
   },
 ];
@@ -937,8 +899,11 @@ export const DEMO_CENTRAL_DASHBOARD: CentralDashboardDTO = {
   kpis: {
     totalCampuses: 40,
     activeCampuses: 39,
-    totalMasterItems: 142,
-    totalAllocatedUnits: 18420,
+    totalMasterItems: DEMO_MASTER_ITEMS.filter((i) => i.isActive).length,
+    totalAllocatedUnits: DEMO_MASTER_ITEMS.reduce(
+      (sum, item) => sum + (item.summary?.totalAllocated ?? 0),
+      0
+    ),
     pendingVerifications: 7,
     activeUsers: 11240,
     pendingRequests: 64,
@@ -967,12 +932,12 @@ export const DEMO_CENTRAL_DASHBOARD: CentralDashboardDTO = {
 export const DEMO_LAB_MANAGER_DASHBOARD: LabManagerDashboardDTO = {
   campus: { id: "demo-campus-01", code: "CMP-01", name: "Bengaluru North Campus" },
   kpis: {
-    totalCampusUnits: 360,
-    availableUnits: 232,
-    borrowedUnits: 58,
-    reservedUnits: 16,
-    damagedUnits: 2,
-    missingUnits: 1,
+    totalCampusUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.allocatedQuantity, 0),
+    availableUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.availableQuantity, 0),
+    borrowedUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.borrowedQuantity, 0),
+    reservedUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.reservedQuantity, 0),
+    damagedUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.damagedQuantity, 0),
+    missingUnits: DEMO_CAMPUS_INVENTORY.reduce((s, i) => s + i.missingQuantity, 0),
     incomingAllocations: 1,
     pendingStudentRequests: 1,
     openTickets: 2,

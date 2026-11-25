@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Cpu, PlusCircle, Search } from "lucide-react";
+import { Cpu, MapPin, PlusCircle, Search } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_CAMPUS_INVENTORY, DEMO_CATEGORIES } from "@/lib/demo-data";
+import {
+  extractItemProcurementMeta,
+  PROCUREMENT_LAB_BLOCKS,
+} from "@/lib/procurement-catalog";
 import type { CampusInventoryDTO, ItemCategoryDTO } from "@/types/contracts";
 
 export default function StudentInventoryBrowsePage() {
@@ -26,11 +30,12 @@ export default function StudentInventoryBrowsePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [labBlockFilter, setLabBlockFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState<"name" | "available">("name");
 
   useEffect(() => {
     Promise.all([
-      apiClient.inventory.list({ pageSize: 100 }).then((r) => r.data),
+      apiClient.inventory.list({ pageSize: 250 }).then((r) => r.data),
       apiClient.categories.list().then((r) => r.data),
     ])
       .then(([inv, cats]) => {
@@ -49,13 +54,19 @@ export default function StudentInventoryBrowsePage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = items.filter((r) => {
+      const meta = extractItemProcurementMeta(r.item.specifications);
       if (categoryFilter !== "ALL" && r.item.category.id !== categoryFilter) {
+        return false;
+      }
+      if (labBlockFilter !== "ALL" && meta.labBlock !== labBlockFilter) {
         return false;
       }
       if (!q) return true;
       return (
         r.item.name.toLowerCase().includes(q) ||
         r.item.code.toLowerCase().includes(q) ||
+        r.item.category.name.toLowerCase().includes(q) ||
+        (meta.labBlock?.toLowerCase().includes(q) ?? false) ||
         (r.item.description?.toLowerCase().includes(q) ?? false)
       );
     });
@@ -64,13 +75,13 @@ export default function StudentInventoryBrowsePage() {
         ? b.availableQuantity - a.availableQuantity
         : a.item.name.localeCompare(b.item.name)
     );
-  }, [items, search, categoryFilter, sortBy]);
+  }, [items, search, categoryFilter, labBlockFilter, sortBy]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Campus Lab Equipment Catalog"
-        description="Browse verified equipment currently available for borrowing at your campus laboratory."
+        description="Browse verified equipment across your campus lab blocks and add items directly to your borrowing request."
         actions={
           <Button asChild>
             <Link href="/student/new-request">
@@ -87,12 +98,12 @@ export default function StudentInventoryBrowsePage() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search oscilloscopes, Raspberry Pi, sensors..."
+            placeholder="Search Arduino, Raspberry Pi, sensors, lab block..."
             className="pl-10"
           />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-52">
+          <SelectTrigger className="w-48">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
@@ -100,6 +111,19 @@ export default function StudentInventoryBrowsePage() {
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={labBlockFilter} onValueChange={setLabBlockFilter}>
+          <SelectTrigger className="w-52">
+            <SelectValue placeholder="All Lab Blocks" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Lab Blocks</SelectItem>
+            {PROCUREMENT_LAB_BLOCKS.map((block) => (
+              <SelectItem key={block} value={block}>
+                {block}
               </SelectItem>
             ))}
           </SelectContent>
@@ -116,6 +140,9 @@ export default function StudentInventoryBrowsePage() {
             <SelectItem value="available">Sort: Most Available</SelectItem>
           </SelectContent>
         </Select>
+        <span className="ml-auto text-xs text-black/55 tabular-nums">
+          {filtered.length} items
+        </span>
       </div>
 
       {loading ? (
@@ -124,12 +151,14 @@ export default function StudentInventoryBrowsePage() {
             <Skeleton key={i} className="h-64 rounded-[22px] bg-[#F5F5F3] border border-black/10" />
           ))}
         </div>
+      ) : filtered.length === 0 ? (
+        <Card className="p-10 text-center text-sm text-black/55">
+          No lab equipment matches your search or lab block filter.
+        </Card>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((row) => {
-            const specs = row.item.specifications
-              ? Object.entries(row.item.specifications).slice(0, 3)
-              : [];
+            const meta = extractItemProcurementMeta(row.item.specifications);
             return (
               <Card
                 key={row.id}
@@ -172,7 +201,7 @@ export default function StudentInventoryBrowsePage() {
                         {row.item.category.name}
                       </Badge>
                       {row.item.brand && (
-                        <span className="text-xs text-black/55">
+                        <span className="text-xs text-black/55 truncate">
                           {row.item.brand}
                         </span>
                       )}
@@ -186,18 +215,19 @@ export default function StudentInventoryBrowsePage() {
                       </p>
                     )}
 
-                    {specs.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {specs.map(([k, v]) => (
-                          <span
-                            key={k}
-                            className="rounded-full bg-[#F5F5F3] border border-black/10 px-2.5 py-0.5 text-[10px] text-black/55 tabular-nums"
-                          >
-                            {k}: <strong className="font-semibold text-black">{String(v)}</strong>
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {meta.labBlock && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F5F3] border border-black/10 px-2.5 py-0.5 text-[10px] font-medium text-black/75">
+                          <MapPin className="h-3 w-3 text-black/50" />
+                          {meta.labBlock}
+                        </span>
+                      )}
+                      {meta.allocationScope === "ALL_40_LABS" && (
+                        <span className="inline-flex items-center rounded-full bg-[#C4F041]/45 border border-black/10 px-2.5 py-0.5 text-[10px] font-semibold text-black">
+                          Innovators Kit V1
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import { promises as fs } from "fs";
+import {
+  PROCUREMENT_CATEGORIES,
+  PROCUREMENT_ITEMS,
+} from "../src/lib/procurement-catalog";
 
 const prisma = new PrismaClient();
 
@@ -47,33 +51,7 @@ const CAMPUSES_40 = [
   { code: "CMP-40", name: "Panaji Goa Robotics & Marine Campus", city: "Panaji", state: "Goa" },
 ] as const;
 
-const CATEGORIES = [
-  { name: "Microcontrollers & SBCs", slug: "microcontrollers-sbcs", description: "Arduino, Raspberry Pi, ESP32, and STM32 development boards" },
-  { name: "Test & Measurement", slug: "test-measurement", description: "Oscilloscopes, multimeters, logic analyzers, and function generators" },
-  { name: "Prototyping & Wiring", slug: "prototyping-wiring", description: "Breadboards, jumper wire bundles, perfboards, and connectors" },
-  { name: "Sensors & Actuators", slug: "sensors-actuators", description: "Ultrasonic, IMU, thermal sensors, servos, and stepper motors" },
-  { name: "Power & Soldering", slug: "power-soldering", description: "Bench power supplies, soldering stations, and hot-air rework tools" },
-  { name: "Precision & Optics", slug: "precision-optics", description: "Digital calipers, microscopes, and thermal imaging cameras" },
-] as const;
-
-const MASTER_ITEMS = [
-  { code: "ARD-UNO-R4", name: "Arduino Uno R4 WiFi", categorySlug: "microcontrollers-sbcs", brand: "Arduino", unit: "pcs", description: "32-bit RA4M1 microcontroller with onboard ESP32-S3 WiFi/BLE and 12x8 LED matrix", specifications: { mcu: "Renesas RA4M1", voltage: "5V", clock: "48MHz", connectivity: "WiFi + BLE" } },
-  { code: "RPI-5-8GB", name: "Raspberry Pi 5 (8GB)", categorySlug: "microcontrollers-sbcs", brand: "Raspberry Pi", unit: "pcs", description: "Quad-core Arm Cortex-A76 single-board computer with PCIe 2.0", specifications: { cpu: "Cortex-A76 2.4GHz", ram: "8GB LPDDR4X", ports: "2x microHDMI, 2x USB 3.0" } },
-  { code: "ESP32-S3-DEV", name: "ESP32-S3 DevKitC-1", categorySlug: "microcontrollers-sbcs", brand: "Espressif", unit: "pcs", description: "Dual-core Xtensa LX7 AI-accelerated IoT microcontroller board", specifications: { flash: "16MB", psram: "8MB", wifi: "802.11 b/g/n", bluetooth: "5.0 LE" } },
-  { code: "OSC-DSO-100", name: "Digital Storage Oscilloscope 100MHz", categorySlug: "test-measurement", brand: "Rigol", unit: "unit", description: "4-channel 100MHz 1GSa/s digital storage oscilloscope with 7-inch display", specifications: { bandwidth: "100MHz", channels: 4, sampleRate: "1 GSa/s" } },
-  { code: "DMM-FLUKE-117", name: "True-RMS Digital Multimeter", categorySlug: "test-measurement", brand: "Fluke", unit: "unit", description: "Auto-ranging True-RMS multimeter with VoltAlert non-contact voltage detection", specifications: { safety: "CAT III 600V", trueRms: true, accuracy: "0.5% DC" } },
-  { code: "LA-SALEAE-8", name: "8-Channel USB Logic Analyzer", categorySlug: "test-measurement", brand: "Saleae", unit: "unit", description: "High-speed digital & analog protocol analyzer supporting SPI, I2C, UART, CAN", specifications: { channels: 8, maxDigitalRate: "100 MS/s" } },
-  { code: "FG-SDG-2042", name: "Dual-Channel Function Generator 40MHz", categorySlug: "test-measurement", brand: "Siglent", unit: "unit", description: "Arbitrary waveform and function generator with 1.2GSa/s sampling", specifications: { channels: 2, maxFreq: "40MHz", resolution: "16-bit" } },
-  { code: "BRD-830-TIE", name: "830-Tie Solderless Breadboard", categorySlug: "prototyping-wiring", brand: "Elenco", unit: "pcs", description: "Full-size 830 tie-point breadboard with dual power rails", specifications: { tiePoints: 830, pitch: "2.54mm" } },
-  { code: "JMP-KIT-120", name: "Jumper Wire Assortment Pack (120 pcs)", categorySlug: "prototyping-wiring", brand: "Elegoo", unit: "kit", description: "40x M-M, 40x M-F, 40x F-F ribbon jumper cables (20cm)", specifications: { count: 120, length: "20cm", gauge: "26 AWG" } },
-  { code: "SEN-ULTRA-10", name: "HC-SR04 Ultrasonic Sensor Pack", categorySlug: "sensors-actuators", brand: "SparkFun", unit: "kit", description: "Precision ultrasonic distance sensing module kit (2cm - 400cm)", specifications: { range: "2-400cm", accuracy: "3mm", voltage: "5V" } },
-  { code: "ACT-SERVO-MG996", name: "MG996R High-Torque Metal Gear Servo Kit", categorySlug: "sensors-actuators", brand: "TowerPro", unit: "kit", description: "High-torque metal-gear servo motor pack for robotics arms", specifications: { torque: "11 kg-cm", voltage: "4.8V-7.2V", rotation: "180 deg" } },
-  { code: "SEN-IMU-MPU", name: "6-Axis IMU Accelerometer & Gyroscope", categorySlug: "sensors-actuators", brand: "TDK InvenSense", unit: "pcs", description: "MPU-6050 6-DOF motion tracking sensor breakout board", specifications: { interface: "I2C", dof: 6, voltage: "3.3V-5V" } },
-  { code: "PWR-DC-30V5A", name: "Programmable Bench DC Power Supply 30V 5A", categorySlug: "power-soldering", brand: "Korad", unit: "unit", description: "Low-ripple linear regulated bench power supply with OCP/OVP", specifications: { maxVoltage: "30V", maxCurrent: "5A", memories: 5 } },
-  { code: "SOL-HAKKO-888", name: "Temperature-Controlled Soldering Station", categorySlug: "power-soldering", brand: "Hakko", unit: "unit", description: "70W ESD-safe digital soldering station with quick thermal recovery", specifications: { power: "70W", tempRange: "200C-480C", esdSafe: true } },
-  { code: "CAL-DIG-150", name: "Stainless Steel Digital Vernier Caliper", categorySlug: "precision-optics", brand: "Mitutoyo", unit: "unit", description: "0-150mm precision digital caliper with 0.01mm resolution", specifications: { range: "0-150mm", resolution: "0.01mm", ipRating: "IP67" } },
-  { code: "CAM-THERM-FLIR", name: "Infrared Thermal Inspection Camera", categorySlug: "precision-optics", brand: "FLIR", unit: "unit", description: "Compact PCB thermal diagnostics camera for identifying hot components", specifications: { resolution: "160x120", tempRange: "-20C to 400C" } },
-] as const;
+// Categories & master items are loaded from src/lib/procurement-catalog.ts (12 categories, 166 real items).
 
 async function ensureSamplePhotoFiles() {
   const dir = path.join(process.cwd(), "public", "uploads", "samples");
@@ -183,28 +161,49 @@ async function main() {
   const inst1Cmp2 = usersByEmail.get("inst1.cmp02@campuslab.edu")!;
   const stu1Cmp2 = usersByEmail.get("student1.cmp02@campuslab.edu")!;
 
-  // 3. Seed Categories & 16 Master Items
+  // 3. Seed 12 Real Categories & ALL 166 Real 5.0 Lab Procurement Master Items
   const catBySlug = new Map<string, string>();
-  for (const cat of CATEGORIES) {
+  for (const cat of PROCUREMENT_CATEGORIES) {
     const rec = await prisma.itemCategory.upsert({
       where: { slug: cat.slug },
       update: { name: cat.name, description: cat.description },
-      create: cat,
+      create: {
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+      },
     });
     catBySlug.set(rec.slug, rec.id);
   }
 
   const itemByCode = new Map<string, { id: string; code: string; name: string }>();
-  for (const it of MASTER_ITEMS) {
+  for (const it of PROCUREMENT_ITEMS) {
+    const specifications = {
+      srNo: it.srNo,
+      labBlock: it.labBlock,
+      vendorResearch: it.vendorResearch,
+      vendorActual: it.vendorActual,
+      productUrl: it.productUrl,
+      unitPriceInr: it.unitPriceInr,
+      procurementQty: it.procurementQty,
+      perCampusQty: it.perCampusQty,
+      totalPriceInr: it.totalPriceInr,
+      addedOn: it.addedOn,
+      procurementStatus: it.procurementStatus,
+      allocationScope: it.allocationScope,
+      remarks: it.remarks,
+    };
+
     const rec = await prisma.item.upsert({
       where: { code: it.code },
       update: {
         name: it.name,
         description: it.description,
+        categoryId: catBySlug.get(it.categorySlug)!,
         brand: it.brand,
         unit: it.unit,
-        specifications: it.specifications,
-        isActive: true,
+        specifications,
+        isActive: it.isActive,
       },
       create: {
         code: it.code,
@@ -213,24 +212,24 @@ async function main() {
         categoryId: catBySlug.get(it.categorySlug)!,
         brand: it.brand,
         unit: it.unit,
-        specifications: it.specifications,
-        isActive: true,
+        specifications,
+        isActive: it.isActive,
       },
     });
     itemByCode.set(rec.code, rec);
   }
-  console.log(`✅ Seeded ${catBySlug.size} categories & ${itemByCode.size} master items`);
+  console.log(`✅ Seeded ${catBySlug.size} real categories & ${itemByCode.size} real master items`);
 
-  const arduino = itemByCode.get("ARD-UNO-R4")!;
-  const rpi = itemByCode.get("RPI-5-8GB")!;
-  const esp32 = itemByCode.get("ESP32-S3-DEV")!;
-  const osc = itemByCode.get("OSC-DSO-100")!;
-  const dmm = itemByCode.get("DMM-FLUKE-117")!;
-  const breadboard = itemByCode.get("BRD-830-TIE")!;
-  const jumpers = itemByCode.get("JMP-KIT-120")!;
-  const servo = itemByCode.get("ACT-SERVO-MG996")!;
-  const solder = itemByCode.get("SOL-HAKKO-888")!;
-  const thermal = itemByCode.get("CAM-THERM-FLIR")!;
+  const arduino = itemByCode.get("DEV-063")!;
+  const rpi = itemByCode.get("DEV-067")!;
+  const esp32 = itemByCode.get("DEV-065")!;
+  const osc = itemByCode.get("DEV-068")!;
+  const dmm = itemByCode.get("TME-084")!;
+  const breadboard = itemByCode.get("PRO-091")!;
+  const jumpers = itemByCode.get("PRO-105")!;
+  const servo = itemByCode.get("ACT-060")!;
+  const solder = itemByCode.get("TME-086")!;
+  const thermal = itemByCode.get("PRO-111")!;
 
   // 4. Seed Campus Inventories (verified + visible, verified + hidden, and unverified)
   const inventorySeeds = [

@@ -4,7 +4,13 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { CheckCircle2, Search, X } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import {
   SmoothScrollProvider,
   useLenis,
@@ -47,6 +53,7 @@ function BrowseInventoryInner() {
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [labBlockFilter, setLabBlockFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState<"name" | "available">("name");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
 
@@ -276,9 +283,28 @@ function BrowseInventoryInner() {
     }
   };
 
+  const activeFilterCount =
+    (categoryFilter !== "ALL" ? 1 : 0) +
+    (labBlockFilter !== "ALL" ? 1 : 0) +
+    (sortBy !== "name" ? 1 : 0);
+
+  const hasAnyFilter = activeFilterCount > 0 || search.trim().length > 0;
+
+  const activeCategoryName = useMemo(
+    () => categories.find((c) => c.id === categoryFilter)?.name ?? null,
+    [categories, categoryFilter]
+  );
+
+  const clearAllFilters = useCallback(() => {
+    setSearch("");
+    setCategoryFilter("ALL");
+    setLabBlockFilter("ALL");
+    setSortBy("name");
+  }, []);
+
   return (
     <div
-      className="space-y-6 pb-28"
+      className="space-y-4 sm:space-y-6 pb-36 sm:pb-28"
       style={{
         fontFamily:
           "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
@@ -301,12 +327,12 @@ function BrowseInventoryInner() {
       />
 
       {/* Clean Editorial Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] sm:text-[34px] font-medium tracking-[-0.03em] text-black leading-tight">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-[24px] sm:text-[34px] font-medium tracking-[-0.03em] text-black leading-tight">
             Browse Inventory
           </h1>
-          <p className="mt-1 text-[15px] text-black/60">
+          <p className="mt-1 text-[13.5px] sm:text-[15px] text-black/60 leading-snug">
             Select any parts and quantities right here — submit directly from
             the floating bar below.
           </p>
@@ -314,7 +340,7 @@ function BrowseInventoryInner() {
 
         <Link
           href="/student/requests"
-          className="text-[15px] font-medium text-black/65 hover:text-black transition-colors"
+          className="inline-flex min-h-[40px] sm:min-h-0 items-center rounded-full border border-black/14 bg-white px-3.5 text-[13.5px] font-medium text-black/80 transition-colors hover:border-black/30 hover:text-black sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:text-[15px] sm:text-black/65"
         >
           Track My Requests
         </Link>
@@ -328,10 +354,10 @@ function BrowseInventoryInner() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.35, ease: LP_EASE }}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-black/14 bg-white px-5 py-3.5"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] sm:rounded-[20px] border border-black/14 bg-white px-3.5 py-3 sm:px-5 sm:py-3.5"
           >
-            <div className="flex items-center gap-3 text-[15px] text-black">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C4F041] border border-black/15">
+            <div className="flex items-center gap-2.5 sm:gap-3 text-[13.5px] sm:text-[15px] text-black">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4F041] border border-black/15">
                 <CheckCircle2 className="h-4 w-4 text-black" />
               </span>
               <span>
@@ -339,7 +365,7 @@ function BrowseInventoryInner() {
                 and sent for approval.
               </span>
             </div>
-            <div className="flex items-center gap-5 text-[14px] font-medium">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-5 text-[13.5px] sm:text-[14px] font-medium">
               <Link
                 href="/student/dashboard"
                 className="text-black underline decoration-black/30 underline-offset-4 hover:decoration-black"
@@ -355,7 +381,7 @@ function BrowseInventoryInner() {
               <button
                 type="button"
                 onClick={() => setJustSubmittedCount(null)}
-                className="text-black/45 hover:text-black cursor-pointer"
+                className="flex h-8 w-8 sm:h-auto sm:w-auto items-center justify-center text-black/45 hover:text-black cursor-pointer"
                 aria-label="Dismiss"
               >
                 <X className="h-4 w-4" />
@@ -365,83 +391,196 @@ function BrowseInventoryInner() {
         )}
       </AnimatePresence>
 
-      {/* Clean Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-[22px] border border-black/12 bg-white p-4">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
+      {/* Clean Responsive Filter Bar (collapsible controls on mobile, single inline bar on sm+) */}
+      <div className="rounded-[20px] sm:rounded-[22px] border border-black/12 bg-white p-3 sm:p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+        {/* Full-width search bar on top for mobile, flexible pill on sm+ */}
+        <div className="relative w-full sm:flex-1 sm:min-w-[240px] sm:max-w-md">
+          <Search className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Arduino, Raspberry Pi, sensors, lab block..."
-            className="h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-4 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
+            className="min-h-[44px] h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-10 sm:pr-4 text-[16px] sm:text-[14px] text-black placeholder:text-black/45 focus:border-black focus:bg-white focus:outline-none"
           />
+          {search.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-black/45 hover:bg-black/8 hover:text-black cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
-        >
-          <option value="ALL">All Categories ({categories.length})</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {/* Mobile compact filter toggle row */}
+        <div className="mt-2.5 flex items-center justify-between gap-2 sm:hidden">
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen((prev) => !prev)}
+              aria-expanded={mobileFiltersOpen}
+              className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3.5 text-[13.5px] font-medium transition-colors cursor-pointer ${
+                mobileFiltersOpen || activeFilterCount > 0
+                  ? "border-black bg-black text-white"
+                  : "border-black/15 bg-[#F7F7F5] text-black"
+              }`}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#C4F041] px-1.5 text-[11px] font-semibold text-black tabular-nums">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                  mobileFiltersOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-        <select
-          value={labBlockFilter}
-          onChange={(e) => setLabBlockFilter(e.target.value)}
-          className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
-        >
-          <option value="ALL">All Lab Blocks</option>
-          {PROCUREMENT_LAB_BLOCKS.map((block) => (
-            <option key={block} value={block}>
-              {block}
-            </option>
-          ))}
-        </select>
+            {hasAnyFilter && (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="inline-flex min-h-[44px] items-center px-2.5 text-[13px] font-medium text-black/60 hover:text-black cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "name" | "available")}
-          className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
-        >
-          <option value="name">Sort: Name (A–Z)</option>
-          <option value="available">Sort: Most Available</option>
-        </select>
+          <span className="text-[13px] font-medium text-black/55 tabular-nums whitespace-nowrap">
+            {filtered.length} parts
+          </span>
+        </div>
 
-        <span className="ml-auto text-[14px] text-black/55 tabular-nums">
+        {/* Active filter summary pills when collapsed on mobile */}
+        {!mobileFiltersOpen && activeFilterCount > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:hidden">
+            {activeCategoryName && (
+              <button
+                type="button"
+                onClick={() => setCategoryFilter("ALL")}
+                className="inline-flex items-center gap-1 rounded-full border border-black/15 bg-[#F7F7F5] px-2.5 py-1 text-[12px] font-medium text-black cursor-pointer"
+              >
+                <span className="max-w-[160px] truncate">
+                  {activeCategoryName}
+                </span>
+                <X className="h-3 w-3 text-black/55" />
+              </button>
+            )}
+            {labBlockFilter !== "ALL" && (
+              <button
+                type="button"
+                onClick={() => setLabBlockFilter("ALL")}
+                className="inline-flex items-center gap-1 rounded-full border border-black/15 bg-[#F7F7F5] px-2.5 py-1 text-[12px] font-medium text-black cursor-pointer"
+              >
+                <span>{labBlockFilter}</span>
+                <X className="h-3 w-3 text-black/55" />
+              </button>
+            )}
+            {sortBy !== "name" && (
+              <button
+                type="button"
+                onClick={() => setSortBy("name")}
+                className="inline-flex items-center gap-1 rounded-full border border-black/15 bg-[#F7F7F5] px-2.5 py-1 text-[12px] font-medium text-black cursor-pointer"
+              >
+                <span>Most Available</span>
+                <X className="h-3 w-3 text-black/55" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Filter Controls: Collapsible 2-col drawer on mobile, seamless inline flex children on sm+ */}
+        <div
+          className={`${
+            mobileFiltersOpen ? "mt-2.5 grid grid-cols-2 gap-2" : "hidden"
+          } sm:mt-0 sm:contents`}
+        >
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filter by category"
+            className="col-span-2 min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3.5 text-[15px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4 sm:text-[14px]"
+          >
+            <option value="ALL">All Categories ({categories.length})</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={labBlockFilter}
+            onChange={(e) => setLabBlockFilter(e.target.value)}
+            aria-label="Filter by lab block"
+            className="min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3 text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
+          >
+            <option value="ALL">All Lab Blocks</option>
+            {PROCUREMENT_LAB_BLOCKS.map((block) => (
+              <option key={block} value={block}>
+                {block}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "name" | "available")}
+            aria-label="Sort inventory"
+            className="min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3 text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
+          >
+            <option value="name">Sort: Name (A–Z)</option>
+            <option value="available">Sort: Most Available</option>
+          </select>
+        </div>
+
+        <span className="hidden sm:inline sm:ml-auto text-[14px] text-black/55 tabular-nums">
           {filtered.length} parts
         </span>
       </div>
 
       {/* Parts Grid with Shimmer Loaders & Progressive Batching */}
       {loading ? (
-        <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
-              className="overflow-hidden rounded-[22px] border border-black/12 bg-white"
+              className="overflow-hidden rounded-[18px] sm:rounded-[22px] border border-black/12 bg-white"
             >
               <div className="lp-shimmer aspect-[4/3] w-full" />
-              <div className="p-4 space-y-2.5">
-                <div className="lp-shimmer h-4 w-28 rounded-md" />
-                <div className="lp-shimmer h-5 w-4/5 rounded-md" />
-                <div className="lp-shimmer h-11 w-full rounded-full mt-2" />
+              <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-2.5">
+                <div className="lp-shimmer h-3.5 sm:h-4 w-20 sm:w-28 rounded-md" />
+                <div className="lp-shimmer h-4 sm:h-5 w-4/5 rounded-md" />
+                <div className="lp-shimmer h-10 sm:h-11 w-full rounded-full mt-2" />
               </div>
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="py-16 text-center text-[16px] text-black/55">
-          No lab equipment matches your search or lab block filter.
-        </p>
+        <div className="py-14 sm:py-16 text-center space-y-3">
+          <p className="text-[15px] sm:text-[16px] text-black/55">
+            No lab equipment matches your search or lab block filter.
+          </p>
+          {hasAnyFilter && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-black/20 bg-white px-5 text-[14px] font-medium text-black hover:bg-[#C4F041] transition-colors cursor-pointer"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
       ) : (
         <>
-          <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {visibleParts.map((row) => (
               <PartPickerCard
                 key={row.id}
@@ -457,17 +596,17 @@ function BrowseInventoryInner() {
           {visibleCount < filtered.length && (
             <div
               ref={setSentinelEl}
-              className="mt-6 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+              className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
             >
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="overflow-hidden rounded-[22px] border border-black/12 bg-white"
+                  className="overflow-hidden rounded-[18px] sm:rounded-[22px] border border-black/12 bg-white"
                 >
                   <div className="lp-shimmer aspect-[4/3] w-full" />
-                  <div className="p-4 space-y-2.5">
-                    <div className="lp-shimmer h-4 w-28 rounded-md" />
-                    <div className="lp-shimmer h-5 w-4/5 rounded-md" />
+                  <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-2.5">
+                    <div className="lp-shimmer h-3.5 sm:h-4 w-20 sm:w-28 rounded-md" />
+                    <div className="lp-shimmer h-4 sm:h-5 w-4/5 rounded-md" />
                   </div>
                 </div>
               ))}

@@ -71,9 +71,9 @@ export const PartPickerCard = React.memo(function PartPickerCard({
 
   return (
     <article
-      className={`part-card-perf group flex flex-col justify-between overflow-hidden rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-200 ${
+      className={`part-card-perf group flex min-w-0 flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[22px] border bg-white transition-[border-color,box-shadow] duration-200 ${
         isSelected
-          ? "border-black ring-2 ring-[#C4F041] shadow-[0_10px_28px_rgba(0,0,0,0.08)]"
+          ? "border-black ring-2 ring-[#C4F041] shadow-[0_8px_22px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_28px_rgba(0,0,0,0.08)]"
           : "border-black/14 hover:border-black/35"
       } ${outOfStock ? "opacity-55" : ""}`}
     >
@@ -93,23 +93,23 @@ export const PartPickerCard = React.memo(function PartPickerCard({
         <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-black/10">
           <ShimmerPartImage src={imgSrc} alt={row.item.name} />
           {isSelected && (
-            <span className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-[#C4F041] text-black">
-              <Check className="h-4 w-4 stroke-[2.5]" />
+            <span className="absolute right-2 top-2 sm:right-3 sm:top-3 z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full border border-black/15 bg-[#C4F041] text-black shadow-xs">
+              <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 stroke-[2.5]" />
             </span>
           )}
         </div>
 
-        <div className="px-4 pt-4 pb-3 space-y-1.5">
-          <p className="text-[13px] font-medium text-black/50 truncate">
+        <div className="px-2.5 pt-2.5 pb-2 space-y-1 sm:px-4 sm:pt-4 sm:pb-3 sm:space-y-1.5">
+          <p className="text-[11px] sm:text-[13px] font-medium text-black/50 truncate">
             {row.item.category.name}
             {meta.labBlock ? ` · ${meta.labBlock}` : ""}
           </p>
 
-          <h3 className="text-[16px] font-medium tracking-[-0.02em] text-black leading-snug line-clamp-2 min-h-[2.75rem]">
+          <h3 className="text-[14px] sm:text-[16px] font-medium tracking-[-0.02em] text-black leading-[1.3] sm:leading-snug line-clamp-2 min-h-[2.3rem] sm:min-h-[2.75rem]">
             {row.item.name}
           </h3>
 
-          <p className="text-[14px] text-black/60 tabular-nums">
+          <p className="text-[12px] sm:text-[14px] text-black/60 tabular-nums truncate">
             {outOfStock
               ? "Currently out of stock"
               : `${row.availableQuantity} ${row.item.unit} available`}
@@ -118,52 +118,58 @@ export const PartPickerCard = React.memo(function PartPickerCard({
       </div>
 
       {/* Quantity Selection Row */}
-      <div className="px-4 pb-4 pt-1">
+      <div className="px-2.5 pb-2.5 pt-1 sm:px-4 sm:pb-4 sm:pt-1">
         {outOfStock ? (
-          <p className="py-2 text-center text-[14px] font-medium text-black/40">
+          <p className="py-2 text-center text-[12px] sm:text-[14px] font-medium text-black/40">
             Unavailable
           </p>
         ) : !isSelected ? (
           <button
             type="button"
             onClick={() => onUpdateQty(row, 1)}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/16 bg-[#F0F0F0] text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/25 cursor-pointer"
+            className="flex h-10 sm:h-11 w-full items-center justify-center gap-1 sm:gap-2 rounded-full border border-black/16 bg-[#F0F0F0] px-2 sm:px-3 text-[12.5px] sm:text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/25 active:scale-[0.98] cursor-pointer"
           >
-            <Plus className="h-4 w-4" />
-            {selectLabel}
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="truncate">{selectLabel}</span>
           </button>
         ) : (
-          <div className="flex h-11 items-center justify-between rounded-full border border-black bg-black px-1.5 text-white">
+          <div className="flex h-10 sm:h-11 w-full items-center justify-between rounded-full border border-black bg-black px-1 sm:px-1.5 text-white">
             <button
               type="button"
               onClick={() => onUpdateQty(row, qty - 1)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 cursor-pointer"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25 active:bg-white/30 cursor-pointer"
               aria-label="Decrease quantity"
             >
-              <Minus className="h-4 w-4" />
+              <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
 
-            <div className="flex items-center gap-1.5 text-[14px] tabular-nums">
+            <div className="flex min-w-0 items-center justify-center gap-0.5 sm:gap-1.5 text-[13px] sm:text-[14px] tabular-nums">
               <input
                 type="number"
+                inputMode="numeric"
                 min={1}
                 max={row.availableQuantity}
                 value={qty}
                 onChange={(e) => onUpdateQty(row, Number(e.target.value) || 1)}
                 aria-label={`Quantity for ${row.item.name}`}
-                className="w-12 bg-transparent text-center font-semibold text-[#C4F041] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-7 sm:w-12 bg-transparent text-center font-semibold text-[#C4F041] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <span className="text-white/60">of {row.availableQuantity}</span>
+              <span className="text-[11px] text-white/55 sm:hidden">
+                /{row.availableQuantity}
+              </span>
+              <span className="hidden text-white/60 sm:inline">
+                of {row.availableQuantity}
+              </span>
             </div>
 
             <button
               type="button"
               onClick={() => onUpdateQty(row, qty + 1)}
               disabled={qty >= row.availableQuantity}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C4F041] text-black transition-opacity hover:opacity-90 disabled:opacity-35 cursor-pointer"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C4F041] text-black transition-opacity hover:opacity-90 active:opacity-80 disabled:opacity-35 cursor-pointer"
               aria-label="Increase quantity"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           </div>
         )}

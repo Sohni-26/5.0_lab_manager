@@ -321,7 +321,6 @@ export function RequestFlowchartCard({
   defaultExpanded = false,
 }: RequestFlowchartCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const [hovered, setHovered] = useState(false);
   const steps = deriveFlowchartSteps(request);
   const palette = FLOW_PALETTES[index % FLOW_PALETTES.length];
   const blobPath = ORGANIC_BLOB_PATHS[index % ORGANIC_BLOB_PATHS.length];
@@ -511,31 +510,16 @@ export function RequestFlowchartCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.42, ease: LP_EASE }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       className="relative w-full px-8 sm:px-12 py-9 sm:py-11"
     >
-      {/* Dynamic Excalidraw Organic Cloud Backdrop (non-square, generously scaled so content never overflows) */}
+      {/* Static Excalidraw Organic Cloud Backdrop (non-square, generously scaled so content never overflows) */}
       <svg
         viewBox="0 0 800 600"
         preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)]"
-        style={{
-          transform: hovered ? "scale(1.018)" : "scale(1)",
-        }}
+        className="pointer-events-none absolute inset-0 h-full w-full"
         aria-hidden="true"
       >
-        <path
-          d={accentBlobPath}
-          fill={palette.backdropSecondary}
-          style={{
-            transformOrigin: "400px 300px",
-            transform: hovered
-              ? "translate(6px, -4px) rotate(1.2deg)"
-              : "translate(0px, 0px) rotate(0deg)",
-            transition: "transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)",
-          }}
-        />
+        <path d={accentBlobPath} fill={palette.backdropSecondary} />
         <path d={blobPath} fill={palette.backdrop} />
       </svg>
 

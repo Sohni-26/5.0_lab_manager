@@ -610,13 +610,12 @@ export default function StudentMyRequestsPage() {
                       </div>
                     )}
 
-                    {/* Organic Excalidraw Flowchart (exact dashboard visual language) */}
+                    {/* Organic Excalidraw Flowchart (compact by default — click to reveal upcoming steps) */}
                     <AnimatePresence mode="wait">
                       <RequestFlowchartCard
                         key={activeRequest.id}
                         request={activeRequest}
                         index={activeRequestNumber}
-                        defaultExpanded
                       />
                     </AnimatePresence>
 

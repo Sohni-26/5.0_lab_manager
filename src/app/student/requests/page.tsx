@@ -29,7 +29,7 @@ import type { LabRequestDTO, LabRequestStatus } from "@/types/contracts";
 
 type RequestFilter = "ALL" | "PENDING" | "ACTIVE" | "COMPLETED";
 
-const DECK_PAGE_SIZE = 4;
+const DECK_PAGE_SIZE = 3;
 const LP_EASE: [number, number, number, number] = [0.76, 0, 0.24, 1];
 
 const PENDING_STATUSES: LabRequestStatus[] = [
@@ -244,7 +244,7 @@ export default function StudentMyRequestsPage() {
       </div>
 
       {/* Dotted-Grid Spatial Canvas (matching Student Dashboard) */}
-      <DottedGridCanvas className="flex flex-col p-5 sm:p-7">
+      <DottedGridCanvas className="flex flex-col p-5 pb-16 sm:p-7 sm:pb-16">
         {loading ? (
           <div className="m-auto w-full max-w-[440px] rounded-[24px] border border-black/14 bg-white p-9 text-center shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
             <p className="text-[15px] text-black/60">Loading your requests...</p>
@@ -355,323 +355,328 @@ export default function StudentMyRequestsPage() {
                 </button>
               </div>
             ) : (
-              /* Master-Detail Visual Flowchart Board */
-              <div className="grid flex-1 items-start gap-6 lg:grid-cols-12">
-                {/* Left Column: Tactile Paginated Request Deck (Zero Inner Scrollbar) */}
-                <div
-                  data-canvas-controls="true"
-                  className="space-y-3.5 lg:col-span-4"
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={showAllDeck ? "all" : `page-${safeDeckPage}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.28, ease: LP_EASE }}
-                      className="space-y-3 pr-1 pb-1"
-                    >
-                      {visibleDeckRequests.map((req) => {
-                        const reqIdx = requestIndexMap.get(req.id) ?? 0;
-                        const palette =
-                          FLOW_PALETTES[reqIdx % FLOW_PALETTES.length];
-                        const isSelected = activeRequest?.id === req.id;
-                        const totalUnits = req.items.reduce(
-                          (s, it) => s + it.requestedQuantity,
-                          0
-                        );
-                        const statusInfo = getStatusInfo(req.status);
+              /* Balanced 2-Band Grid:
+                 Band 1 — Request Deck (left) aligned height-for-height with Organic Flowchart (right)
+                 Band 2 — Full-width Requested Components gallery aligned cleanly across all 12 columns */
+              <div className="flex flex-1 flex-col gap-6">
+                <div className="grid items-center gap-6 lg:grid-cols-12">
+                  {/* Left Column: Tactile Paginated Request Deck (3 per page — height matched to Flowchart) */}
+                  <div
+                    data-canvas-controls="true"
+                    className="space-y-3.5 lg:col-span-4"
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={showAllDeck ? "all" : `page-${safeDeckPage}`}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.28, ease: LP_EASE }}
+                        className="space-y-3 pr-1 pb-1"
+                      >
+                        {visibleDeckRequests.map((req) => {
+                          const reqIdx = requestIndexMap.get(req.id) ?? 0;
+                          const palette =
+                            FLOW_PALETTES[reqIdx % FLOW_PALETTES.length];
+                          const isSelected = activeRequest?.id === req.id;
+                          const totalUnits = req.items.reduce(
+                            (s, it) => s + it.requestedQuantity,
+                            0
+                          );
+                          const statusInfo = getStatusInfo(req.status);
 
-                        return (
-                          <button
-                            key={req.id}
-                            type="button"
-                            onClick={() => setSelectedId(req.id)}
-                            style={
-                              isSelected
-                                ? { backgroundColor: palette.banner }
-                                : undefined
-                            }
-                            className={`w-full cursor-pointer rounded-[20px] border-2 p-4 text-left transition-all ${
-                              isSelected
-                                ? "border-black text-black shadow-[4px_4px_0px_#000000]"
-                                : "border-black/14 bg-white/95 text-black hover:border-black/40 hover:bg-white"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="text-[16px] font-semibold tracking-[-0.02em] text-black">
-                                  Request {reqIdx + 1}
-                                </p>
-                                <p className="mt-0.5 text-[13px] text-black/65">
-                                  {req.instructor.fullName} ·{" "}
-                                  {formatShortDate(req.createdAt)}
-                                </p>
+                          return (
+                            <button
+                              key={req.id}
+                              type="button"
+                              onClick={() => setSelectedId(req.id)}
+                              style={
+                                isSelected
+                                  ? { backgroundColor: palette.banner }
+                                  : undefined
+                              }
+                              className={`w-full cursor-pointer rounded-[20px] border-2 p-4 text-left transition-all ${
+                                isSelected
+                                  ? "border-black text-black shadow-[4px_4px_0px_#000000]"
+                                  : "border-black/14 bg-white/95 text-black hover:border-black/40 hover:bg-white"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-[16px] font-semibold tracking-[-0.02em] text-black">
+                                    Request {reqIdx + 1}
+                                  </p>
+                                  <p className="mt-0.5 text-[13px] text-black/65">
+                                    {req.instructor.fullName} ·{" "}
+                                    {formatShortDate(req.createdAt)}
+                                  </p>
+                                </div>
+
+                                <span
+                                  title={statusInfo.label}
+                                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-black ${
+                                    statusInfo.tone === "completed"
+                                      ? "bg-[#C4F041] text-black"
+                                      : statusInfo.tone === "rejected"
+                                        ? "bg-[#FA8E66] text-black"
+                                        : "bg-white text-black"
+                                  }`}
+                                >
+                                  {statusInfo.tone === "completed" ? (
+                                    <Check className="h-4 w-4 stroke-[2.5]" />
+                                  ) : statusInfo.tone === "rejected" ? (
+                                    <XCircle className="h-4 w-4 stroke-[2.2]" />
+                                  ) : (
+                                    <Clock className="h-4 w-4 stroke-[2.2]" />
+                                  )}
+                                </span>
                               </div>
 
-                              <span
-                                title={statusInfo.label}
-                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-black ${
-                                  statusInfo.tone === "completed"
-                                    ? "bg-[#C4F041] text-black"
-                                    : statusInfo.tone === "rejected"
-                                      ? "bg-[#FA8E66] text-black"
-                                      : "bg-white text-black"
-                                }`}
-                              >
-                                {statusInfo.tone === "completed" ? (
-                                  <Check className="h-4 w-4 stroke-[2.5]" />
-                                ) : statusInfo.tone === "rejected" ? (
-                                  <XCircle className="h-4 w-4 stroke-[2.2]" />
-                                ) : (
-                                  <Clock className="h-4 w-4 stroke-[2.2]" />
-                                )}
-                              </span>
-                            </div>
-
-                            {/* Real WebP Part Thumbnails */}
-                            <div className="mt-3.5 flex items-center justify-between gap-3">
-                              <div className="flex items-center -space-x-2">
-                                {req.items.slice(0, 4).map((it) => (
-                                  /* eslint-disable-next-line @next/next/no-img-element */
-                                  <img
-                                    key={it.id}
-                                    src={
-                                      it.item.imageUrl ||
-                                      getPartImageUrl(it.item.code)
-                                    }
-                                    alt={it.item.name}
-                                    className="h-9 w-9 rounded-[10px] border-2 border-white bg-[#F5F5F3] object-cover shadow-xs"
-                                  />
-                                ))}
-                                {req.items.length > 4 && (
-                                  <span className="flex h-9 w-9 items-center justify-center rounded-[10px] border-2 border-white bg-black text-[12px] font-semibold text-white">
-                                    +{req.items.length - 4}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="text-right">
-                                <p className="text-[13px] font-medium text-black tabular-nums">
-                                  {req.items.length} part
-                                  {req.items.length === 1 ? "" : "s"} ·{" "}
-                                  {totalUnits} qty
-                                </p>
-                                <p className="text-[13px] text-black/65">
-                                  {statusInfo.label}
-                                </p>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Clean Deck Navigation Bar (replaces native inner scrollbar) */}
-                  {filteredRequests.length > DECK_PAGE_SIZE && (
-                    <div className="flex items-center justify-between gap-2 rounded-full border border-black/14 bg-white/95 px-2.5 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.05)]">
-                      {!showAllDeck ? (
-                        <>
-                          <button
-                            type="button"
-                            disabled={safeDeckPage === 0}
-                            onClick={() =>
-                              setDeckPage((p) => Math.max(0, p - 1))
-                            }
-                            aria-label="Previous requests"
-                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-black transition-colors hover:bg-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-30"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </button>
-
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-[13px] font-medium text-black/70 tabular-nums">
-                              {deckRangeStart}–{deckRangeEnd} of{" "}
-                              {filteredRequests.length}
-                            </span>
-                            {totalDeckPages <= 6 && (
-                              <div className="flex items-center gap-1.5">
-                                {Array.from({ length: totalDeckPages }).map(
-                                  (_, pIdx) => (
-                                    <button
-                                      key={pIdx}
-                                      type="button"
-                                      onClick={() => setDeckPage(pIdx)}
-                                      aria-label={`Page ${pIdx + 1}`}
-                                      className={`h-2 cursor-pointer rounded-full transition-all ${
-                                        pIdx === safeDeckPage
-                                          ? "w-5 bg-black"
-                                          : "w-2 bg-black/20 hover:bg-black/45"
-                                      }`}
+                              {/* Real WebP Part Thumbnails */}
+                              <div className="mt-3.5 flex items-center justify-between gap-3">
+                                <div className="flex items-center -space-x-2">
+                                  {req.items.slice(0, 4).map((it) => (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img
+                                      key={it.id}
+                                      src={
+                                        it.item.imageUrl ||
+                                        getPartImageUrl(it.item.code)
+                                      }
+                                      alt={it.item.name}
+                                      className="h-9 w-9 rounded-[10px] border-2 border-white bg-[#F5F5F3] object-cover shadow-xs"
                                     />
-                                  )
-                                )}
-                              </div>
-                            )}
-                          </div>
+                                  ))}
+                                  {req.items.length > 4 && (
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-[10px] border-2 border-white bg-black text-[12px] font-semibold text-white">
+                                      +{req.items.length - 4}
+                                    </span>
+                                  )}
+                                </div>
 
-                          <div className="flex items-center gap-1">
+                                <div className="text-right">
+                                  <p className="text-[13px] font-medium text-black tabular-nums">
+                                    {req.items.length} part
+                                    {req.items.length === 1 ? "" : "s"} ·{" "}
+                                    {totalUnits} qty
+                                  </p>
+                                  <p className="text-[13px] text-black/65">
+                                    {statusInfo.label}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Clean Deck Navigation Bar (replaces native inner scrollbar) */}
+                    {filteredRequests.length > DECK_PAGE_SIZE && (
+                      <div className="flex items-center justify-between gap-2 rounded-full border border-black/14 bg-white/95 px-2.5 py-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.05)]">
+                        {!showAllDeck ? (
+                          <>
                             <button
                               type="button"
-                              disabled={safeDeckPage >= totalDeckPages - 1}
+                              disabled={safeDeckPage === 0}
                               onClick={() =>
-                                setDeckPage((p) =>
-                                  Math.min(totalDeckPages - 1, p + 1)
-                                )
+                                setDeckPage((p) => Math.max(0, p - 1))
                               }
-                              aria-label="Next requests"
+                              aria-label="Previous requests"
                               className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-black transition-colors hover:bg-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-30"
                             >
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronLeft className="h-4 w-4" />
                             </button>
+
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-[13px] font-medium text-black/70 tabular-nums">
+                                {deckRangeStart}–{deckRangeEnd} of{" "}
+                                {filteredRequests.length}
+                              </span>
+                              {totalDeckPages <= 6 && (
+                                <div className="flex items-center gap-1.5">
+                                  {Array.from({ length: totalDeckPages }).map(
+                                    (_, pIdx) => (
+                                      <button
+                                        key={pIdx}
+                                        type="button"
+                                        onClick={() => setDeckPage(pIdx)}
+                                        aria-label={`Page ${pIdx + 1}`}
+                                        className={`h-2 cursor-pointer rounded-full transition-all ${
+                                          pIdx === safeDeckPage
+                                            ? "w-5 bg-black"
+                                            : "w-2 bg-black/20 hover:bg-black/45"
+                                        }`}
+                                      />
+                                    )
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={safeDeckPage >= totalDeckPages - 1}
+                                onClick={() =>
+                                  setDeckPage((p) =>
+                                    Math.min(totalDeckPages - 1, p + 1)
+                                  )
+                                }
+                                aria-label="Next requests"
+                                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-black transition-colors hover:bg-[#F0F0F0] disabled:cursor-not-allowed disabled:opacity-30"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setShowAllDeck(true)}
+                                className="cursor-pointer rounded-full px-2.5 py-1 text-[13px] font-medium text-black/70 transition-colors hover:bg-[#C4F041] hover:text-black"
+                              >
+                                All
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex w-full items-center justify-between px-2 py-0.5">
+                            <span className="text-[13px] font-medium text-black/65 tabular-nums">
+                              Showing all {filteredRequests.length} requests
+                            </span>
                             <button
                               type="button"
-                              onClick={() => setShowAllDeck(true)}
-                              className="cursor-pointer rounded-full px-2.5 py-1 text-[13px] font-medium text-black/70 transition-colors hover:bg-[#C4F041] hover:text-black"
+                              onClick={() => {
+                                setShowAllDeck(false);
+                                setDeckPage(0);
+                              }}
+                              className="cursor-pointer rounded-full px-3 py-1 text-[13px] font-medium text-black transition-colors hover:bg-[#C4F041]"
                             >
-                              All
+                              Compact pages
                             </button>
                           </div>
-                        </>
-                      ) : (
-                        <div className="flex w-full items-center justify-between px-2 py-0.5">
-                          <span className="text-[13px] font-medium text-black/65 tabular-nums">
-                            Showing all {filteredRequests.length} requests
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowAllDeck(false);
-                              setDeckPage(0);
-                            }}
-                            className="cursor-pointer rounded-full px-3 py-1 text-[13px] font-medium text-black transition-colors hover:bg-[#C4F041]"
-                          >
-                            Compact pages
-                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Live Visual Flowchart */}
+                  {activeRequest && (
+                    <div className="space-y-4 lg:col-span-8">
+                      {/* Contextual Next-Step Action Banner when Ready for Pickup / Return */}
+                      {activeRequest.status === "APPROVED" && (
+                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[22px] border-2 border-black bg-[#F3FBD4] px-5 py-4 shadow-[3px_3px_0px_#000000]">
+                          <div>
+                            <p className="text-[16px] font-semibold text-black">
+                              Approved and ready for pickup
+                            </p>
+                            <p className="text-[14px] text-black/70">
+                              Upload 4-angle collection photos at the lab counter to receive your parts.
+                            </p>
+                          </div>
+                          <LoopsiiButton
+                            label="Upload Collection Photos"
+                            href="/student/borrowed"
+                            size="sm"
+                            hideArrow
+                          />
                         </div>
                       )}
+
+                      {(activeRequest.status === "ISSUED" ||
+                        activeRequest.status === "RETURN_PENDING") && (
+                        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[22px] border-2 border-black bg-white px-5 py-4 shadow-[3px_3px_0px_#000000]">
+                          <div>
+                            <p className="text-[16px] font-semibold text-black">
+                              Components currently issued
+                            </p>
+                            <p className="text-[14px] text-black/70">
+                              Done with your build? Submit return photos to close this request.
+                            </p>
+                          </div>
+                          <LoopsiiButton
+                            label="Submit Return"
+                            href="/student/returns"
+                            size="sm"
+                            hideArrow
+                          />
+                        </div>
+                      )}
+
+                      {activeRequest.rejectionReason && (
+                        <div className="flex items-start gap-3 rounded-[22px] border-2 border-black bg-[#FFF5F3] px-5 py-4 text-[14px] text-black shadow-[3px_3px_0px_#000000]">
+                          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#B33C17]" />
+                          <div>
+                            <p className="font-semibold">Rejection Reason</p>
+                            <p className="mt-0.5 text-black/75">
+                              {activeRequest.rejectionReason}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Organic Excalidraw Flowchart (compact by default — click to reveal upcoming steps) */}
+                      <AnimatePresence mode="wait">
+                        <RequestFlowchartCard
+                          key={activeRequest.id}
+                          request={activeRequest}
+                          index={activeRequestNumber}
+                        />
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>
 
-                {/* Right Column: Live Visual Flowchart + Full Parts Gallery */}
+                {/* Band 2: Full-Width Requested Components Gallery (aligned edge-to-edge across the grid) */}
                 {activeRequest && (
-                  <div className="space-y-6 lg:col-span-8">
-                    {/* Contextual Next-Step Action Banner when Ready for Pickup / Return */}
-                    {activeRequest.status === "APPROVED" && (
-                      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[22px] border-2 border-black bg-[#F3FBD4] px-5 py-4 shadow-[3px_3px_0px_#000000]">
-                        <div>
-                          <p className="text-[16px] font-semibold text-black">
-                            Approved and ready for pickup
-                          </p>
-                          <p className="text-[14px] text-black/70">
-                            Upload 4-angle collection photos at the lab counter to receive your parts.
-                          </p>
-                        </div>
-                        <LoopsiiButton
-                          label="Upload Collection Photos"
-                          href="/student/borrowed"
-                          size="sm"
-                          hideArrow
-                        />
-                      </div>
-                    )}
-
-                    {(activeRequest.status === "ISSUED" ||
-                      activeRequest.status === "RETURN_PENDING") && (
-                      <div className="flex flex-wrap items-center justify-between gap-4 rounded-[22px] border-2 border-black bg-white px-5 py-4 shadow-[3px_3px_0px_#000000]">
-                        <div>
-                          <p className="text-[16px] font-semibold text-black">
-                            Components currently issued
-                          </p>
-                          <p className="text-[14px] text-black/70">
-                            Done with your build? Submit return photos to close this request.
-                          </p>
-                        </div>
-                        <LoopsiiButton
-                          label="Submit Return"
-                          href="/student/returns"
-                          size="sm"
-                          hideArrow
-                        />
-                      </div>
-                    )}
-
-                    {activeRequest.rejectionReason && (
-                      <div className="flex items-start gap-3 rounded-[22px] border-2 border-black bg-[#FFF5F3] px-5 py-4 text-[14px] text-black shadow-[3px_3px_0px_#000000]">
-                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#B33C17]" />
-                        <div>
-                          <p className="font-semibold">Rejection Reason</p>
-                          <p className="mt-0.5 text-black/75">
-                            {activeRequest.rejectionReason}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Organic Excalidraw Flowchart (compact by default — click to reveal upcoming steps) */}
-                    <AnimatePresence mode="wait">
-                      <RequestFlowchartCard
-                        key={activeRequest.id}
-                        request={activeRequest}
-                        index={activeRequestNumber}
-                      />
-                    </AnimatePresence>
-
-                    {/* Full Requested Components Gallery (with real WebP photos) */}
-                    <div
-                      data-canvas-controls="true"
-                      className="rounded-[24px] border border-black/14 bg-white/95 p-6 shadow-card"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-black/10">
-                        <div className="flex items-center gap-2.5">
+                  <div
+                    data-canvas-controls="true"
+                    className="w-full rounded-[24px] border border-black/14 bg-white/95 p-5 sm:p-6 shadow-card"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-black/10">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <div className="flex items-center gap-2">
                           <Package className="h-4 w-4 text-black/70" />
                           <h2 className="text-[16px] font-semibold tracking-[-0.02em] text-black">
                             Requested Components ({activeRequest.items.length})
                           </h2>
                         </div>
-                        <span className="font-mono text-[13px] text-black/55 tabular-nums">
-                          {activeRequest.requestCode}
-                        </span>
+                        {activeRequest.purpose.trim() && (
+                          <span className="text-[14px] text-[#5E5E5A]">
+                            · {activeRequest.purpose}
+                          </span>
+                        )}
                       </div>
+                      <span className="font-mono text-[13px] text-black/55 tabular-nums">
+                        {activeRequest.requestCode}
+                      </span>
+                    </div>
 
-                      {activeRequest.purpose.trim() && (
-                        <p className="mt-4 rounded-[14px] border border-black/10 bg-[#F7F7F5] px-4 py-3 text-[14px] leading-relaxed text-black/80">
-                          {activeRequest.purpose}
-                        </p>
-                      )}
-
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        {activeRequest.items.map((it) => (
-                          <div
-                            key={it.id}
-                            className="flex items-center gap-3.5 rounded-[16px] border border-black/12 bg-[#F7F7F5] p-3"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={
-                                it.item.imageUrl ||
-                                getPartImageUrl(it.item.code)
-                              }
-                              alt={it.item.name}
-                              className="h-14 w-16 shrink-0 rounded-[12px] border border-black/10 bg-white object-cover"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[14px] font-semibold text-black">
-                                {it.item.name}
-                              </p>
-                              <p className="mt-0.5 text-[13px] text-[#5E5E5A] tabular-nums">
-                                Requested: {it.requestedQuantity}{" "}
-                                {it.item.unit}
-                                {it.issuedQuantity > 0
-                                  ? ` · Issued: ${it.issuedQuantity}`
-                                  : ""}
-                              </p>
-                            </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {activeRequest.items.map((it) => (
+                        <div
+                          key={it.id}
+                          className="flex items-center gap-3 rounded-[16px] border border-black/12 bg-[#F7F7F5] p-3"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={
+                              it.item.imageUrl || getPartImageUrl(it.item.code)
+                            }
+                            alt={it.item.name}
+                            className="h-12 w-14 shrink-0 rounded-[10px] border border-black/10 bg-white object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[14px] font-semibold text-black">
+                              {it.item.name}
+                            </p>
+                            <p className="mt-0.5 text-[13px] text-[#5E5E5A] tabular-nums">
+                              Qty: {it.requestedQuantity} {it.item.unit}
+                              {it.issuedQuantity > 0
+                                ? ` · Issued: ${it.issuedQuantity}`
+                                : ""}
+                            </p>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

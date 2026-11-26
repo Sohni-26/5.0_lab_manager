@@ -90,12 +90,12 @@ const ROLE_NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: "Reports", href: "/lab-manager/reports", icon: BarChart3 },
   ],
   INSTRUCTOR: [
-    { label: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
-    { label: "Campus Inventory", href: "/instructor/inventory", icon: Package },
-    { label: "Student Requests", href: "/instructor/requests", icon: ClipboardCheck },
-    { label: "Return Verification", href: "/instructor/return-verification", icon: RotateCcw },
-    { label: "Issue Tickets", href: "/instructor/tickets", icon: ShieldAlert },
-    { label: "History", href: "/instructor/history", icon: History },
+    { label: "Dashboard", mobileLabel: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
+    { label: "Campus Inventory", mobileLabel: "Inventory", href: "/instructor/inventory", icon: Package },
+    { label: "Student Requests", mobileLabel: "Requests", href: "/instructor/requests", icon: ClipboardCheck },
+    { label: "Return Verification", mobileLabel: "Validate", href: "/instructor/return-verification", icon: RotateCcw },
+    { label: "Issue Tickets", mobileLabel: "Tickets", href: "/instructor/tickets", icon: ShieldAlert },
+    { label: "History", mobileLabel: "History", href: "/instructor/history", icon: History },
   ],
   STUDENT: [
     { label: "Dashboard", mobileLabel: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
@@ -128,7 +128,8 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
   const [campuses, setCampuses] = useState<CampusDTO[]>([]);
   const activeMobilePillRef = useRef<HTMLAnchorElement | null>(null);
   const drawerTouchStartX = useRef<number | null>(null);
-  const isStudent = user?.role === "STUDENT";
+  const showMobileQuickNav =
+    user?.role === "STUDENT" || user?.role === "INSTRUCTOR";
 
   const { events } = useRealtime({
     enabled: Boolean(user),
@@ -175,13 +176,13 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
   }, [mobileOpen]);
 
   useEffect(() => {
-    if (!isStudent) return;
+    if (!showMobileQuickNav) return;
     activeMobilePillRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "center",
     });
-  }, [pathname, isStudent]);
+  }, [pathname, showMobileQuickNav]);
 
   if (loading || !user || user.role !== allowedRole) {
     return (
@@ -538,10 +539,14 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
           </div>
         </header>
 
-        {/* Mobile 1-Tap Quick-Navigation Strip (Students only, zero bottom dock overlap) */}
-        {isStudent && (
+        {/* Mobile 1-Tap Quick-Navigation Strip (Students & Instructors, zero bottom dock overlap) */}
+        {showMobileQuickNav && (
           <nav
-            aria-label="Student quick navigation"
+            aria-label={
+              user.role === "INSTRUCTOR"
+                ? "Instructor quick navigation"
+                : "Student quick navigation"
+            }
             className="lg:hidden sticky top-16 z-20 border-b border-black/10 bg-[#F0F0F0]/95 backdrop-blur-md"
           >
             <div className="flex items-center gap-1.5 overflow-x-auto px-3.5 sm:px-6 py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">

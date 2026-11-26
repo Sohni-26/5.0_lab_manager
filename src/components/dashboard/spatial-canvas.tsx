@@ -16,6 +16,7 @@ interface CanvasContextValue {
   resetSignal: number;
   zoom: number;
   markMoved: () => void;
+  isMobileViewport: boolean;
 }
 
 const CanvasContext = createContext<CanvasContextValue>({
@@ -23,6 +24,7 @@ const CanvasContext = createContext<CanvasContextValue>({
   resetSignal: 0,
   zoom: 1,
   markMoved: () => {},
+  isMobileViewport: false,
 });
 
 export function useDottedCanvas() {
@@ -60,6 +62,7 @@ export function DottedGridCanvas({
   const [isPanning, setIsPanning] = useState(false);
   const [itemsMoved, setItemsMoved] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   const dragOriginRef = useRef<{
     pointerId: number;
@@ -68,6 +71,22 @@ export function DottedGridCanvas({
     originX: number;
     originY: number;
   } | null>(null);
+
+  // Disable canvas drag-to-pan on narrow mobile screens (< 768px) so vertical page scroll works smoothly
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileViewport(mq.matches);
+    update();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }
+    mq.addListener(update);
+    return () => mq.removeListener(update);
+  }, []);
+
+  const canPan = pannable && !isMobileViewport;
 
   // Support Ctrl/Cmd + mouse wheel or trackpad pinch-zoom inside the canvas
   useEffect(() => {
@@ -88,7 +107,13 @@ export function DottedGridCanvas({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!pannable || e.button !== 0) return;
+      if (
+        !canPan ||
+        e.button !== 0 ||
+        (e.pointerType === "touch" && window.innerWidth < 768)
+      ) {
+        return;
+      }
       const target = e.target as HTMLElement | null;
       // Only start freehand canvas panning when grabbing empty grid space
       if (
@@ -109,7 +134,7 @@ export function DottedGridCanvas({
       };
       setIsPanning(true);
     },
-    [pannable, pan.x, pan.y]
+    [canPan, pan.x, pan.y]
   );
 
   const handlePointerMove = useCallback(
@@ -166,7 +191,9 @@ export function DottedGridCanvas({
   const dotStep = Math.max(10, Math.round(20 * zoom));
 
   return (
-    <CanvasContext.Provider value={{ canvasRef, resetSignal, zoom, markMoved }}>
+    <CanvasContext.Provider
+      value={{ canvasRef, resetSignal, zoom, markMoved, isMobileViewport }}
+    >
       <div
         ref={canvasRef}
         onPointerDown={handlePointerDown}
@@ -174,8 +201,9 @@ export function DottedGridCanvas({
         onPointerUp={endPan}
         onPointerCancel={endPan}
         className={cn(
-          "relative w-full min-h-[calc(100vh-8.5rem)] rounded-[28px] border border-black/14 shadow-card overflow-hidden",
-          pannable && (isPanning ? "cursor-grabbing select-none" : "cursor-grab"),
+          "relative w-full min-h-[calc(100dvh-7.5rem)] sm:min-h-[calc(100vh-8.5rem)] rounded-[20px] sm:rounded-[28px] border border-black/14 shadow-card overflow-hidden",
+          pannable && "touch-pan-y md:touch-auto",
+          canPan && (isPanning ? "cursor-grabbing select-none" : "cursor-grab"),
           className
         )}
         style={{
@@ -187,7 +215,7 @@ export function DottedGridCanvas({
         }}
       >
         <div
-          className="relative flex flex-1 flex-col w-full h-full origin-center"
+          className="relative flex flex-1 flex-col w-full h-full origin-top md:origin-center"
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
             transition: isPanning
@@ -202,7 +230,7 @@ export function DottedGridCanvas({
         {pannable && (
           <div
             data-canvas-controls="true"
-            className="absolute bottom-5 left-5 z-30 inline-flex items-center rounded-full border border-black/15 bg-white/95 p-1 text-black shadow-[0_6px_20px_rgba(0,0,0,0.08)] backdrop-blur-md"
+            className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 z-30 inline-flex items-center rounded-full border border-black/15 bg-white/95 p-0.5 sm:p-1 text-black shadow-[0_6px_20px_rgba(0,0,0,0.08)] backdrop-blur-md"
           >
             <button
               type="button"
@@ -218,7 +246,7 @@ export function DottedGridCanvas({
               type="button"
               onClick={handleResetZoom}
               title="Reset zoom to 100%"
-              className="min-w-[54px] px-2 text-center text-[14px] font-medium tabular-nums text-black transition-colors hover:text-black/65 cursor-pointer"
+              className="min-w-[44px] sm:min-w-[54px] px-1.5 sm:px-2 text-center text-[13px] sm:text-[14px] font-medium tabular-nums text-black transition-colors hover:text-black/65 cursor-pointer"
             >
               {Math.round(zoom * 100)}%
             </button>
@@ -241,7 +269,7 @@ export function DottedGridCanvas({
             type="button"
             data-canvas-controls="true"
             onClick={handleResetAll}
-            className="absolute bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full border border-black/16 bg-white/95 px-4 py-2 text-[14px] font-medium text-black shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#C4F041] cursor-pointer"
+            className="absolute bottom-3 right-3 sm:bottom-5 sm:right-5 z-30 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-black/16 bg-white/95 px-3 py-1.5 sm:px-4 sm:py-2 text-[13px] sm:text-[14px] font-medium text-black shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#C4F041] cursor-pointer"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Reset view

@@ -59,7 +59,12 @@ function CanvasDraggableItem({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { canvasRef, resetSignal, markMoved } = useDottedCanvas();
+  const { canvasRef, resetSignal, markMoved, isMobileViewport } =
+    useDottedCanvas();
+
+  if (isMobileViewport) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <motion.div
@@ -382,6 +387,7 @@ export function StudentRequestFlow() {
 
   return (
     <div
+      className="w-full min-w-0"
       style={{
         fontFamily:
           "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
@@ -418,38 +424,38 @@ export function StudentRequestFlow() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
-              className={`flex-1 min-h-[calc(100vh-8.5rem)] ${
+              className={`flex-1 min-h-[calc(100dvh-7.5rem)] sm:min-h-[calc(100vh-8.5rem)] ${
                 hasRequests
                   ? "grid grid-cols-1 lg:grid-cols-2"
-                  : "flex items-center justify-center p-6 sm:p-8"
+                  : "flex items-center justify-center p-4 pb-20 sm:p-8"
               }`}
             >
               {/* Left 50%: Freehand Draggable Centered Prompt Card */}
               <div
                 className={
                   hasRequests
-                    ? "flex items-center justify-center p-6 sm:p-10 lg:sticky lg:top-0 lg:h-[calc(100vh-8.5rem)]"
+                    ? "flex items-center justify-center p-4 pt-5 sm:p-10 lg:sticky lg:top-0 lg:h-[calc(100vh-8.5rem)]"
                     : "w-full max-w-xl"
                 }
               >
                 <CanvasDraggableItem className="w-full max-w-md">
-                  <div className="w-full rounded-[24px] border border-black/14 bg-white p-8 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+                  <div className="w-full rounded-[20px] sm:rounded-[24px] border border-black/14 bg-white p-6 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
                     <h2
                       className={`${
                         hasRequests
-                          ? "text-[28px] sm:text-[32px]"
-                          : "text-[32px] sm:text-[38px]"
-                      } font-medium tracking-[-0.03em] text-black leading-[1.08]`}
+                          ? "text-[24px] sm:text-[32px]"
+                          : "text-[26px] sm:text-[38px]"
+                      } font-medium tracking-[-0.03em] text-black leading-[1.1] sm:leading-[1.08]`}
                     >
                       Need lab components for your build?
                     </h2>
-                    <p className="mt-3 text-[15px] text-black/60 leading-relaxed">
+                    <p className="mt-2.5 sm:mt-3 text-[14px] sm:text-[15px] text-black/60 leading-relaxed">
                       Select the required parts and quantities from your campus
                       lab catalog. Every request appears live as a visual
                       flowchart on your board.
                     </p>
 
-                    <div className="mt-7">
+                    <div className="mt-6 sm:mt-7">
                       <LoopsiiButton
                         label={
                           hasRequests
@@ -458,6 +464,7 @@ export function StudentRequestFlow() {
                         }
                         size="lg"
                         hideArrow
+                        className="w-full sm:w-auto [&>span]:w-full sm:[&>span]:w-auto [&>span]:justify-center [&>span]:h-[52px] sm:[&>span]:h-[60px] [&>span]:px-5 sm:[&>span]:px-8 [&>span]:text-[15px] sm:[&>span]:text-[17px]"
                         onClick={() => setStage("parts")}
                       />
                     </div>
@@ -467,14 +474,14 @@ export function StudentRequestFlow() {
 
               {/* Right 50%: Freehand Draggable Flowchart + 3-Request Cluster & Show More List */}
               {hasRequests && activeRequest && (
-                <div className="flex flex-col justify-center p-6 sm:p-10 space-y-4">
+                <div className="flex flex-col justify-center min-w-0 p-4 pb-20 sm:p-10 space-y-4">
                   {/* Top Header + Compact 3-Request Cluster Switcher (only shown when 2+ requests) */}
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-baseline justify-between gap-2 px-1">
-                      <h3 className="text-[22px] font-medium tracking-[-0.025em] text-black">
+                      <h3 className="text-[20px] sm:text-[22px] font-medium tracking-[-0.025em] text-black">
                         Your Request Flowcharts
                       </h3>
-                      <p className="text-[14px] text-black/55 tabular-nums">
+                      <p className="text-[13px] sm:text-[14px] text-black/55 tabular-nums">
                         {savedRequests.length} saved
                       </p>
                     </div>
@@ -502,7 +509,7 @@ export function StudentRequestFlow() {
                                   ? palette.banner
                                   : "#FFFFFF",
                               }}
-                              className={`flex items-center justify-between gap-2 rounded-[14px] border-2 px-3.5 py-2.5 text-left transition-all duration-200 cursor-pointer ${
+                              className={`min-h-[54px] sm:min-h-0 flex items-center justify-between gap-2.5 sm:gap-2 rounded-[14px] border-2 px-3.5 py-3 sm:py-2.5 text-left transition-all duration-200 cursor-pointer ${
                                 isCurrent
                                   ? "border-black shadow-[3px_3px_0px_#000000] -translate-y-0.5"
                                   : "border-black/20 hover:border-black/60"
@@ -552,7 +559,7 @@ export function StudentRequestFlow() {
                       <button
                         type="button"
                         onClick={() => setShowMoreRequests((prev) => !prev)}
-                        className="inline-flex items-center gap-2 rounded-full border border-black/16 bg-white px-5 py-2 text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/30 cursor-pointer"
+                        className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-black/16 bg-white px-5 py-2 text-[14px] font-medium text-black transition-colors hover:bg-[#C4F041] hover:border-black/30 cursor-pointer"
                       >
                         <span>
                           {showMoreRequests
@@ -604,7 +611,7 @@ export function StudentRequestFlow() {
                                       setSelectedRequestId(req.id);
                                       setShowMoreRequests(false);
                                     }}
-                                    className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
+                                    className={`min-h-[56px] flex w-full items-center justify-between gap-3 px-4 py-3.5 sm:py-3 text-left transition-colors cursor-pointer ${
                                       isCurrent
                                         ? "bg-[#F5F5F3]"
                                         : "hover:bg-[#F7F7F5]"
@@ -624,7 +631,7 @@ export function StudentRequestFlow() {
                                             ? ` · ${req.purpose}`
                                             : ""}
                                         </p>
-                                        <p className="text-[13px] text-black/55 tabular-nums">
+                                        <p className="text-[13px] text-black/55 tabular-nums truncate">
                                           {req.items.length} parts ({units}{" "}
                                           units) · {req.instructor.fullName}
                                         </p>
@@ -665,25 +672,25 @@ export function StudentRequestFlow() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.6, ease: LP_EASE }}
-              className="flex flex-1 flex-col min-h-[calc(100vh-8.5rem)]"
+              className="flex flex-1 flex-col min-h-[calc(100dvh-7.5rem)] sm:min-h-[calc(100vh-8.5rem)]"
             >
               {/* Clean Editorial Header & Filters */}
-              <div className="border-b border-black/12 bg-white/90 backdrop-blur-md px-5 sm:px-7 py-5">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
+              <div className="border-b border-black/12 bg-white/90 backdrop-blur-md px-4 py-4 sm:px-7 sm:py-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                     <button
                       type="button"
                       onClick={() => setStage("board")}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-[#F0F0F0] text-black transition-colors hover:bg-[#C4F041] cursor-pointer"
+                      className="inline-flex h-11 w-11 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-black/15 bg-[#F0F0F0] text-black transition-colors hover:bg-[#C4F041] cursor-pointer"
                       aria-label="Back to dashboard"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
-                    <div>
-                      <h2 className="text-[22px] sm:text-[26px] font-medium tracking-[-0.03em] text-black leading-tight">
+                    <div className="min-w-0">
+                      <h2 className="text-[20px] sm:text-[26px] font-medium tracking-[-0.03em] text-black leading-tight">
                         Select Lab Parts
                       </h2>
-                      <p className="mt-0.5 text-[14px] text-black/55 tabular-nums">
+                      <p className="mt-0.5 text-[13px] sm:text-[14px] text-black/55 tabular-nums leading-snug">
                         {filteredParts.length} verified parts available · Select parts below to submit from the bottom bar
                       </p>
                     </div>
@@ -691,21 +698,21 @@ export function StudentRequestFlow() {
                 </div>
 
                 {/* Search & Filter Row */}
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <div className="relative flex-1 min-w-[240px] max-w-md">
+                <div className="mt-3.5 sm:mt-4 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+                  <div className="relative col-span-2 sm:flex-1 sm:min-w-[240px] sm:max-w-md">
                     <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
                     <input
                       type="text"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search Arduino, DHT22, ESP32, servo, soldering..."
-                      className="h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-4 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
+                      className="h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-4 text-[16px] sm:text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
                     />
                   </div>
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
+                    className="h-11 w-full min-w-0 truncate rounded-full border border-black/15 bg-white px-3.5 sm:px-4 text-[13px] sm:text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto"
                   >
                     <option value="ALL">
                       All Categories ({categories.length})
@@ -719,7 +726,7 @@ export function StudentRequestFlow() {
                   <select
                     value={labBlockFilter}
                     onChange={(e) => setLabBlockFilter(e.target.value)}
-                    className="h-11 rounded-full border border-black/15 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none"
+                    className="h-11 w-full min-w-0 truncate rounded-full border border-black/15 bg-white px-3.5 sm:px-4 text-[13px] sm:text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto"
                   >
                     <option value="ALL">All Lab Blocks</option>
                     {PROCUREMENT_LAB_BLOCKS.map((b) => (
@@ -732,9 +739,9 @@ export function StudentRequestFlow() {
               </div>
 
               {/* All Parts WebP Grid */}
-              <div className="flex-1 p-5 sm:p-7 pb-28">
+              <div className="flex-1 p-4 sm:p-7 pb-36 sm:pb-28">
                 {loading ? (
-                  <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div
                         key={i}
@@ -755,7 +762,7 @@ export function StudentRequestFlow() {
                   </p>
                 ) : (
                   <>
-                    <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                       {visibleParts.map((row) => (
                         <PartPickerCard
                           key={row.id}
@@ -770,7 +777,7 @@ export function StudentRequestFlow() {
                     {visibleCount < filteredParts.length && (
                       <div
                         ref={setSentinelEl}
-                        className="mt-6 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                        className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
                       >
                         {Array.from({ length: 4 }).map((_, i) => (
                           <div

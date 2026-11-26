@@ -364,16 +364,16 @@ export function RequestFlowchartCard({
         <div
           className={`w-full ${
             step.showPartsBranch && !compactMode
-              ? "max-w-[330px]"
+              ? "max-w-[420px] 2xl:max-w-[330px]"
               : "max-w-[420px]"
           } transition-opacity duration-300 ${
             isUpcoming ? "opacity-55" : "opacity-100"
           }`}
         >
           {/* Floating Step Title Tab */}
-          <div className="mb-1.5 pl-2">
+          <div className="mb-1.5 pl-1.5 sm:pl-2">
             <div
-              className={`inline-block rounded-[10px] border-2 px-3.5 py-1 text-[14px] font-semibold tracking-[-0.015em] ${
+              className={`inline-block max-w-full rounded-[10px] border-2 px-3 py-1 sm:px-3.5 text-[13px] sm:text-[14px] font-semibold tracking-[-0.015em] ${
                 isPending
                   ? "border-black bg-[#FFF9E6] text-black shadow-[2px_2px_0px_#000000]"
                   : isCompleted
@@ -389,7 +389,11 @@ export function RequestFlowchartCard({
 
           {/* Step Body Box */}
           <div
-            className={`flex items-center justify-between gap-4 rounded-[14px] border-2 px-4 py-3.5 ${
+            className={`flex ${
+              isPending
+                ? "flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                : "items-center justify-between gap-3 sm:gap-4"
+            } rounded-[14px] border-2 px-3.5 py-3 sm:px-4 sm:py-3.5 ${
               isPending
                 ? "border-black bg-[#FFFDF7] shadow-[4px_4px_0px_#000000]"
                 : isCompleted
@@ -399,26 +403,26 @@ export function RequestFlowchartCard({
                     : "border-black/35 border-dashed bg-white/80"
             }`}
           >
-            <div className="min-w-0 flex-1">
-              <p className="text-[15px] leading-snug text-black">
+            <div className="min-w-0 flex-1 w-full">
+              <p className="text-[14px] sm:text-[15px] leading-snug text-black break-words">
                 {step.description}
               </p>
 
               {/* Inline WebP Part Previews (always kept inside container bounds) */}
               {step.showPartsBranch && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 2xl:hidden">
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 sm:gap-2 2xl:hidden">
                   {request.items.slice(0, 4).map((it) => (
                     <div
                       key={it.id}
-                      className="inline-flex items-center gap-2 rounded-[10px] border border-black/15 bg-[#F5F5F3] pr-2.5 overflow-hidden"
+                      className="inline-flex max-w-full items-center gap-2 rounded-[10px] border border-black/15 bg-[#F5F5F3] pr-2.5 overflow-hidden"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={it.item.imageUrl || getPartImageUrl(it.item.code)}
                         alt={it.item.name}
-                        className="h-8 w-8 object-cover border-r border-black/10"
+                        className="h-8 w-8 shrink-0 object-cover border-r border-black/10"
                       />
-                      <span className="text-[13px] font-medium text-black max-w-[140px] truncate">
+                      <span className="min-w-0 text-[13px] font-medium text-black max-w-[180px] sm:max-w-[140px] truncate">
                         {it.item.name} ×{it.requestedQuantity}
                       </span>
                     </div>
@@ -438,7 +442,7 @@ export function RequestFlowchartCard({
                 <div
                   title="Pending"
                   style={{ backgroundColor: palette.pendingBg }}
-                  className="flex items-center gap-2 rounded-full border-2 border-black px-3 py-1.5 text-black shadow-[2px_2px_0px_#000000]"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border-2 border-black px-2.5 py-1 sm:px-3 sm:py-1.5 text-black shadow-[2px_2px_0px_#000000]"
                 >
                   <Clock className="h-4 w-4 stroke-[2.3]" />
                   <span className="text-[13px] font-semibold">Pending</span>
@@ -447,7 +451,7 @@ export function RequestFlowchartCard({
               {isCompleted && (
                 <div
                   title="Completed"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#C4F041] text-black"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 border-black bg-[#C4F041] text-black"
                 >
                   <Check className="h-4 w-4 stroke-[2.6]" />
                 </div>
@@ -455,7 +459,7 @@ export function RequestFlowchartCard({
               {isRejected && (
                 <div
                   title="Rejected"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[#FA8E66] text-black"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 border-black bg-[#FA8E66] text-black"
                 >
                   <XCircle className="h-4 w-4 stroke-[2.2]" />
                 </div>
@@ -510,7 +514,7 @@ export function RequestFlowchartCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.42, ease: LP_EASE }}
-      className="relative w-full px-8 sm:px-12 py-9 sm:py-11"
+      className="relative w-full px-4 py-6 sm:px-10 sm:py-9 md:px-12 md:py-11"
     >
       {/* Static Excalidraw Organic Cloud Backdrop (non-square, generously scaled so content never overflows) */}
       <svg
@@ -529,12 +533,14 @@ export function RequestFlowchartCard({
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
           style={{ backgroundColor: palette.banner }}
-          className="inline-flex items-center gap-3 rounded-[14px] border-2 border-black px-5 py-2.5 text-black shadow-[3px_3px_0px_#000000] transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
+          className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2.5 gap-y-1 sm:gap-3 min-h-[44px] rounded-[14px] border-2 border-black px-4 py-2 sm:px-5 sm:py-2.5 text-black shadow-[3px_3px_0px_#000000] transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
         >
-          <span className="text-[16px] font-semibold tracking-[-0.02em]">
+          <span className="text-[15px] sm:text-[16px] font-semibold tracking-[-0.02em] whitespace-nowrap">
             Request {index + 1}
           </span>
-          <span className="text-[14px] text-black/75">{formattedDate}</span>
+          <span className="text-[13px] sm:text-[14px] text-black/75 whitespace-nowrap">
+            {formattedDate}
+          </span>
           {extraSteps.length > 0 && (
             <span className="text-black/75">
               {expanded ? (
@@ -607,7 +613,7 @@ export function RequestFlowchartCard({
           <button
             type="button"
             onClick={() => setExpanded((prev) => !prev)}
-            className="mt-4 text-[14px] font-medium text-black/65 underline decoration-black/25 underline-offset-4 hover:text-black hover:decoration-black transition-colors cursor-pointer"
+            className="mt-3.5 sm:mt-4 inline-flex min-h-[44px] items-center justify-center px-3 text-[14px] font-medium text-black/65 underline decoration-black/25 underline-offset-4 hover:text-black hover:decoration-black transition-colors cursor-pointer"
           >
             {expanded ? "Hide upcoming steps" : `Show all ${steps.length} steps`}
           </button>

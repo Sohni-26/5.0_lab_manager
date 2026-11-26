@@ -178,8 +178,8 @@ export function IntroSection() {
                   })}
                 </div>
 
-                {/* Central Coral Circle + NxtWave Mark */}
-                <div className="relative z-10 flex h-[116px] w-[116px] items-center justify-center rounded-full bg-[#FA8E66] p-4 text-black shadow-md sm:h-[136px] sm:w-[136px]">
+                {/* Central NxtWave Circle + Mark */}
+                <div className="relative z-10 flex h-[116px] w-[116px] items-center justify-center rounded-full bg-[#DCEEFF] p-4 text-[#052647] ring-1 ring-[#0066CC]/20 shadow-md sm:h-[136px] sm:w-[136px]">
                   <LoopsiiMark className="h-auto w-[82%]" />
                 </div>
               </motion.div>

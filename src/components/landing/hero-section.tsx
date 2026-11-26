@@ -300,7 +300,7 @@ export function HeroSection() {
                 );
               })}
 
-              {/* Centerpiece Coral Circle with Loopsii Emblem (col 5, row 1) */}
+              {/* Centerpiece NxtWave Circle Emblem (col 5, row 1 — no rotation) */}
               <motion.div
                 className="absolute z-10 flex items-center justify-center p-[3px] sm:p-[5px]"
                 style={{
@@ -310,15 +310,14 @@ export function HeroSection() {
                   height: "calc(100% / 3)",
                 }}
                 animate={{
-                  rotate: wordIndex * 360,
-                  scale: [1, 1.08, 1],
+                  scale: [1, 1.06, 1],
                 }}
                 transition={{
-                  rotate: { duration: 1.1, ease: [0.76, 0, 0.24, 1] },
                   scale: { duration: 0.9, ease: [0.3, 1.3, 0.4, 1] },
                 }}
+                key={`center-pulse-${wordIndex}`}
               >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-[#FA8E66] p-3 text-black shadow-sm">
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-[#DCEEFF] p-3 text-[#052647] ring-1 ring-[#0066CC]/20 shadow-sm">
                   <LoopsiiMark className="h-auto w-[72%]" />
                 </div>
               </motion.div>

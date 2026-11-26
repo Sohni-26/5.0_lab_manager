@@ -317,7 +317,7 @@ export function HeroSection() {
                 }}
                 key={`center-pulse-${wordIndex}`}
               >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-[#DCEEFF] p-3 text-[#052647] ring-1 ring-[#0066CC]/20 shadow-sm">
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white p-3 text-[#052647] ring-1 ring-black/10 shadow-sm">
                   <LoopsiiMark className="h-auto w-[72%]" />
                 </div>
               </motion.div>

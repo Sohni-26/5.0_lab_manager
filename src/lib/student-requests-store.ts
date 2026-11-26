@@ -38,6 +38,27 @@ export function prependLocalStudentRequest(req: LabRequestDTO): LabRequestDTO[] 
   return next;
 }
 
+/** Merge locally-created/updated demo requests over static DEMO_REQUESTS (newest first) */
+export function readMergedDemoRequests(
+  fallback: LabRequestDTO[]
+): LabRequestDTO[] {
+  const local = readLocalStudentRequests();
+  const localIds = new Set(local.map((r) => r.id));
+  return [...local, ...fallback.filter((d) => !localIds.has(d.id))];
+}
+
+/** Persist an updated request (e.g. approved, rejected, issued, verified) into local demo store */
+export function upsertLocalStudentRequest(req: LabRequestDTO): LabRequestDTO[] {
+  const existing = readLocalStudentRequests();
+  const idx = existing.findIndex((r) => r.id === req.id);
+  const next =
+    idx >= 0
+      ? existing.map((r, i) => (i === idx ? req : r))
+      : [req, ...existing];
+  saveLocalStudentRequests(next);
+  return next;
+}
+
 export function buildLocalLabRequestDTO(params: {
   user: AuthUserDTO | null;
   instructor: AuthUserDTO | undefined;

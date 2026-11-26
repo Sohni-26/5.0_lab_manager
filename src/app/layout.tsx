@@ -42,6 +42,14 @@ export const metadata: Metadata = {
   title: "CampusLab — The all-in-one lab manager for campuses",
   description:
     "The all-in-one lab management system for multi-campus institutions. Keeps your inventory, allocations, borrowing, 4-angle photo proofs and audits connected.",
+  icons: {
+    icon: [
+      { url: "/favicon.png?v=2", type: "image/png", sizes: "64x64" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    shortcut: "/favicon.png?v=2",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

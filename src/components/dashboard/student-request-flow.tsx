@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -10,7 +10,6 @@ import {
   ChevronUp,
   Clock,
   Search,
-  X,
 } from "lucide-react";
 import {
   DottedGridCanvas,
@@ -23,6 +22,7 @@ import {
 import { LoopsiiButton } from "@/components/landing/primitives";
 import { useLenis } from "@/components/landing/smooth-scroll";
 import { PartPickerCard } from "@/components/student/part-picker-card";
+import { StudentRequestDock } from "@/components/student/request-dock";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -103,12 +103,6 @@ export function StudentRequestFlow() {
   const [purpose, setPurpose] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Dashboard-only fixed hover-top navbar (pure hover top reveal / hover down hide)
-  const [navVisible, setNavVisible] = useState(false);
-  const [navFocused, setNavFocused] = useState(false);
-  const pointerInsideNavRef = useRef(false);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
     if (isDemoMode) {
       const demoInv = DEMO_CAMPUS_INVENTORY.filter(
@@ -163,61 +157,6 @@ export function StudentRequestFlow() {
     },
     [isDemoMode]
   );
-
-  // Hovering top OR scrolling upward (with parts selected) reveals the invisible navbar;
-  // moving cursor down or scrolling down hides it smoothly
-  const hasSelectedParts = useMemo(
-    () => Object.values(selectedQty).some((q) => q > 0),
-    [selectedQty]
-  );
-
-  useEffect(() => {
-    if (stage !== "parts") {
-      setNavVisible(false);
-      return;
-    }
-
-    let lastScrollY = window.scrollY;
-
-    const scheduleHide = () => {
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = setTimeout(() => {
-        if (!pointerInsideNavRef.current && !navFocused) {
-          setNavVisible(false);
-        }
-      }, 180);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY <= 84) {
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        setNavVisible(true);
-      } else if (!pointerInsideNavRef.current && !navFocused && e.clientY > 150) {
-        scheduleHide();
-      }
-    };
-
-    const handleScroll = () => {
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY;
-      lastScrollY = currentY;
-
-      if (delta < -14 && hasSelectedParts) {
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        setNavVisible(true);
-      } else if (delta > 18 && !pointerInsideNavRef.current && !navFocused) {
-        scheduleHide();
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    };
-  }, [stage, navFocused, hasSelectedParts]);
 
   // Smoothly reset scroll on stage transitions and sync Lenis
   useEffect(() => {
@@ -396,8 +335,6 @@ export function StudentRequestFlow() {
       toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
       setPurpose("");
-      setNavVisible(false);
-      setNavFocused(false);
       setStage("board");
     } catch {
       const createdReq = buildLocalRequestDTO();
@@ -411,15 +348,12 @@ export function StudentRequestFlow() {
       toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
       setPurpose("");
-      setNavVisible(false);
-      setNavFocused(false);
       setStage("board");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const isHoverBarOpen = stage === "parts" && (navVisible || navFocused);
   const hasRequests = savedRequests.length > 0;
 
   // Keep active focused request synced (defaults to newest request)
@@ -453,139 +387,23 @@ export function StudentRequestFlow() {
           "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
       }}
     >
-      {/* DASHBOARD-ONLY FIXED HOVER-TOP NAVBAR (MATCHING LANDING NAVMORPH) */}
-      <AnimatePresence>
-        {isHoverBarOpen && (
-          <motion.nav
-            key="dashboard-hover-navbar"
-            aria-label="Request submission bar"
-            initial={{ opacity: 0, y: -104 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -104 }}
-            transition={{ duration: 0.48, ease: LP_EASE }}
-            onMouseEnter={() => {
-              pointerInsideNavRef.current = true;
-              if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-              setNavVisible(true);
-            }}
-            onMouseLeave={() => {
-              pointerInsideNavRef.current = false;
-              if (!navFocused) {
-                if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-                hideTimerRef.current = setTimeout(() => {
-                  if (!pointerInsideNavRef.current && !navFocused) {
-                    setNavVisible(false);
-                  }
-                }, 180);
-              }
-            }}
-            onFocusCapture={() => setNavFocused(true)}
-            onBlurCapture={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                setNavFocused(false);
-                if (!pointerInsideNavRef.current) {
-                  setNavVisible(false);
-                }
-              }
-            }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,1060px)] rounded-[24px] border border-black/15 bg-[#F0F0F0]/95 backdrop-blur-md px-5 sm:px-6 py-4 text-black shadow-[0_24px_70px_rgba(0,0,0,0.16)]"
-          >
-            <div className="flex flex-col gap-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[15px] font-medium tracking-[-0.02em] text-black tabular-nums">
-                  {selectedEntries.length > 0
-                    ? `${selectedEntries.length} part${
-                        selectedEntries.length === 1 ? "" : "s"
-                      } selected · ${totalSelectedUnits} unit${
-                        totalSelectedUnits === 1 ? "" : "s"
-                      } total`
-                    : "Select parts below to build your request"}
-                </p>
-
-                {selectedEntries.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedQty({})}
-                    className="text-[14px] font-medium text-black/55 hover:text-black transition-colors cursor-pointer"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-
-              {selectedEntries.length > 0 && (
-                <div
-                  data-lenis-prevent
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1.5 max-h-20 overflow-y-auto border-y border-black/10 py-2.5 text-[14px] text-black"
-                >
-                  {selectedEntries.map(({ itemId, qty, row }) => (
-                    <span
-                      key={itemId}
-                      className="inline-flex items-center gap-1.5"
-                    >
-                      <span className="font-medium max-w-[200px] truncate">
-                        {row.item.name}
-                      </span>
-                      <span className="text-black/55 tabular-nums">×{qty}</span>
-                      <button
-                        type="button"
-                        onClick={() => updatePartQty(row, 0)}
-                        className="text-black/40 hover:text-black transition-colors cursor-pointer"
-                        aria-label={`Remove ${row.item.name}`}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-3">
-                <select
-                  value={instructorId}
-                  onChange={(e) => setInstructorId(e.target.value)}
-                  className="h-12 rounded-full border border-black/16 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none min-w-[220px]"
-                >
-                  {instructors.map((inst) => (
-                    <option key={inst.id} value={inst.id}>
-                      {inst.fullName}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  placeholder="Project or lab course purpose..."
-                  className="h-12 flex-1 min-w-[220px] rounded-full border border-black/16 bg-white px-5 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
-                />
-
-                <div
-                  className={
-                    selectedEntries.length === 0
-                      ? "opacity-45 pointer-events-none"
-                      : ""
-                  }
-                >
-                  <LoopsiiButton
-                    label={
-                      submitting
-                        ? "Submitting..."
-                        : selectedEntries.length > 0
-                          ? `Submit Request (${totalSelectedUnits})`
-                          : "Submit Request"
-                    }
-                    size="md"
-                    hideArrow
-                    onClick={handleSubmitRequest}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {/* Always-visible floating bottom request dock whenever parts are selected */}
+      {stage === "parts" && (
+        <StudentRequestDock
+          selectedEntries={selectedEntries}
+          totalSelectedUnits={totalSelectedUnits}
+          instructors={instructors}
+          instructorId={instructorId}
+          onInstructorChange={setInstructorId}
+          purpose={purpose}
+          onPurposeChange={setPurpose}
+          onUpdateQty={updatePartQty}
+          onClearAll={() => setSelectedQty({})}
+          onSubmit={handleSubmitRequest}
+          submitting={submitting}
+          submitLabel="Submit Request"
+        />
+      )}
 
       <DottedGridCanvas
         pannable={stage === "board"}
@@ -866,22 +684,10 @@ export function StudentRequestFlow() {
                         Select Lab Parts
                       </h2>
                       <p className="mt-0.5 text-[14px] text-black/55 tabular-nums">
-                        {filteredParts.length} verified parts available · Hover
-                        the top edge to review and submit
+                        {filteredParts.length} verified parts available · Select parts below to submit from the bottom bar
                       </p>
                     </div>
                   </div>
-
-                  {selectedEntries.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setNavVisible(true)}
-                      className="text-[15px] font-medium text-black underline decoration-black/30 underline-offset-4 hover:decoration-black transition-colors cursor-pointer tabular-nums"
-                    >
-                      {selectedEntries.length} selected ({totalSelectedUnits}{" "}
-                      units)
-                    </button>
-                  )}
                 </div>
 
                 {/* Search & Filter Row */}
@@ -926,7 +732,7 @@ export function StudentRequestFlow() {
               </div>
 
               {/* All Parts WebP Grid */}
-              <div className="flex-1 p-5 sm:p-7 pb-16">
+              <div className="flex-1 p-5 sm:p-7 pb-28">
                 {loading ? (
                   <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {Array.from({ length: 12 }).map((_, i) => (

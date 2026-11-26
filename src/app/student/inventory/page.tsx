@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { CheckCircle2, Search, X } from "lucide-react";
-import { LoopsiiButton } from "@/components/landing/primitives";
 import {
   SmoothScrollProvider,
   useLenis,
 } from "@/components/landing/smooth-scroll";
 import { PartPickerCard } from "@/components/student/part-picker-card";
+import { StudentRequestDock } from "@/components/student/request-dock";
 import { useAuth } from "@/hooks/use-auth";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -58,12 +58,6 @@ function BrowseInventoryInner() {
   const [justSubmittedCount, setJustSubmittedCount] = useState<number | null>(
     null
   );
-
-  // Hover-top / click-to-open floating request bar
-  const [barVisible, setBarVisible] = useState(false);
-  const [barFocused, setBarFocused] = useState(false);
-  const pointerInsideBarRef = useRef(false);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -129,55 +123,6 @@ function BrowseInventoryInner() {
     () => selectedEntries.reduce((sum, e) => sum + e.qty, 0),
     [selectedEntries]
   );
-
-  // Hovering top OR scrolling upward (with parts selected) reveals the invisible navbar;
-  // moving cursor down or scrolling down hides it smoothly
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-
-    const scheduleHide = () => {
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = setTimeout(() => {
-        if (!pointerInsideBarRef.current && !barFocused) {
-          setBarVisible(false);
-        }
-      }, 180);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY <= 84) {
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        setBarVisible(true);
-      } else if (
-        !pointerInsideBarRef.current &&
-        !barFocused &&
-        e.clientY > 150
-      ) {
-        scheduleHide();
-      }
-    };
-
-    const handleScroll = () => {
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY;
-      lastScrollY = currentY;
-
-      if (delta < -14 && selectedEntries.length > 0) {
-        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-        setBarVisible(true);
-      } else if (delta > 18 && !pointerInsideBarRef.current && !barFocused) {
-        scheduleHide();
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("scroll", handleScroll);
-      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    };
-  }, [barFocused, selectedEntries.length]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -310,8 +255,6 @@ function BrowseInventoryInner() {
       const unitCount = totalSelectedUnits;
       setSelectedQty({});
       setPurpose("");
-      setBarVisible(false);
-      setBarFocused(false);
       setJustSubmittedCount(unitCount);
       toast.success("Request raised — track live on My Requests or Dashboard");
     } catch {
@@ -326,8 +269,6 @@ function BrowseInventoryInner() {
       const unitCount = totalSelectedUnits;
       setSelectedQty({});
       setPurpose("");
-      setBarVisible(false);
-      setBarFocused(false);
       setJustSubmittedCount(unitCount);
       toast.success("Request raised — track live on My Requests or Dashboard");
     } finally {
@@ -335,148 +276,29 @@ function BrowseInventoryInner() {
     }
   };
 
-  const isRequestBarOpen = barVisible || barFocused;
-
   return (
     <div
-      className="space-y-6"
+      className="space-y-6 pb-28"
       style={{
         fontFamily:
           "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
       }}
     >
-      {/* Floating Hover-Top Request Submission Bar (zero navigation away from catalog) */}
-      <AnimatePresence>
-        {isRequestBarOpen && (
-          <motion.nav
-            key="inventory-hover-request-bar"
-            aria-label="Direct request submission bar"
-            initial={{ opacity: 0, y: -104 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -104 }}
-            transition={{ duration: 0.48, ease: LP_EASE }}
-            onMouseEnter={() => {
-              pointerInsideBarRef.current = true;
-              if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-              setBarVisible(true);
-            }}
-            onMouseLeave={() => {
-              pointerInsideBarRef.current = false;
-              if (!barFocused) {
-                if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-                hideTimerRef.current = setTimeout(() => {
-                  if (!pointerInsideBarRef.current && !barFocused) {
-                    setBarVisible(false);
-                  }
-                }, 180);
-              }
-            }}
-            onFocusCapture={() => setBarFocused(true)}
-            onBlurCapture={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                setBarFocused(false);
-                if (!pointerInsideBarRef.current) {
-                  setBarVisible(false);
-                }
-              }
-            }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,1060px)] rounded-[24px] border border-black/15 bg-[#F0F0F0]/95 backdrop-blur-md px-5 sm:px-6 py-4 text-black shadow-[0_24px_70px_rgba(0,0,0,0.16)]"
-          >
-            <div className="flex flex-col gap-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[15px] font-medium tracking-[-0.02em] text-black tabular-nums">
-                  {selectedEntries.length > 0
-                    ? `${selectedEntries.length} part${
-                        selectedEntries.length === 1 ? "" : "s"
-                      } selected · ${totalSelectedUnits} unit${
-                        totalSelectedUnits === 1 ? "" : "s"
-                      } ready to request`
-                    : "Add parts from the catalog below to raise a request directly"}
-                </p>
-                {selectedEntries.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedQty({})}
-                    className="text-[14px] font-medium text-black/55 hover:text-black transition-colors cursor-pointer"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-
-              {selectedEntries.length > 0 && (
-                <div
-                  data-lenis-prevent
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1.5 max-h-20 overflow-y-auto border-y border-black/10 py-2.5 text-[14px] text-black"
-                >
-                  {selectedEntries.map(({ itemId, qty, row }) => (
-                    <span
-                      key={itemId}
-                      className="inline-flex items-center gap-1.5"
-                    >
-                      <span className="font-medium max-w-[200px] truncate">
-                        {row.item.name}
-                      </span>
-                      <span className="text-black/55 tabular-nums">×{qty}</span>
-                      <button
-                        type="button"
-                        onClick={() => updatePartQty(row, 0)}
-                        className="text-black/40 hover:text-black transition-colors cursor-pointer"
-                        aria-label={`Remove ${row.item.name}`}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-3">
-                <select
-                  value={instructorId}
-                  onChange={(e) => setInstructorId(e.target.value)}
-                  className="h-12 rounded-full border border-black/16 bg-white px-4 text-[14px] font-medium text-black focus:border-black focus:outline-none min-w-[220px]"
-                >
-                  {instructors.map((inst) => (
-                    <option key={inst.id} value={inst.id}>
-                      {inst.fullName}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  placeholder="Project or lab course purpose (optional)..."
-                  className="h-12 flex-1 min-w-[220px] rounded-full border border-black/16 bg-white px-5 text-[14px] text-black placeholder:text-black/45 focus:border-black focus:outline-none"
-                />
-
-                <div
-                  className={
-                    selectedEntries.length === 0
-                      ? "opacity-45 pointer-events-none"
-                      : ""
-                  }
-                >
-                  <LoopsiiButton
-                    label={
-                      submitting
-                        ? "Submitting..."
-                        : selectedEntries.length > 0
-                          ? `Raise Request (${totalSelectedUnits})`
-                          : "Raise Request"
-                    }
-                    size="md"
-                    hideArrow
-                    onClick={handleSubmitDirect}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {/* Always-Visible Floating Bottom Request Dock (zero navigation away from catalog) */}
+      <StudentRequestDock
+        selectedEntries={selectedEntries}
+        totalSelectedUnits={totalSelectedUnits}
+        instructors={instructors}
+        instructorId={instructorId}
+        onInstructorChange={setInstructorId}
+        purpose={purpose}
+        onPurposeChange={setPurpose}
+        onUpdateQty={updatePartQty}
+        onClearAll={() => setSelectedQty({})}
+        onSubmit={handleSubmitDirect}
+        submitting={submitting}
+        submitLabel="Raise Request"
+      />
 
       {/* Clean Editorial Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -485,29 +307,17 @@ function BrowseInventoryInner() {
             Browse Inventory
           </h1>
           <p className="mt-1 text-[15px] text-black/60">
-            Select any parts and quantities right here — hover the top edge
-            anytime to submit directly.
+            Select any parts and quantities right here — submit directly from
+            the floating bar below.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          {selectedEntries.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setBarVisible(true)}
-              className="text-[15px] font-medium text-black underline decoration-black/35 underline-offset-4 hover:decoration-black transition-colors cursor-pointer tabular-nums"
-            >
-              {selectedEntries.length} selected ({totalSelectedUnits} units) —
-              Review &amp; Submit
-            </button>
-          )}
-          <Link
-            href="/student/requests"
-            className="text-[15px] font-medium text-black/65 hover:text-black transition-colors"
-          >
-            Track My Requests
-          </Link>
-        </div>
+        <Link
+          href="/student/requests"
+          className="text-[15px] font-medium text-black/65 hover:text-black transition-colors"
+        >
+          Track My Requests
+        </Link>
       </div>
 
       {/* Subtle Inline Confirmation Banner Right After Direct Submission */}

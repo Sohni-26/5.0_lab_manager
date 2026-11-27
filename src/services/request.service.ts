@@ -487,10 +487,11 @@ export async function createLabRequest(
 }
 
 /**
- * Stage 2: Assigned Instructor reviews request.
+ * Stage 2 (Final Approval): Assigned Instructor reviews request and ATOMICALLY RESERVES STOCK.
  * - ONLY the assigned Instructor from the same campus can approve/reject.
  * - Prevents duplicate processing via status check + RequestApproval unique(requestId, stage).
- * - Approved -> PENDING_LAB_MANAGER; Rejected -> REJECTED_BY_INSTRUCTOR.
+ * - Approved -> APPROVED (atomically reserves stock with `availableQuantity >= qty`);
+ * - Rejected -> REJECTED_BY_INSTRUCTOR.
  */
 export async function processInstructorApproval(
   actor: AuthUserDTO,
@@ -501,7 +502,7 @@ export async function processInstructorApproval(
   assertRole(
     actor,
     ["INSTRUCTOR"],
-    "Only the assigned Instructor can perform Stage 1 review"
+    "Only the assigned Instructor can approve or reject student requests"
   );
 
   const request = await db.labRequest.findUnique({
@@ -527,11 +528,19 @@ export async function processInstructorApproval(
   }
 
   const nextStatus: LabRequestStatus =
-    input.decision === "APPROVED"
-      ? "PENDING_LAB_MANAGER"
-      : "REJECTED_BY_INSTRUCTOR";
+    input.decision === "APPROVED" ? "APPROVED" : "REJECTED_BY_INSTRUCTOR";
 
   const updated = await db.$transaction(async (tx) => {
+    const lockedReq = await tx.labRequest.findUnique({
+      where: { id: requestId },
+      include: { items: { include: { item: true } } },
+    });
+    if (!lockedReq || lockedReq.status !== "PENDING_INSTRUCTOR") {
+      throw new ConflictError(
+        `Request '${request.requestCode}' has already been processed`
+      );
+    }
+
     const existingApproval = await tx.requestApproval.findUnique({
       where: {
         requestId_stage: { requestId, stage: "INSTRUCTOR_REVIEW" },
@@ -539,6 +548,64 @@ export async function processInstructorApproval(
     });
     if (existingApproval) {
       throw new ConflictError("Instructor review has already been processed");
+    }
+
+    if (input.decision === "APPROVED") {
+      // ATOMIC stock reservation per item with conditional guard to eliminate double-booking
+      for (const reqItem of lockedReq.items) {
+        const qty = reqItem.requestedQuantity;
+        const inv = await tx.campusInventory.findUnique({
+          where: {
+            campusId_itemId: {
+              campusId: lockedReq.campusId,
+              itemId: reqItem.itemId,
+            },
+          },
+        });
+
+        if (!inv || !inv.isVerified) {
+          throw new ConflictError(
+            `Item '${reqItem.item.code}' is not verified in campus inventory`
+          );
+        }
+
+        const reserveResult = await tx.campusInventory.updateMany({
+          where: {
+            id: inv.id,
+            availableQuantity: { gte: qty },
+          },
+          data: {
+            availableQuantity: { decrement: qty },
+            reservedQuantity: { increment: qty },
+          },
+        });
+
+        if (reserveResult.count !== 1) {
+          throw new ConflictError(
+            `Insufficient available stock to reserve ${qty} units of '${reqItem.item.name}' (concurrent booking conflict)`
+          );
+        }
+
+        await tx.labRequestItem.update({
+          where: { id: reqItem.id },
+          data: { approvedQuantity: qty },
+        });
+
+        await tx.inventoryTransaction.create({
+          data: {
+            campusId: lockedReq.campusId,
+            itemId: reqItem.itemId,
+            type: "STOCK_RESERVED",
+            quantity: qty,
+            previousQuantity: inv.availableQuantity,
+            updatedQuantity: inv.availableQuantity - qty,
+            referenceType: "LabRequest",
+            referenceId: lockedReq.id,
+            performedById: actor.id,
+            remarks: `Reserved ${qty} units upon Instructor approval of ${lockedReq.requestCode}`,
+          },
+        });
+      }
     }
 
     await tx.requestApproval.create({
@@ -590,6 +657,17 @@ export async function processInstructorApproval(
     actorId: actor.id,
     summary: `Request ${updated.requestCode} ${input.decision.toLowerCase()} by Instructor`,
   });
+
+  if (input.decision === "APPROVED") {
+    realtimeEventBus.publish({
+      type: "inventory.updated",
+      campusId: request.campusId,
+      entityType: "CampusInventory",
+      entityId: updated.id,
+      actorId: actor.id,
+      summary: `Stock reserved for ${updated.requestCode}`,
+    });
+  }
 
   return mapLabRequestToDTO(updated);
 }

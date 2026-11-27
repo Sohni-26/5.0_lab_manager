@@ -15,15 +15,19 @@ const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 const DropdownMenuContent = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 6, ...props }, ref) => (
+>(({ className, sideOffset = 8, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[11rem] overflow-hidden rounded-xl border border-[#E6E5E0] bg-white p-1 text-[#222321] shadow-lg",
+        "z-50 min-w-[12rem] overflow-hidden rounded-[24px] bg-white p-2 text-black ring-1 ring-black/[0.06] shadow-[0_18px_48px_rgba(0,0,0,0.10),0_2px_8px_rgba(0,0,0,0.04)]",
         className
       )}
+      style={{
+        fontFamily:
+          "var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+      }}
       {...props}
     />
   </DropdownMenuPrimitive.Portal>
@@ -39,7 +43,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none transition-colors focus:bg-[#FFF0E9] focus:text-[#222321] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center gap-2.5 rounded-[14px] px-3 py-2.5 text-[14px] font-medium text-black outline-none transition-colors focus:bg-[#F5F5F2] focus:text-black data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
     )}
@@ -55,15 +59,15 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-lg py-1.5 pl-8 pr-2.5 text-sm outline-none transition-colors focus:bg-[#FFF0E9] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center rounded-[14px] py-2 pl-8 pr-3 text-[14px] font-medium text-black outline-none transition-colors focus:bg-[#F5F5F2] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     checked={checked}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute left-2.5 flex h-4 w-4 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-[#F26943]" />
+        <Check className="h-4 w-4 text-black" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -81,7 +85,7 @@ const DropdownMenuLabel = React.forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     className={cn(
-      "px-2.5 py-1.5 text-xs font-semibold text-[#72736E]",
+      "px-3 py-2 text-[13px] font-semibold text-[#5E5E5A]",
       inset && "pl-8",
       className
     )}
@@ -96,7 +100,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-[#E6E5E0]", className)}
+    className={cn("mx-1 my-1.5 h-px bg-black/[0.06]", className)}
     {...props}
   />
 ));
@@ -109,7 +113,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-pointer select-none items-center rounded-lg px-2.5 py-1.5 text-sm outline-none focus:bg-[#FFF0E9]",
+      "flex cursor-pointer select-none items-center rounded-[14px] px-3 py-2 text-[14px] font-medium outline-none focus:bg-[#F5F5F2]",
       className
     )}
     {...props}

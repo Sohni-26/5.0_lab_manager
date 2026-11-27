@@ -10,6 +10,7 @@ import {
   ChevronUp,
   Clock,
   Search,
+  X,
 } from "lucide-react";
 import {
   DottedGridCanvas,
@@ -24,6 +25,8 @@ import { useLenis } from "@/components/landing/smooth-scroll";
 import { PartPickerCard } from "@/components/student/part-picker-card";
 import { StudentRequestDock } from "@/components/student/request-dock";
 import { useAuth } from "@/hooks/use-auth";
+import { useMultiPinSelection } from "@/hooks/use-multi-pin";
+import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import {
   DEMO_CAMPUS_INVENTORY,
@@ -36,6 +39,7 @@ import {
 } from "@/lib/procurement-catalog";
 import {
   buildLocalLabRequestDTO,
+  prependLocalStudentRequest,
   readLocalStudentRequests,
   saveLocalStudentRequests,
 } from "@/lib/student-requests-store";
@@ -91,9 +95,20 @@ export function StudentRequestFlow() {
   const [categories, setCategories] = useState<ItemCategoryDTO[]>([]);
   const [instructors, setInstructors] = useState<AuthUserDTO[]>([]);
   const [savedRequests, setSavedRequests] = useState<LabRequestDTO[]>([]);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [showMoreRequests, setShowMoreRequests] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const getRequestId = useCallback((r: LabRequestDTO) => r.id, []);
+  const {
+    selectedItems: activeRequests,
+    primaryItem: activeRequest,
+    isMultiMode,
+    isSelected: isRequestSelected,
+    handleSelect: handleSelectRequest,
+    setSingle: setSingleRequest,
+    unpin: unpinRequest,
+    collapseToPrimary,
+  } = useMultiPinSelection(savedRequests, getRequestId, 6);
 
   // Filters & progressive batching for silky 60fps rendering
   const [search, setSearch] = useState("");
@@ -153,6 +168,40 @@ export function StudentRequestFlow() {
       })
       .finally(() => setLoading(false));
   }, [isDemoMode]);
+
+  const reloadRequests = useCallback(async () => {
+    if (isDemoMode) {
+      setSavedRequests(readLocalStudentRequests());
+      return;
+    }
+    try {
+      const res = await apiClient.requests.list({ pageSize: 20 });
+      setSavedRequests(res.data);
+    } catch {
+      setSavedRequests(readLocalStudentRequests());
+    }
+  }, [isDemoMode]);
+
+  useRealtime({
+    enabled: true,
+    isDemoMode,
+    eventTypes: [
+      "request.created",
+      "request.status_changed",
+      "borrowing.issued",
+      "return.submitted",
+      "return.verified",
+    ],
+    onEvent: (evt) => {
+      void reloadRequests();
+      if (evt.summary && evt.entityId !== "local-sync") {
+        toast.info(evt.summary);
+      }
+    },
+    onReconnect: () => {
+      void reloadRequests();
+    },
+  });
 
   // Persist demo requests on the student's dashboard across reloads
   const persistDemoRequests = useCallback(
@@ -330,11 +379,15 @@ export function StudentRequestFlow() {
       }
 
       setSavedRequests((prev) => {
-        const next = [createdReq, ...prev];
-        persistDemoRequests(next);
+        const next = [createdReq, ...prev.filter((r) => r.id !== createdReq.id)];
+        if (isDemoMode) {
+          prependLocalStudentRequest(createdReq);
+        } else {
+          persistDemoRequests(next);
+        }
         return next;
       });
-      setSelectedRequestId(createdReq.id);
+      setSingleRequest(createdReq.id);
       setShowMoreRequests(false);
 
       toast.success("Request added to your dashboard flowchart");
@@ -344,11 +397,11 @@ export function StudentRequestFlow() {
     } catch {
       const createdReq = buildLocalRequestDTO();
       setSavedRequests((prev) => {
-        const next = [createdReq, ...prev];
-        persistDemoRequests(next);
+        const next = [createdReq, ...prev.filter((r) => r.id !== createdReq.id)];
+        prependLocalStudentRequest(createdReq);
         return next;
       });
-      setSelectedRequestId(createdReq.id);
+      setSingleRequest(createdReq.id);
       setShowMoreRequests(false);
       toast.success("Request added to your dashboard flowchart");
       setSelectedQty({});
@@ -361,19 +414,13 @@ export function StudentRequestFlow() {
 
   const hasRequests = savedRequests.length > 0;
 
-  // Keep active focused request synced (defaults to newest request)
-  const activeRequest = useMemo(() => {
-    if (savedRequests.length === 0) return null;
-    return (
-      savedRequests.find((r) => r.id === selectedRequestId) ?? savedRequests[0]
-    );
-  }, [savedRequests, selectedRequestId]);
-
-  const activeRequestNumber = useMemo(() => {
-    if (!activeRequest) return 0;
-    const idx = savedRequests.findIndex((r) => r.id === activeRequest.id);
-    return idx === -1 ? 0 : savedRequests.length - 1 - idx;
-  }, [savedRequests, activeRequest]);
+  const getRequestNumber = useCallback(
+    (reqId: string) => {
+      const idx = savedRequests.findIndex((r) => r.id === reqId);
+      return idx === -1 ? 0 : savedRequests.length - 1 - idx;
+    },
+    [savedRequests]
+  );
 
   // Top 3 clustered requests visible immediately; remaining accessible via clean "Show more" list
   const topClusterRequests = useMemo(
@@ -472,18 +519,41 @@ export function StudentRequestFlow() {
                 </CanvasDraggableItem>
               </div>
 
-              {/* Right 50%: Freehand Draggable Flowchart + 3-Request Cluster & Show More List */}
+              {/* Right 50%: Freehand Draggable Flowchart(s) + 3-Request Cluster & Show More List */}
               {hasRequests && activeRequest && (
                 <div className="flex flex-col justify-center min-w-0 p-4 pb-20 sm:p-10 space-y-4">
-                  {/* Top Header + Compact 3-Request Cluster Switcher (only shown when 2+ requests) */}
+                  {/* Top Header + Compact 3-Request Cluster Switcher (Ctrl+Click to compare multiple!) */}
                   <div className="space-y-3">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2 px-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                       <h3 className="text-[20px] sm:text-[22px] font-medium tracking-[-0.025em] text-black">
                         Your Request Flowcharts
                       </h3>
-                      <p className="text-[13px] sm:text-[14px] text-black/55 tabular-nums">
-                        {savedRequests.length} saved
-                      </p>
+                      <div className="flex items-center gap-2.5">
+                        {isMultiMode ? (
+                          <>
+                            <span className="inline-flex items-center rounded-full bg-[#C4F041] px-2.5 py-0.5 text-[12.5px] font-semibold text-black tabular-nums">
+                              {activeRequests.length} pinned
+                            </span>
+                            <button
+                              type="button"
+                              onClick={collapseToPrimary}
+                              className="text-[13px] font-medium text-black/60 hover:text-black underline decoration-black/25 underline-offset-4 cursor-pointer"
+                            >
+                              Single view
+                            </button>
+                          </>
+                        ) : (
+                          <p className="text-[13px] sm:text-[14px] text-black/55 tabular-nums">
+                            {savedRequests.length} saved
+                            {savedRequests.length >= 2 && (
+                              <span className="hidden sm:inline">
+                                {" "}
+                                · Ctrl+Click to pin multiple
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {savedRequests.length >= 2 && (
@@ -492,7 +562,7 @@ export function StudentRequestFlow() {
                           const reqNumber = savedRequests.length - 1 - idx;
                           const palette =
                             FLOW_PALETTES[reqNumber % FLOW_PALETTES.length];
-                          const isCurrent = req.id === activeRequest.id;
+                          const isCurrent = isRequestSelected(req.id);
                           const units = req.items.reduce(
                             (s, it) => s + it.requestedQuantity,
                             0
@@ -503,7 +573,8 @@ export function StudentRequestFlow() {
                             <button
                               key={req.id}
                               type="button"
-                              onClick={() => setSelectedRequestId(req.id)}
+                              onClick={(e) => handleSelectRequest(req.id, e)}
+                              title="Click to view, Ctrl+Click to pin alongside other flowcharts"
                               style={{
                                 backgroundColor: isCurrent
                                   ? palette.banner
@@ -540,18 +611,44 @@ export function StudentRequestFlow() {
                     )}
                   </div>
 
-                  {/* Single Focused Excalidraw Flowchart (freely draggable up/down/around the canvas) */}
-                  <CanvasDraggableItem className="w-full">
-                    <AnimatePresence mode="wait">
-                      <RequestFlowchartCard
-                        key={activeRequest.id}
-                        request={activeRequest}
-                        index={activeRequestNumber}
-                        compactMode={false}
-                        defaultExpanded={false}
-                      />
+                  {/* Single or Multi-Pinned Excalidraw Flowcharts (Ctrl+Click to compare side-by-side!) */}
+                  <div
+                    className={
+                      isMultiMode
+                        ? "grid grid-cols-1 gap-5"
+                        : "w-full"
+                    }
+                  >
+                    <AnimatePresence mode={isMultiMode ? "popLayout" : "wait"}>
+                      {activeRequests.map((req) => {
+                        const reqNum = getRequestNumber(req.id);
+                        return (
+                          <CanvasDraggableItem
+                            key={req.id}
+                            className="relative w-full"
+                          >
+                            {isMultiMode && (
+                              <button
+                                type="button"
+                                onClick={() => unpinRequest(req.id)}
+                                aria-label={`Unpin Request ${reqNum + 1}`}
+                                title="Unpin from board"
+                                className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-black ring-1 ring-black/15 shadow-xs transition-colors hover:bg-black hover:text-[#C4F041] cursor-pointer"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                            <RequestFlowchartCard
+                              request={req}
+                              index={reqNum}
+                              compactMode={isMultiMode}
+                              defaultExpanded={false}
+                            />
+                          </CanvasDraggableItem>
+                        );
+                      })}
                     </AnimatePresence>
-                  </CanvasDraggableItem>
+                  </div>
 
                   {/* "Show more" Below for 4+ Requests — Compact Selectable List */}
                   {overflowRequests.length > 0 && (
@@ -596,7 +693,7 @@ export function StudentRequestFlow() {
                                   FLOW_PALETTES[
                                     reqNumber % FLOW_PALETTES.length
                                   ];
-                                const isCurrent = req.id === activeRequest.id;
+                                const isCurrent = isRequestSelected(req.id);
                                 const units = req.items.reduce(
                                   (s, it) => s + it.requestedQuantity,
                                   0
@@ -607,13 +704,16 @@ export function StudentRequestFlow() {
                                   <button
                                     key={req.id}
                                     type="button"
-                                    onClick={() => {
-                                      setSelectedRequestId(req.id);
-                                      setShowMoreRequests(false);
+                                    onClick={(e) => {
+                                      handleSelectRequest(req.id, e);
+                                      if (!e.ctrlKey && !e.metaKey) {
+                                        setShowMoreRequests(false);
+                                      }
                                     }}
+                                    title="Click to view, Ctrl+Click to pin alongside other flowcharts"
                                     className={`min-h-[56px] flex w-full items-center justify-between gap-3 px-4 py-3.5 sm:py-3 text-left transition-colors cursor-pointer ${
                                       isCurrent
-                                        ? "bg-[#F5F5F3]"
+                                        ? "bg-[#F3FBD4]"
                                         : "hover:bg-[#F7F7F5]"
                                     }`}
                                   >

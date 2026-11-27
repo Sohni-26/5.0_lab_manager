@@ -46,18 +46,6 @@ function deriveFlowchartSteps(request: LabRequestDTO): FlowchartStep[] {
     "REJECTED_BY_LAB_MANAGER",
   ].includes(s);
 
-  const labManagerApproved = [
-    "APPROVED",
-    "PARTIALLY_ISSUED",
-    "ISSUED",
-    "RETURN_PENDING",
-    "RETURN_SUBMITTED",
-    "RETURN_VERIFICATION_PENDING",
-    "RETURN_DISPUTED",
-    "PARTIALLY_RETURNED",
-    "CLOSED",
-  ].includes(s);
-
   const collected = [
     "PARTIALLY_ISSUED",
     "ISSUED",
@@ -72,24 +60,15 @@ function deriveFlowchartSteps(request: LabRequestDTO): FlowchartStep[] {
   const completed = s === "CLOSED";
 
   const instructorState: StepVisualState =
-    s === "REJECTED_BY_INSTRUCTOR"
+    s === "REJECTED_BY_INSTRUCTOR" || s === "REJECTED_BY_LAB_MANAGER"
       ? "rejected"
       : instructorApproved
         ? "completed"
         : "pending";
 
-  const labManagerState: StepVisualState =
-    s === "REJECTED_BY_LAB_MANAGER"
-      ? "rejected"
-      : labManagerApproved
-        ? "completed"
-        : s === "PENDING_LAB_MANAGER"
-          ? "pending"
-          : "upcoming";
-
   const pickupState: StepVisualState = collected
     ? "completed"
-    : s === "APPROVED"
+    : s === "APPROVED" || s === "PENDING_LAB_MANAGER"
       ? "pending"
       : "upcoming";
 
@@ -122,24 +101,11 @@ function deriveFlowchartSteps(request: LabRequestDTO): FlowchartStep[] {
       title: "Instructor Approval",
       description:
         instructorState === "completed"
-          ? `Approved by ${request.instructor.fullName}`
+          ? `Approved by ${request.instructor.fullName} · Stock reserved`
           : instructorState === "rejected"
             ? `Rejected by ${request.instructor.fullName}`
             : `Waiting for ${request.instructor.fullName} to review`,
       state: instructorState,
-    },
-    {
-      id: "lab-manager",
-      title: "Lab Manager Sign-Off",
-      description:
-        labManagerState === "completed"
-          ? "Stock reserved by Campus Lab Manager"
-          : labManagerState === "rejected"
-            ? "Declined by Campus Lab Manager"
-            : labManagerState === "pending"
-              ? "Waiting for Campus Lab Manager to reserve stock"
-              : "Final approval and stock reservation",
-      state: labManagerState,
     },
     {
       id: "pickup",

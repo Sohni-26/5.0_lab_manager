@@ -16,8 +16,10 @@ import {
 } from "@/components/landing/smooth-scroll";
 import { ShimmerPartImage } from "@/components/student/part-picker-card";
 import { useAuth } from "@/hooks/use-auth";
+import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
-import { DEMO_CAMPUS_INVENTORY, DEMO_CATEGORIES } from "@/lib/demo-data";
+import { DEMO_CATEGORIES } from "@/lib/demo-data";
+import { loadDemoCampusInventory } from "@/lib/lab-manager-store";
 import { getPartImageUrl } from "@/lib/part-images";
 import {
   extractItemProcurementMeta,
@@ -50,7 +52,7 @@ function getStockState(availableQuantity: number): "IN_STOCK" | "LOW_STOCK" | "O
   return "OUT_OF_STOCK";
 }
 
-/** Visual WebP hardware card tailored for Instructor stock visibility */
+/** Soft Framed Gallery WebP hardware card tailored for Instructor stock visibility */
 const InstructorPartCard = React.memo(function InstructorPartCard({
   row,
 }: {
@@ -65,45 +67,45 @@ const InstructorPartCard = React.memo(function InstructorPartCard({
 
   return (
     <article
-      className={`part-card-perf group flex min-w-0 flex-col justify-between overflow-hidden rounded-[18px] sm:rounded-[22px] border border-black/12 bg-white transition-[border-color,box-shadow] duration-200 hover:border-black/30 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] ${
-        outOfStock ? "opacity-70" : ""
+      className={`part-card-perf group flex min-w-0 flex-col justify-between rounded-[24px] sm:rounded-[28px] bg-white p-2 pb-3 sm:p-2.5 sm:pb-3.5 ring-1 ring-black/[0.04] shadow-[0_8px_28px_rgba(0,0,0,0.045),0_1px_2px_rgba(0,0,0,0.03)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(0,0,0,0.075)] ${
+        outOfStock ? "opacity-65" : ""
       }`}
     >
-      {/* WebP Hardware Photo + Clean Editorial Copy */}
+      {/* Inset Photo Cushion + Clean Editorial Copy */}
       <div>
-        <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-black/10">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[18px] sm:rounded-[20px] bg-[#F5F5F2]">
           <ShimmerPartImage src={imgSrc} alt={row.item.name} />
         </div>
 
-        <div className="px-2.5 pt-2.5 pb-2 space-y-1 sm:px-4 sm:pt-4 sm:pb-3 sm:space-y-1.5">
-          <p className="text-[12px] sm:text-[13px] font-medium text-black/50 truncate">
+        <div className="px-1.5 pt-2.5 sm:px-2 sm:pt-3 space-y-1">
+          <p className="text-[11.5px] sm:text-[12.5px] font-medium text-[#777771] truncate">
             {row.item.category.name}
             {meta.labBlock ? ` · ${meta.labBlock}` : ""}
           </p>
 
-          <h3 className="text-[14px] sm:text-[16px] font-medium tracking-[-0.02em] text-black leading-[1.3] sm:leading-snug line-clamp-2 min-h-[2.3rem] sm:min-h-[2.75rem]">
+          <h3 className="text-[14px] sm:text-[15.5px] font-medium tracking-[-0.018em] text-[#141413] leading-[1.3] line-clamp-2 min-h-[2.3rem] sm:min-h-[2.55rem]">
             {row.item.name}
           </h3>
         </div>
       </div>
 
-      {/* Live Stock Telemetry Footer */}
-      <div className="px-2.5 pb-2.5 pt-1 sm:px-4 sm:pb-4 sm:pt-1.5">
-        <div className="flex items-center justify-between gap-1.5 pb-2">
-          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+      {/* Soft Live Stock Telemetry Footer */}
+      <div className="mt-2.5 sm:mt-3 px-1.5 sm:px-2 space-y-2">
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
             <span
-              className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                 outOfStock
                   ? "bg-black/25"
                   : isLowStock
-                    ? "bg-[#F59E0B]"
-                    : "bg-[#C4F041] ring-1 ring-black/25"
+                    ? "bg-[#E08A1E]"
+                    : "bg-[#7BB628]"
               }`}
               aria-hidden="true"
             />
             <span
-              className={`truncate text-[12.5px] sm:text-[14px] font-semibold tabular-nums ${
-                outOfStock ? "text-black/45" : "text-black"
+              className={`truncate text-[12px] sm:text-[13px] font-medium tabular-nums ${
+                outOfStock ? "text-black/40" : "text-[#4D4D48]"
               }`}
             >
               {outOfStock
@@ -119,20 +121,20 @@ const InstructorPartCard = React.memo(function InstructorPartCard({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1.5 rounded-[12px] border border-black/8 bg-[#F7F7F5] px-2 py-1.5 sm:rounded-[14px] sm:px-3 sm:py-2">
+        <div className="grid grid-cols-2 gap-1.5 rounded-[14px] bg-[#F5F5F2] px-2.5 py-1.5 sm:px-3 sm:py-2">
           <div className="min-w-0">
-            <p className="text-[12px] text-black/50 truncate leading-tight">
+            <p className="text-[11.5px] text-[#777771] truncate leading-tight">
               Reserved
             </p>
-            <p className="mt-0.5 text-[13px] sm:text-[14px] font-semibold text-black tabular-nums leading-tight">
+            <p className="mt-0.5 text-[13px] sm:text-[14px] font-semibold text-[#141413] tabular-nums leading-tight">
               {row.reservedQuantity}
             </p>
           </div>
-          <div className="min-w-0 border-l border-black/10 pl-2 sm:pl-3">
-            <p className="text-[12px] text-black/50 truncate leading-tight">
+          <div className="min-w-0 border-l border-black/[0.07] pl-2.5 sm:pl-3">
+            <p className="text-[11.5px] text-[#777771] truncate leading-tight">
               Borrowed
             </p>
-            <p className="mt-0.5 text-[13px] sm:text-[14px] font-semibold text-black tabular-nums leading-tight">
+            <p className="mt-0.5 text-[13px] sm:text-[14px] font-semibold text-[#141413] tabular-nums leading-tight">
               {row.borrowedQuantity}
             </p>
           </div>
@@ -161,11 +163,9 @@ function InstructorInventoryInner() {
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
+  const loadInventory = useCallback(() => {
     if (isDemoMode) {
-      setItems(DEMO_CAMPUS_INVENTORY.filter((i) => i.isVerified && i.isVisible));
+      setItems(loadDemoCampusInventory().filter((i) => i.isVerified && i.isVisible));
       setCategories(DEMO_CATEGORIES);
       setLoading(false);
       return;
@@ -176,7 +176,7 @@ function InstructorInventoryInner() {
         .list({ pageSize: 250 })
         .then((r) => r.data.filter((i) => i.isVerified && i.isVisible))
         .catch(() =>
-          DEMO_CAMPUS_INVENTORY.filter((i) => i.isVerified && i.isVisible)
+          loadDemoCampusInventory().filter((i) => i.isVerified && i.isVisible)
         ),
       apiClient.categories
         .list()
@@ -184,18 +184,29 @@ function InstructorInventoryInner() {
         .catch(() => DEMO_CATEGORIES),
     ])
       .then(([inv, cats]) => {
-        if (cancelled) return;
         setItems(inv);
         setCategories(cats);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [isDemoMode]);
+
+  useEffect(() => {
+    loadInventory();
+  }, [loadInventory]);
+
+  useRealtime({
+    enabled: true,
+    isDemoMode,
+    eventTypes: ["inventory.updated", "inventory.visibility_changed", "allocation.verified"],
+    onEvent: () => {
+      loadInventory();
+    },
+    onReconnect: () => {
+      loadInventory();
+    },
+  });
 
   const summary = useMemo(() => {
     let availableUnits = 0;
@@ -339,15 +350,15 @@ function InstructorInventoryInner() {
         </Link>
       </div>
 
-      {/* Compact Stock Telemetry Summary Bar (2x2 mobile, 4-col desktop) */}
+      {/* Soft Stock Telemetry Summary Bar (2x2 mobile, 4-col desktop) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <div className="min-w-0 rounded-[20px] border border-black/14 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
+        <div className="min-w-0 rounded-[24px] bg-white px-4 py-3.5 sm:px-5 sm:py-4 ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2">
             <span
               className="h-2 w-2 shrink-0 rounded-full bg-black/75"
               aria-hidden="true"
             />
-            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-black/55">
+            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-[#777771]">
               Total Verified Parts
             </p>
           </div>
@@ -356,13 +367,13 @@ function InstructorInventoryInner() {
           </p>
         </div>
 
-        <div className="min-w-0 rounded-[20px] border border-black/14 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
+        <div className="min-w-0 rounded-[24px] bg-white px-4 py-3.5 sm:px-5 sm:py-4 ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2">
             <span
-              className="h-2 w-2 shrink-0 rounded-full bg-[#C4F041] ring-1 ring-black/25"
+              className="h-2 w-2 shrink-0 rounded-full bg-[#7BB628]"
               aria-hidden="true"
             />
-            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-black/55">
+            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-[#777771]">
               Available Units
             </p>
           </div>
@@ -371,13 +382,13 @@ function InstructorInventoryInner() {
           </p>
         </div>
 
-        <div className="min-w-0 rounded-[20px] border border-black/14 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
+        <div className="min-w-0 rounded-[24px] bg-white px-4 py-3.5 sm:px-5 sm:py-4 ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2">
             <span
-              className="h-2 w-2 shrink-0 rounded-full bg-[#BCE6FA] ring-1 ring-black/15"
+              className="h-2 w-2 shrink-0 rounded-full bg-[#7CC3E6]"
               aria-hidden="true"
             />
-            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-black/55">
+            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-[#777771]">
               Reserved Units
             </p>
           </div>
@@ -386,13 +397,13 @@ function InstructorInventoryInner() {
           </p>
         </div>
 
-        <div className="min-w-0 rounded-[20px] border border-black/14 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
+        <div className="min-w-0 rounded-[24px] bg-white px-4 py-3.5 sm:px-5 sm:py-4 ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2">
             <span
-              className="h-2 w-2 shrink-0 rounded-full bg-[#AAC2AA] ring-1 ring-black/15"
+              className="h-2 w-2 shrink-0 rounded-full bg-[#8EA88E]"
               aria-hidden="true"
             />
-            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-black/55">
+            <p className="truncate text-[12.5px] sm:text-[13px] font-medium text-[#777771]">
               Borrowed Units
             </p>
           </div>
@@ -402,17 +413,17 @@ function InstructorInventoryInner() {
         </div>
       </div>
 
-      {/* Mobile-First Filter Bar (collapsible drawer on mobile, inline bar on sm+) */}
-      <div className="rounded-[20px] sm:rounded-[22px] border border-black/12 bg-white p-3 sm:p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+      {/* Soft Mobile-First Filter Bar (collapsible drawer on mobile, inline bar on sm+) */}
+      <div className="rounded-[24px] sm:rounded-[28px] bg-white ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)] p-3 sm:p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         {/* Full-width search bar on top for mobile, flexible pill on sm+ */}
         <div className="relative w-full sm:flex-1 sm:min-w-[240px] sm:max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
+          <Search className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, code, brand, category, lab block..."
-            className="min-h-[44px] h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-10 text-[16px] sm:text-[14px] text-black placeholder:text-black/45 focus:border-black focus:bg-white focus:outline-none"
+            className="min-h-[44px] h-11 w-full rounded-full border border-transparent bg-[#F5F5F2] pl-10 pr-10 text-[16px] sm:text-[14px] text-black placeholder:text-black/40 transition-colors focus:border-black/20 focus:bg-white focus:outline-none"
           />
           {search.length > 0 && (
             <button

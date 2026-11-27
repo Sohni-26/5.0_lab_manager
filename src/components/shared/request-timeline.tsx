@@ -5,7 +5,6 @@ import type { LabRequestStatus } from "@/types/contracts";
 const STAGES = [
   { key: "SUBMITTED", label: "Submitted" },
   { key: "INSTRUCTOR", label: "Instructor" },
-  { key: "LAB_MANAGER", label: "Lab Manager" },
   { key: "COLLECTION", label: "Collection" },
   { key: "RETURN", label: "Return" },
   { key: "CLOSED", label: "Closed" },
@@ -20,25 +19,23 @@ function getStageProgress(status: LabRequestStatus): {
     case "PENDING_INSTRUCTOR":
       return { currentIdx: 1 };
     case "REJECTED_BY_INSTRUCTOR":
+    case "REJECTED_BY_LAB_MANAGER":
       return { currentIdx: 1, failedIdx: 1 };
     case "PENDING_LAB_MANAGER":
-      return { currentIdx: 2 };
-    case "REJECTED_BY_LAB_MANAGER":
-      return { currentIdx: 2, failedIdx: 2 };
     case "APPROVED":
-      return { currentIdx: 3 };
+      return { currentIdx: 2 };
     case "PARTIALLY_ISSUED":
     case "ISSUED":
     case "RETURN_PENDING":
-      return { currentIdx: 4 };
+      return { currentIdx: 3 };
     case "RETURN_SUBMITTED":
     case "RETURN_VERIFICATION_PENDING":
     case "PARTIALLY_RETURNED":
-      return { currentIdx: 5 };
+      return { currentIdx: 4 };
     case "RETURN_DISPUTED":
-      return { currentIdx: 5, warningIdx: 5 };
+      return { currentIdx: 4, warningIdx: 4 };
     case "CLOSED":
-      return { currentIdx: 6 };
+      return { currentIdx: 5 };
     case "CANCELLED":
       return { currentIdx: 0, failedIdx: 0 };
     default:

@@ -48,6 +48,7 @@
   --color-info: var(--info);
   --font-sans: var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: var(--font-saans), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-saans), var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 * {

@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Building2,
   Loader2,
@@ -142,17 +140,9 @@ export default function LoginPage() {
     >
       {/* Top Bar */}
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-5 py-6 sm:px-8">
-        <Link href="/" className="inline-flex items-center">
+        <div className="inline-flex items-center">
           <LoopsiiWordmark className="h-9 w-auto" />
-        </Link>
-
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-full border border-black/14 bg-white px-4 py-2 text-[14px] font-medium text-black shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-colors hover:border-black/30 hover:bg-[#C4F041]"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to overview
-        </Link>
+        </div>
       </header>
 
       {/* Main Content */}

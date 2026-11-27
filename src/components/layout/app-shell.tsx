@@ -4,12 +4,13 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity,
-  AlertCircle,
+  ArrowLeftRight,
   BarChart3,
   Bell,
   Building2,
   Camera,
+  CheckCheck,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
@@ -19,6 +20,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Menu,
   Package,
   PackageCheck,
@@ -36,8 +38,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -47,7 +47,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RoleBadge } from "@/components/ui/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -58,8 +57,35 @@ import {
   ROLE_DASHBOARD_ROUTES,
   ROLE_LABELS,
   type CampusDTO,
+  type RealtimeEventType,
   type UserRole,
 } from "@/types/contracts";
+
+const EVENT_DISPLAY_META: Record<
+  RealtimeEventType,
+  { label: string; dotClass: string }
+> = {
+  "inventory.updated": { label: "Stock updated", dotClass: "bg-[#7BB628]" },
+  "inventory.visibility_changed": { label: "Catalog visibility", dotClass: "bg-[#111111]" },
+  "allocation.created": { label: "New dispatch", dotClass: "bg-[#2563EB]" },
+  "allocation.status_changed": { label: "Dispatch update", dotClass: "bg-[#2563EB]" },
+  "allocation.verified": { label: "Stock received", dotClass: "bg-[#16A34A]" },
+  "request.created": { label: "New request", dotClass: "bg-[#D97706]" },
+  "request.status_changed": { label: "Request update", dotClass: "bg-[#7BB628]" },
+  "borrowing.issued": { label: "Equipment issued", dotClass: "bg-[#111111]" },
+  "return.submitted": { label: "Return submitted", dotClass: "bg-[#2563EB]" },
+  "return.verified": { label: "Return verified", dotClass: "bg-[#16A34A]" },
+  "ticket.created": { label: "Issue reported", dotClass: "bg-[#DC2626]" },
+  "ticket.updated": { label: "Ticket updated", dotClass: "bg-[#D97706]" },
+  heartbeat: { label: "System sync", dotClass: "bg-black/30" },
+};
+
+const ROLE_DOT_COLOR: Record<UserRole, string> = {
+  CENTRAL_LAB_MANAGER: "bg-[#FA8E66]",
+  LAB_MANAGER: "bg-[#5EA9CE]",
+  INSTRUCTOR: "bg-[#7EA47E]",
+  STUDENT: "bg-[#84B823]",
+};
 
 interface NavItem {
   label: string;
@@ -81,13 +107,12 @@ const ROLE_NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: "Settings", href: "/central/settings", icon: Settings },
   ],
   LAB_MANAGER: [
-    { label: "Dashboard", href: "/lab-manager/dashboard", icon: LayoutDashboard },
-    { label: "Campus Inventory", href: "/lab-manager/inventory", icon: FileSpreadsheet },
-    { label: "Incoming Stock", href: "/lab-manager/incoming-stock", icon: PackageCheck },
-    { label: "Student Requests", href: "/lab-manager/requests", icon: ClipboardCheck },
-    { label: "Issue Tickets", href: "/lab-manager/tickets", icon: ShieldAlert },
-    { label: "History & Ledger", href: "/lab-manager/history", icon: History },
-    { label: "Reports", href: "/lab-manager/reports", icon: BarChart3 },
+    { label: "Dashboard", mobileLabel: "Dashboard", href: "/lab-manager/dashboard", icon: LayoutDashboard },
+    { label: "Campus Inventory", mobileLabel: "Inventory", href: "/lab-manager/inventory", icon: FileSpreadsheet },
+    { label: "Incoming Stock", mobileLabel: "Incoming", href: "/lab-manager/incoming-stock", icon: PackageCheck },
+    { label: "Issue Tickets", mobileLabel: "Tickets", href: "/lab-manager/tickets", icon: ShieldAlert },
+    { label: "History & Ledger", mobileLabel: "Ledger", href: "/lab-manager/history", icon: History },
+    { label: "Reports", mobileLabel: "Reports", href: "/lab-manager/reports", icon: BarChart3 },
   ],
   INSTRUCTOR: [
     { label: "Dashboard", mobileLabel: "Dashboard", href: "/instructor/dashboard", icon: LayoutDashboard },
@@ -126,15 +151,25 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [campuses, setCampuses] = useState<CampusDTO[]>([]);
+  const [lastSeenEventId, setLastSeenEventId] = useState<string | null>(null);
   const activeMobilePillRef = useRef<HTMLAnchorElement | null>(null);
   const drawerTouchStartX = useRef<number | null>(null);
   const showMobileQuickNav =
-    user?.role === "STUDENT" || user?.role === "INSTRUCTOR";
+    user?.role === "STUDENT" ||
+    user?.role === "INSTRUCTOR" ||
+    user?.role === "LAB_MANAGER";
 
-  const { events } = useRealtime({
+  const { events, status: realtimeStatus } = useRealtime({
     enabled: Boolean(user),
     isDemoMode,
   });
+
+  const unreadCount = (() => {
+    if (events.length === 0) return 0;
+    if (!lastSeenEventId) return events.length;
+    const idx = events.findIndex((e) => e.id === lastSeenEventId);
+    return idx === -1 ? events.length : idx;
+  })();
 
   useEffect(() => {
     if (loading) return;
@@ -280,24 +315,24 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
         {renderNavLinks(collapsed)}
 
         {/* Sidebar Profile Card */}
-        <div className="border-t border-black/10 p-3">
+        <div className="border-t border-black/[0.07] p-3">
           <div
             className={cn(
-              "flex items-center gap-2.5 rounded-2xl bg-[#F5F5F3] border border-black/10 p-2.5",
+              "flex items-center gap-2.5 rounded-[20px] bg-[#F5F5F2] ring-1 ring-black/[0.04] p-2.5",
               collapsed && "justify-center p-2"
             )}
           >
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-[#AAC2AA] text-black font-semibold text-xs">
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarFallback className="bg-[#C4F041] text-black font-semibold text-xs">
                 {getInitials(user.fullName)}
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-black truncate">
+                <p className="text-[13px] font-semibold text-black truncate">
                   {user.fullName}
                 </p>
-                <p className="text-[11px] text-black/55 truncate">
+                <p className="text-[12px] text-[#5E5E5A] truncate">
                   {ROLE_LABELS[user.role]}
                 </p>
               </div>
@@ -307,7 +342,7 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                 type="button"
                 onClick={logout}
                 title="Sign out"
-                className="rounded-full p-1.5 text-black/55 hover:bg-[#FA8E66]/30 hover:text-black cursor-pointer"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-black/50 transition-colors hover:bg-white hover:text-[#B91C1C] cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -452,45 +487,118 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
             )}
 
             {/* Live Events / Notifications Dropdown */}
-            <DropdownMenu>
+            <DropdownMenu
+              onOpenChange={(open) => {
+                if (open && events.length > 0) {
+                  setLastSeenEventId(events[0].id);
+                }
+              }}
+            >
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
+                <button
+                  type="button"
                   aria-label="Notifications"
-                  className="relative h-11 w-11 lg:h-9 lg:w-9 shrink-0 rounded-full"
+                  className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black ring-1 ring-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#F5F5F2] cursor-pointer"
                 >
-                  <Bell className="h-[18px] w-[18px] lg:h-4 lg:w-4 text-black" />
-                  {events.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 lg:-top-0.5 lg:-right-0.5 h-2.5 w-2.5 rounded-full bg-[#FA8E66] ring-2 ring-white" />
+                  <Bell className="h-[17px] w-[17px] text-black" />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7BB628] opacity-60" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#C4F041] ring-2 ring-white" />
+                    </span>
                   )}
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-[min(20rem,calc(100vw-1.75rem))] sm:w-80"
+                className="w-[min(22.5rem,calc(100vw-1.5rem))] sm:w-[360px] p-2.5 rounded-[26px]"
               >
-                <DropdownMenuLabel className="text-[14px] font-medium text-black">
-                  Live Campus Activity
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {events.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-[14px] text-black/55">
-                    <Activity className="mx-auto h-5 w-5 text-black/30 mb-1.5" />
-                    No new live events yet.
+                {/* Inset Soft Header Cushion */}
+                <div className="flex items-center justify-between gap-3 rounded-[18px] bg-[#F5F5F2] px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[14.5px] font-semibold tracking-[-0.015em] text-black">
+                      Campus Activity
+                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-[#5E5E5A]">
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          realtimeStatus === "connected" || isDemoMode
+                            ? "bg-[#7BB628]"
+                            : "bg-[#D97706]"
+                        )}
+                      />
+                      <span>
+                        {isDemoMode
+                          ? "Live cross-tab sync"
+                          : realtimeStatus === "connected"
+                            ? "Live updates active"
+                            : "Reconnecting…"}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="max-h-72 overflow-y-auto divide-y divide-black/10">
-                    {events.map((ev) => (
-                      <div key={ev.id} className="px-3 py-2.5 text-[14px]">
-                        <p className="font-medium text-black">{ev.summary}</p>
-                        <p className="mt-0.5 text-[13px] text-black/55">
-                          {ev.type} · {formatRelativeTime(ev.timestamp)}
-                        </p>
+                  {events.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setLastSeenEventId(events[0].id)}
+                      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[12px] font-medium text-[#5E5E5A] ring-1 ring-black/[0.06] transition-colors hover:text-black cursor-pointer"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5" />
+                      <span>Caught up</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Activity Feed */}
+                <div className="mt-2">
+                  {events.length === 0 ? (
+                    <div className="rounded-[18px] bg-[#F5F5F2]/55 px-5 py-8 text-center">
+                      <div className="mx-auto mb-2.5 flex h-11 w-11 items-center justify-center rounded-full bg-white ring-1 ring-black/[0.05] shadow-[0_4px_12px_rgba(0,0,0,0.04)]">
+                        <Bell className="h-[18px] w-[18px] text-black/45" />
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-[14px] font-semibold text-black">
+                        All caught up
+                      </p>
+                      <p className="mt-1 text-[13px] leading-relaxed text-[#5E5E5A]">
+                        Stock changes, approvals, and dispatches will appear here in real time.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="max-h-[300px] space-y-1 overflow-y-auto pr-0.5">
+                      {events.slice(0, 12).map((ev) => {
+                        const meta = EVENT_DISPLAY_META[ev.type] ?? {
+                          label: "Campus update",
+                          dotClass: "bg-black/40",
+                        };
+                        return (
+                          <div
+                            key={ev.id}
+                            className="flex items-start gap-3 rounded-[16px] px-3 py-2.5 transition-colors hover:bg-[#F5F5F2]"
+                          >
+                            <span
+                              className={cn(
+                                "mt-[7px] h-2 w-2 shrink-0 rounded-full",
+                                meta.dotClass
+                              )}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[13.5px] font-medium leading-snug text-black">
+                                {ev.summary}
+                              </p>
+                              <p className="mt-1 flex items-center gap-1.5 text-[12.5px] text-[#5E5E5A]">
+                                <span>{meta.label}</span>
+                                <span className="text-black/25">·</span>
+                                <span className="tabular-nums">
+                                  {formatRelativeTime(ev.timestamp)}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -500,52 +608,109 @@ export function AppShell({ allowedRole, children }: AppShellProps) {
                 <button
                   type="button"
                   aria-label="Account menu"
-                  className="inline-flex h-11 w-11 sm:w-auto lg:h-auto items-center justify-center sm:justify-start gap-2.5 rounded-full text-[14px] font-medium text-black hover:opacity-75 transition-opacity cursor-pointer shrink-0"
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-white p-1 sm:pr-3 text-[14px] font-medium text-black ring-1 ring-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.04)] transition-colors hover:bg-[#F5F5F2] cursor-pointer shrink-0"
                 >
-                  <Avatar className="h-9 w-9 lg:h-8 lg:w-8">
-                    <AvatarFallback className="bg-[#C4F041] text-black text-[13px] font-semibold">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-[#C4F041] text-black text-[12.5px] font-semibold">
                       {getInitials(user.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline max-w-[130px] truncate">
+                  <span className="hidden sm:inline max-w-[130px] truncate text-[13.5px] font-medium text-black">
                     {user.fullName}
                   </span>
+                  <ChevronDown className="hidden sm:inline h-3.5 w-3.5 text-black/45" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60">
-                <DropdownMenuLabel className="space-y-1">
-                  <p className="text-sm font-semibold text-black">{user.fullName}</p>
-                  <p className="text-xs font-normal text-black/55 truncate">
-                    {user.email}
-                  </p>
-                  <div className="pt-1">
-                    <RoleBadge role={user.role} />
+              <DropdownMenuContent
+                align="end"
+                className="w-[min(19.5rem,calc(100vw-1.5rem))] sm:w-[296px] p-2.5 rounded-[26px]"
+              >
+                {/* Inset Soft Identity Card */}
+                <div className="rounded-[18px] bg-[#F5F5F2] p-3.5">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-11 w-11 shrink-0 ring-2 ring-white shadow-sm">
+                      <AvatarFallback className="bg-[#C4F041] text-black text-[14px] font-semibold">
+                        {getInitials(user.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold tracking-[-0.015em] text-black">
+                        {user.fullName}
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[13px] font-medium text-[#5E5E5A]">
+                        <span
+                          className={cn(
+                            "h-2 w-2 shrink-0 rounded-full",
+                            ROLE_DOT_COLOR[user.role]
+                          )}
+                        />
+                        <span className="truncate">{ROLE_LABELS[user.role]}</span>
+                      </div>
+                    </div>
                   </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/login")}>
-                  <AlertCircle className="h-4 w-4 text-black/55" />
-                  Switch Role / Account
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="text-[#B33C17] focus:text-[#B33C17]"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
+
+                  <div className="mt-3 space-y-1 border-t border-black/[0.06] pt-2.5 text-[12.5px] text-[#5E5E5A]">
+                    <p className="truncate">{user.email}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 truncate">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-black/40" />
+                        <span className="truncate">
+                          {user.campus?.name ?? "All 40 Campuses"}
+                        </span>
+                      </span>
+                      {user.institutionalId && (
+                        <span className="shrink-0 font-medium text-black/70 tabular-nums">
+                          {user.institutionalId}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clean Editorial Actions */}
+                <div className="mt-2 space-y-1">
+                  <DropdownMenuItem
+                    onClick={() => router.push("/login")}
+                    className="group min-h-[44px] rounded-[16px] px-2.5 py-2 focus:bg-[#F5F5F2]"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F5F5F2] text-black transition-colors group-hover:bg-white group-focus:bg-white">
+                      <ArrowLeftRight className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13.5px] font-medium text-black">
+                        Switch account
+                      </p>
+                      <p className="text-[12px] font-normal text-[#5E5E5A]">
+                        Change campus role or user
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-black/35" />
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="group min-h-[44px] rounded-[16px] px-2.5 py-2 text-[#B91C1C] focus:bg-[#FEF2F2] focus:text-[#B91C1C]"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FEF2F2] text-[#B91C1C] transition-colors group-hover:bg-white group-focus:bg-white">
+                      <LogOut className="h-4 w-4" />
+                    </span>
+                    <span className="text-[13.5px] font-medium">Sign out</span>
+                  </DropdownMenuItem>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        {/* Mobile 1-Tap Quick-Navigation Strip (Students & Instructors, zero bottom dock overlap) */}
+        {/* Mobile 1-Tap Quick-Navigation Strip (zero bottom dock overlap) */}
         {showMobileQuickNav && (
           <nav
             aria-label={
-              user.role === "INSTRUCTOR"
-                ? "Instructor quick navigation"
-                : "Student quick navigation"
+              user.role === "LAB_MANAGER"
+                ? "Lab Manager quick navigation"
+                : user.role === "INSTRUCTOR"
+                  ? "Instructor quick navigation"
+                  : "Student quick navigation"
             }
             className="lg:hidden sticky top-16 z-20 border-b border-black/10 bg-[#F0F0F0]/95 backdrop-blur-md"
           >

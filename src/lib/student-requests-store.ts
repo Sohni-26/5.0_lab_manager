@@ -1,11 +1,59 @@
 import { getPartImageUrl } from "@/lib/part-images";
+import { broadcastLocalRealtimeEvent } from "@/lib/realtime/client-sync";
 import type {
   AuthUserDTO,
   CampusInventoryDTO,
   LabRequestDTO,
+  RealtimeEventType,
 } from "@/types/contracts";
 
 export const STUDENT_REQUESTS_STORAGE_KEY = "campuslab_student_flowcharts_v1";
+
+function deriveRequestEventMeta(req: LabRequestDTO): {
+  type: RealtimeEventType;
+  summary: string;
+} {
+  switch (req.status) {
+    case "APPROVED":
+      return {
+        type: "request.status_changed",
+        summary: `${req.requestCode} approved by ${req.instructor.fullName} — ready for pickup`,
+      };
+    case "REJECTED_BY_INSTRUCTOR":
+    case "REJECTED_BY_LAB_MANAGER":
+      return {
+        type: "request.status_changed",
+        summary: `${req.requestCode} was declined by ${req.instructor.fullName}`,
+      };
+    case "ISSUED":
+    case "PARTIALLY_ISSUED":
+      return {
+        type: "borrowing.issued",
+        summary: `${req.requestCode} physical handover confirmed`,
+      };
+    case "RETURN_SUBMITTED":
+    case "RETURN_VERIFICATION_PENDING":
+      return {
+        type: "return.submitted",
+        summary: `${req.requestCode} return photos submitted for inspection`,
+      };
+    case "CLOSED":
+      return {
+        type: "return.verified",
+        summary: `${req.requestCode} return verified and closed`,
+      };
+    case "RETURN_DISPUTED":
+      return {
+        type: "return.verified",
+        summary: `${req.requestCode} return inspection flagged for follow-up`,
+      };
+    default:
+      return {
+        type: "request.status_changed",
+        summary: `${req.requestCode} updated`,
+      };
+  }
+}
 
 export function readLocalStudentRequests(): LabRequestDTO[] {
   if (typeof window === "undefined") return [];
@@ -35,6 +83,15 @@ export function prependLocalStudentRequest(req: LabRequestDTO): LabRequestDTO[] 
   const existing = readLocalStudentRequests();
   const next = [req, ...existing.filter((r) => r.id !== req.id)];
   saveLocalStudentRequests(next);
+  broadcastLocalRealtimeEvent({
+    type: "request.created",
+    campusId: req.campusId,
+    entityType: "LabRequest",
+    entityId: req.id,
+    actorId: req.studentId,
+    summary: `New request ${req.requestCode} raised by ${req.student.fullName}`,
+    data: { status: req.status, requestCode: req.requestCode },
+  });
   return next;
 }
 
@@ -47,7 +104,7 @@ export function readMergedDemoRequests(
   return [...local, ...fallback.filter((d) => !localIds.has(d.id))];
 }
 
-/** Persist an updated request (e.g. approved, rejected, issued, verified) into local demo store */
+/** Persist an updated request (e.g. approved, rejected, issued, verified) into local demo store and broadcast live */
 export function upsertLocalStudentRequest(req: LabRequestDTO): LabRequestDTO[] {
   const existing = readLocalStudentRequests();
   const idx = existing.findIndex((r) => r.id === req.id);
@@ -56,6 +113,15 @@ export function upsertLocalStudentRequest(req: LabRequestDTO): LabRequestDTO[] {
       ? existing.map((r, i) => (i === idx ? req : r))
       : [req, ...existing];
   saveLocalStudentRequests(next);
+  const meta = deriveRequestEventMeta(req);
+  broadcastLocalRealtimeEvent({
+    type: meta.type,
+    campusId: req.campusId,
+    entityType: "LabRequest",
+    entityId: req.id,
+    summary: meta.summary,
+    data: { status: req.status, requestCode: req.requestCode },
+  });
   return next;
 }
 

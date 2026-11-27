@@ -22,6 +22,10 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_REQUESTS } from "@/lib/demo-data";
 import { getPartImageUrl } from "@/lib/part-images";
+import {
+  readMergedDemoRequests,
+  upsertLocalStudentRequest,
+} from "@/lib/student-requests-store";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import {
   REQUIRED_PHOTO_ANGLES,
@@ -350,29 +354,29 @@ export default function StudentBorrowedCollectionPage() {
   } | null>(null);
 
   const load = useCallback(async () => {
+    const filterActive = (list: LabRequestDTO[]) =>
+      list.filter(
+        (r) =>
+          r.status === "APPROVED" ||
+          r.status === "PARTIALLY_ISSUED" ||
+          r.status === "ISSUED"
+      );
+
+    if (isDemoMode) {
+      setRequests(filterActive(readMergedDemoRequests(DEMO_REQUESTS)));
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await apiClient.requests.list({ pageSize: 60 });
-      setRequests(
-        res.data.filter(
-          (r) =>
-            r.status === "APPROVED" ||
-            r.status === "PARTIALLY_ISSUED" ||
-            r.status === "ISSUED"
-        )
-      );
+      setRequests(filterActive(res.data));
     } catch {
-      setRequests(
-        DEMO_REQUESTS.filter(
-          (r) =>
-            r.status === "APPROVED" ||
-            r.status === "PARTIALLY_ISSUED" ||
-            r.status === "ISSUED"
-        )
-      );
+      setRequests(filterActive(readMergedDemoRequests(DEMO_REQUESTS)));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => {
     load();
@@ -382,7 +386,15 @@ export default function StudentBorrowedCollectionPage() {
     enabled: true,
     isDemoMode,
     eventTypes: ["request.status_changed", "borrowing.issued"],
-    onEvent: () => load(),
+    onEvent: (evt) => {
+      void load();
+      if (evt.summary && evt.entityId !== "local-sync") {
+        toast.info(evt.summary);
+      }
+    },
+    onReconnect: () => {
+      void load();
+    },
   });
 
   const handleUploadCollectionPhoto = async (
@@ -404,8 +416,9 @@ export default function StudentBorrowedCollectionPage() {
         setRequests((prev) =>
           prev.map((req) => {
             if (req.id !== requestId) return req;
-            return {
+            const updated: LabRequestDTO = {
               ...req,
+              updatedAt: new Date().toISOString(),
               items: req.items.map((it) => {
                 if (it.id !== requestItemId) return it;
                 const others = (it.photos ?? []).filter(
@@ -431,6 +444,8 @@ export default function StudentBorrowedCollectionPage() {
                 };
               }),
             };
+            upsertLocalStudentRequest(updated);
+            return updated;
           })
         );
       } else {

@@ -280,9 +280,7 @@ export default function InstructorRequestsPage() {
       const nowIso = new Date().toISOString();
       const trimmed = comments?.trim() || null;
       const nextStatus: LabRequestStatus =
-        decision === "APPROVED"
-          ? "PENDING_LAB_MANAGER"
-          : "REJECTED_BY_INSTRUCTOR";
+        decision === "APPROVED" ? "APPROVED" : "REJECTED_BY_INSTRUCTOR";
 
       const approval: RequestApprovalDTO = {
         id: `appr-local-${Date.now()}`,
@@ -380,7 +378,7 @@ export default function InstructorRequestsPage() {
       setRequests((prev) => prev.map((r) => (r.id === req.id ? updated : r)));
       toast.success(
         decision === "APPROVED"
-          ? `${req.requestCode} approved & forwarded to Campus Lab Manager`
+          ? `${req.requestCode} approved — stock reserved & ready for pickup`
           : `${req.requestCode} rejected`
       );
       setRejectTarget(null);
@@ -401,7 +399,7 @@ export default function InstructorRequestsPage() {
       );
       toast.success(
         decision === "APPROVED"
-          ? `${req.requestCode} approved & forwarded to Campus Lab Manager`
+          ? `${req.requestCode} approved — stock reserved & ready for pickup`
           : `${req.requestCode} rejected`
       );
       setRejectTarget(null);
@@ -912,7 +910,7 @@ export default function InstructorRequestsPage() {
                               htmlFor={`inst-comment-${activeRequest.id}`}
                               className="text-[13px] font-medium text-black/70"
                             >
-                              Instructor Endorsement Comment (optional)
+                              Approval Note (optional)
                             </Label>
                             <input
                               id={`inst-comment-${activeRequest.id}`}
@@ -924,7 +922,7 @@ export default function InstructorRequestsPage() {
                                   [activeRequest.id]: e.target.value,
                                 }))
                               }
-                              placeholder="Add endorsement notes for the Campus Lab Manager..."
+                              placeholder="Add an optional note for the student..."
                               className="min-h-[44px] w-full rounded-[14px] border border-black/18 bg-white px-3.5 py-2.5 text-[16px] sm:text-[14px] text-black placeholder:text-black/40 focus:border-black focus:outline-none"
                             />
                           </div>
@@ -946,8 +944,8 @@ export default function InstructorRequestsPage() {
                               <CheckCircle2 className="h-4 w-4 shrink-0" />
                               <span>
                                 {busyId === activeRequest.id
-                                  ? "Forwarding..."
-                                  : "Accept & Forward to Lab Manager"}
+                                  ? "Approving..."
+                                  : "Accept & Approve"}
                               </span>
                             </button>
 

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   AlertCircle,
   Check,
@@ -152,8 +153,22 @@ export default function StudentMyRequestsPage() {
   useRealtime({
     enabled: true,
     isDemoMode,
-    eventTypes: ["request.status_changed", "borrowing.issued", "return.verified"],
-    onEvent: () => load(),
+    eventTypes: [
+      "request.created",
+      "request.status_changed",
+      "borrowing.issued",
+      "return.submitted",
+      "return.verified",
+    ],
+    onEvent: (evt) => {
+      void load();
+      if (evt.summary && evt.entityId !== "local-sync") {
+        toast.info(evt.summary);
+      }
+    },
+    onReconnect: () => {
+      void load();
+    },
   });
 
   // Preserve chronological request numbering identical to the Student Dashboard

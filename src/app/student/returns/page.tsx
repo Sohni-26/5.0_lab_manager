@@ -28,6 +28,10 @@ import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import { DEMO_REQUESTS } from "@/lib/demo-data";
 import { getPartImageUrl } from "@/lib/part-images";
+import {
+  readMergedDemoRequests,
+  upsertLocalStudentRequest,
+} from "@/lib/student-requests-store";
 import { cn, formatDate, PHOTO_ANGLE_META } from "@/lib/utils";
 import {
   REQUIRED_PHOTO_ANGLES,
@@ -344,9 +348,8 @@ export default function StudentReturnsPage() {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    try {
-      const res = await apiClient.requests.list({ pageSize: 60 });
-      const list = res.data.filter(
+    const filterReturnable = (list: LabRequestDTO[]) =>
+      list.filter(
         (r) =>
           r.status === "ISSUED" ||
           r.status === "PARTIALLY_ISSUED" ||
@@ -354,8 +357,9 @@ export default function StudentReturnsPage() {
           r.status === "PARTIALLY_RETURNED" ||
           r.status === "RETURN_VERIFICATION_PENDING"
       );
-      setRequests(list);
 
+    const hydrate = (list: LabRequestDTO[]) => {
+      setRequests(list);
       const qInit: Record<string, number> = {};
       const cInit: Record<string, ReturnConditionChoice> = {};
       const expInit: Record<string, boolean> = {};
@@ -382,43 +386,23 @@ export default function StudentReturnsPage() {
       setQtyByItem((prev) => ({ ...qInit, ...prev }));
       setConditionByItem((prev) => ({ ...cInit, ...prev }));
       setExpandedItems((prev) => ({ ...expInit, ...prev }));
+    };
+
+    if (isDemoMode) {
+      hydrate(filterReturnable(readMergedDemoRequests(DEMO_REQUESTS)));
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await apiClient.requests.list({ pageSize: 60 });
+      hydrate(filterReturnable(res.data));
     } catch {
-      const demo = DEMO_REQUESTS.filter(
-        (r) =>
-          r.status === "ISSUED" || r.status === "RETURN_VERIFICATION_PENDING"
-      );
-      setRequests(demo);
-
-      const qInit: Record<string, number> = {};
-      const cInit: Record<string, ReturnConditionChoice> = {};
-      const expInit: Record<string, boolean> = {};
-      demo.forEach((r) => {
-        const isAwaiting = r.status === "RETURN_VERIFICATION_PENDING";
-        let openedOne = false;
-        r.items.forEach((it) => {
-          qInit[it.id] = Math.max(1, it.issuedQuantity - it.returnedQuantity);
-          cInit[it.id] = "GOOD";
-          if (isAwaiting) {
-            expInit[it.id] = false;
-          } else if (!openedOne && countReturnPhotos(r, it) < 4) {
-            expInit[it.id] = true;
-            openedOne = true;
-          } else {
-            expInit[it.id] = false;
-          }
-        });
-        if (!isAwaiting && !openedOne && r.items[0]) {
-          expInit[r.items[0].id] = true;
-        }
-      });
-
-      setQtyByItem((prev) => ({ ...qInit, ...prev }));
-      setConditionByItem((prev) => ({ ...cInit, ...prev }));
-      setExpandedItems((prev) => ({ ...expInit, ...prev }));
+      hydrate(filterReturnable(readMergedDemoRequests(DEMO_REQUESTS)));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isDemoMode]);
 
   useEffect(() => {
     load();
@@ -526,16 +510,14 @@ export default function StudentReturnsPage() {
       await load();
     } catch (err) {
       if (isDemoMode) {
+        const updatedReq: LabRequestDTO = {
+          ...req,
+          status: "RETURN_VERIFICATION_PENDING",
+          updatedAt: new Date().toISOString(),
+        };
+        upsertLocalStudentRequest(updatedReq);
         setRequests((prev) =>
-          prev.map((r) =>
-            r.id === req.id
-              ? {
-                  ...r,
-                  status: "RETURN_VERIFICATION_PENDING",
-                  updatedAt: new Date().toISOString(),
-                }
-              : r
-          )
+          prev.map((r) => (r.id === req.id ? updatedReq : r))
         );
         setExpandedItems((prev) => {
           const next = { ...prev };

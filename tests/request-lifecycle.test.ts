@@ -88,14 +88,14 @@ describe("Request Lifecycle, Concurrency, 4-Photo Proof & Return Verification", 
       )
     ).rejects.toThrow(ConflictError);
 
-    // Stage 2: Instructor approves
+    // Stage 2: Instructor approves -> directly APPROVED and atomically reserves 3 units
     const afterInst = await processInstructorApproval(
       users.inst1Cmp1,
       req.id,
       { decision: "APPROVED", comments: "Approved for lab bench" },
       db
     );
-    expect(afterInst.status).toBe("PENDING_LAB_MANAGER");
+    expect(afterInst.status).toBe("APPROVED");
 
     // Duplicate Instructor approval MUST be rejected
     await expect(
@@ -106,15 +106,6 @@ describe("Request Lifecycle, Concurrency, 4-Photo Proof & Return Verification", 
         db
       )
     ).rejects.toThrow(ConflictError);
-
-    // Stage 3: Lab Manager gives final approval -> atomically reserves 3 units
-    const afterLm = await processLabManagerApproval(
-      users.lm1Cmp1,
-      req.id,
-      { decision: "APPROVED", comments: "Stock reserved" },
-      db
-    );
-    expect(afterLm.status).toBe("APPROVED");
 
     let inv = (await listCampusInventory(users.lm1Cmp1, DEFAULT_PAGE, {}, db)).data[0];
     expect(inv.availableQuantity).toBe(7);
@@ -279,13 +270,10 @@ describe("Request Lifecycle, Concurrency, 4-Photo Proof & Return Verification", 
       db
     );
 
-    await processInstructorApproval(users.inst1Cmp1, req1.id, { decision: "APPROVED" }, db);
-    await processInstructorApproval(users.inst1Cmp1, req2.id, { decision: "APPROVED" }, db);
-
-    // Fire BOTH Lab Manager approvals concurrently!
+    // Fire BOTH Instructor approvals concurrently!
     const results = await Promise.allSettled([
-      processLabManagerApproval(users.lm1Cmp1, req1.id, { decision: "APPROVED" }, db),
-      processLabManagerApproval(users.lm2Cmp1, req2.id, { decision: "APPROVED" }, db),
+      processInstructorApproval(users.inst1Cmp1, req1.id, { decision: "APPROVED" }, db),
+      processInstructorApproval(users.inst1Cmp1, req2.id, { decision: "APPROVED" }, db),
     ]);
 
     const fulfilled = results.filter((r) => r.status === "fulfilled");
@@ -318,7 +306,6 @@ describe("Request Lifecycle, Concurrency, 4-Photo Proof & Return Verification", 
     const reqItemId = req.items[0].id;
 
     await processInstructorApproval(users.inst1Cmp1, req.id, { decision: "APPROVED" }, db);
-    await processLabManagerApproval(users.lm1Cmp1, req.id, { decision: "APPROVED" }, db);
 
     for (const angle of REQUIRED_PHOTO_ANGLES) {
       await uploadCollectionPhoto(

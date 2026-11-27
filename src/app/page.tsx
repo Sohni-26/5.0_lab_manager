@@ -1,5 +1,5 @@
-import { LoopsiiLandingPage } from "@/components/landing/loopsii-landing-page";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <LoopsiiLandingPage />;
+  redirect("/login");
 }

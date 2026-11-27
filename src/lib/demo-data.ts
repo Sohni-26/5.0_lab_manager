@@ -507,7 +507,7 @@ export const DEMO_REQUESTS: LabRequestDTO[] = [
     studentId: "demo-user-stu-01",
     instructorId: "demo-user-inst-01",
     purpose: "Signal conditioning & high-frequency PWM waveform analysis",
-    status: "PENDING_LAB_MANAGER",
+    status: "APPROVED",
     rejectionReason: null,
     createdAt: "2026-11-22T11:20:00.000Z",
     updatedAt: "2026-11-22T14:15:00.000Z",

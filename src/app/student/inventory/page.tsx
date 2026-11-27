@@ -18,12 +18,13 @@ import {
 import { PartPickerCard } from "@/components/student/part-picker-card";
 import { StudentRequestDock } from "@/components/student/request-dock";
 import { useAuth } from "@/hooks/use-auth";
+import { useRealtime } from "@/hooks/use-realtime";
 import { apiClient } from "@/lib/api-client";
 import {
-  DEMO_CAMPUS_INVENTORY,
   DEMO_CATEGORIES,
   DEMO_USERS,
 } from "@/lib/demo-data";
+import { loadDemoCampusInventory } from "@/lib/lab-manager-store";
 import {
   extractItemProcurementMeta,
   PROCUREMENT_LAB_BLOCKS,
@@ -66,16 +67,16 @@ function BrowseInventoryInner() {
     null
   );
 
-  useEffect(() => {
+  const loadInventory = useCallback(() => {
     if (isDemoMode) {
-      const demoInv = DEMO_CAMPUS_INVENTORY.filter(
+      const demoInv = loadDemoCampusInventory().filter(
         (i) => i.isVerified && i.isVisible
       );
       const demoInsts = DEMO_USERS.filter((u) => u.role === "INSTRUCTOR");
       setItems(demoInv);
       setCategories(DEMO_CATEGORIES);
       setInstructors(demoInsts);
-      if (demoInsts.length > 0) setInstructorId(demoInsts[0].id);
+      setInstructorId((prev) => prev || (demoInsts[0]?.id ?? ""));
       setLoading(false);
       return;
     }
@@ -85,7 +86,7 @@ function BrowseInventoryInner() {
         .list({ pageSize: 250 })
         .then((r) => r.data.filter((i) => i.isVerified && i.isVisible))
         .catch(() =>
-          DEMO_CAMPUS_INVENTORY.filter((i) => i.isVerified && i.isVisible)
+          loadDemoCampusInventory().filter((i) => i.isVerified && i.isVisible)
         ),
       apiClient.categories
         .list()
@@ -100,10 +101,26 @@ function BrowseInventoryInner() {
         setItems(inv);
         setCategories(cats);
         setInstructors(insts);
-        if (insts.length > 0) setInstructorId(insts[0].id);
+        setInstructorId((prev) => prev || (insts[0]?.id ?? ""));
       })
       .finally(() => setLoading(false));
   }, [isDemoMode]);
+
+  useEffect(() => {
+    loadInventory();
+  }, [loadInventory]);
+
+  useRealtime({
+    enabled: true,
+    isDemoMode,
+    eventTypes: ["inventory.updated", "inventory.visibility_changed", "allocation.verified"],
+    onEvent: () => {
+      loadInventory();
+    },
+    onReconnect: () => {
+      loadInventory();
+    },
+  });
 
   const inventoryByItemId = useMemo(
     () => new Map(items.map((row) => [row.itemId, row])),
@@ -391,17 +408,17 @@ function BrowseInventoryInner() {
         )}
       </AnimatePresence>
 
-      {/* Clean Responsive Filter Bar (collapsible controls on mobile, single inline bar on sm+) */}
-      <div className="rounded-[20px] sm:rounded-[22px] border border-black/12 bg-white p-3 sm:p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+      {/* Soft Responsive Filter Bar (collapsible controls on mobile, single inline bar on sm+) */}
+      <div className="rounded-[24px] sm:rounded-[28px] bg-white ring-1 ring-black/[0.04] shadow-[0_6px_24px_rgba(0,0,0,0.04)] p-3 sm:p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         {/* Full-width search bar on top for mobile, flexible pill on sm+ */}
         <div className="relative w-full sm:flex-1 sm:min-w-[240px] sm:max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/45" />
+          <Search className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Arduino, Raspberry Pi, sensors, lab block..."
-            className="min-h-[44px] h-11 w-full rounded-full border border-black/15 bg-[#F7F7F5] pl-10 pr-10 sm:pr-4 text-[16px] sm:text-[14px] text-black placeholder:text-black/45 focus:border-black focus:bg-white focus:outline-none"
+            className="min-h-[44px] h-11 w-full rounded-full border border-transparent bg-[#F5F5F2] pl-10 pr-10 sm:pr-4 text-[16px] sm:text-[14px] text-black placeholder:text-black/40 transition-colors focus:border-black/20 focus:bg-white focus:outline-none"
           />
           {search.length > 0 && (
             <button
@@ -506,7 +523,7 @@ function BrowseInventoryInner() {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             aria-label="Filter by category"
-            className="col-span-2 min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3.5 text-[15px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4 sm:text-[14px]"
+            className="col-span-2 min-h-[44px] h-11 w-full rounded-[16px] border border-transparent bg-[#F5F5F2] px-3.5 text-[15px] font-medium text-black transition-colors hover:bg-[#ECECE8] focus:border-black/20 focus:bg-white focus:outline-none sm:w-auto sm:rounded-full sm:px-4 sm:text-[14px]"
           >
             <option value="ALL">All Categories ({categories.length})</option>
             {categories.map((c) => (
@@ -520,7 +537,7 @@ function BrowseInventoryInner() {
             value={labBlockFilter}
             onChange={(e) => setLabBlockFilter(e.target.value)}
             aria-label="Filter by lab block"
-            className="min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3 text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
+            className="min-h-[44px] h-11 w-full rounded-[16px] border border-transparent bg-[#F5F5F2] px-3 text-[14px] font-medium text-black transition-colors hover:bg-[#ECECE8] focus:border-black/20 focus:bg-white focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
           >
             <option value="ALL">All Lab Blocks</option>
             {PROCUREMENT_LAB_BLOCKS.map((block) => (
@@ -534,7 +551,7 @@ function BrowseInventoryInner() {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as "name" | "available")}
             aria-label="Sort inventory"
-            className="min-h-[44px] h-11 w-full rounded-[14px] border border-black/15 bg-white px-3 text-[14px] font-medium text-black focus:border-black focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
+            className="min-h-[44px] h-11 w-full rounded-[16px] border border-transparent bg-[#F5F5F2] px-3 text-[14px] font-medium text-black transition-colors hover:bg-[#ECECE8] focus:border-black/20 focus:bg-white focus:outline-none sm:w-auto sm:rounded-full sm:px-4"
           >
             <option value="name">Sort: Name (A–Z)</option>
             <option value="available">Sort: Most Available</option>
@@ -548,17 +565,20 @@ function BrowseInventoryInner() {
 
       {/* Parts Grid with Shimmer Loaders & Progressive Batching */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3.5 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
-              className="overflow-hidden rounded-[18px] sm:rounded-[22px] border border-black/12 bg-white"
+              className="rounded-[24px] sm:rounded-[28px] bg-white p-2 pb-3 sm:p-2.5 sm:pb-3.5 ring-1 ring-black/[0.04] shadow-[0_8px_28px_rgba(0,0,0,0.045)]"
             >
-              <div className="lp-shimmer aspect-[4/3] w-full" />
-              <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-2.5">
-                <div className="lp-shimmer h-3.5 sm:h-4 w-20 sm:w-28 rounded-md" />
-                <div className="lp-shimmer h-4 sm:h-5 w-4/5 rounded-md" />
-                <div className="lp-shimmer h-10 sm:h-11 w-full rounded-full mt-2" />
+              <div className="lp-shimmer aspect-[4/3] w-full rounded-[18px] sm:rounded-[20px]" />
+              <div className="px-1.5 pt-2.5 sm:px-2 sm:pt-3 space-y-2">
+                <div className="lp-shimmer h-3.5 w-20 sm:w-28 rounded-full" />
+                <div className="lp-shimmer h-4 w-4/5 rounded-full" />
+                <div className="flex items-center justify-between pt-2">
+                  <div className="lp-shimmer h-3.5 w-14 rounded-full" />
+                  <div className="lp-shimmer h-9 w-20 rounded-full" />
+                </div>
               </div>
             </div>
           ))}
@@ -596,17 +616,17 @@ function BrowseInventoryInner() {
           {visibleCount < filtered.length && (
             <div
               ref={setSentinelEl}
-              className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
+              className="mt-4 sm:mt-6 grid grid-cols-2 gap-3.5 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
             >
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="overflow-hidden rounded-[18px] sm:rounded-[22px] border border-black/12 bg-white"
+                  className="rounded-[24px] sm:rounded-[28px] bg-white p-2 pb-3 sm:p-2.5 sm:pb-3.5 ring-1 ring-black/[0.04] shadow-[0_8px_28px_rgba(0,0,0,0.045)]"
                 >
-                  <div className="lp-shimmer aspect-[4/3] w-full" />
-                  <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-2.5">
-                    <div className="lp-shimmer h-3.5 sm:h-4 w-20 sm:w-28 rounded-md" />
-                    <div className="lp-shimmer h-4 sm:h-5 w-4/5 rounded-md" />
+                  <div className="lp-shimmer aspect-[4/3] w-full rounded-[18px] sm:rounded-[20px]" />
+                  <div className="px-1.5 pt-2.5 sm:px-2 sm:pt-3 space-y-2">
+                    <div className="lp-shimmer h-3.5 w-20 sm:w-28 rounded-full" />
+                    <div className="lp-shimmer h-4 w-4/5 rounded-full" />
                   </div>
                 </div>
               ))}
